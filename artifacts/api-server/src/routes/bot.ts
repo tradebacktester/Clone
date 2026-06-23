@@ -10,6 +10,7 @@ import {
   UpdateBotConfigBody,
   UpdateBotConfigResponse,
 } from "@workspace/api-zod";
+import { startAnalysisScheduler, stopAnalysisScheduler } from "../lib/analyzer.js";
 
 const router: IRouter = Router();
 
@@ -32,9 +33,28 @@ router.get("/bot/status", async (req, res): Promise<void> => {
     .from(tradesTable)
     .where(eq(tradesTable.status, "open"));
 
-  const dailyPnl = openTrades.reduce((sum, t) => sum + parseFloat(t.pnl ?? "0"), 0);
+  const closedToday = await db
+    .select()
+    .from(tradesTable)
+    .where(eq(tradesTable.status, "closed"));
+
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todayTrades = closedToday.filter(
+    t => t.closedAt && new Date(t.closedAt) >= todayStart,
+  );
+
+  const dailyPnl = todayTrades.reduce((sum, t) => sum + parseFloat(t.pnl ?? "0"), 0);
   const dailyLoss = Math.min(dailyPnl, 0);
-  const weeklyLoss = dailyLoss;
+
+  const weekStart = new Date();
+  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+  const weekTrades = closedToday.filter(
+    t => t.closedAt && new Date(t.closedAt) >= weekStart,
+  );
+  const weeklyPnl = weekTrades.reduce((sum, t) => sum + parseFloat(t.pnl ?? "0"), 0);
+  const weeklyLoss = Math.min(weeklyPnl, 0);
 
   const payload = {
     running: state!.running,
@@ -62,6 +82,8 @@ router.post("/bot/start", async (req, res): Promise<void> => {
     .update(botStateTable)
     .set({ running: true, mode: parsed.data.mode, activePairs: parsed.data.pairs, haltedDueToRisk: false });
 
+  startAnalysisScheduler(10);
+
   const [state] = await db.select().from(botStateTable).limit(1);
   const payload = {
     running: true,
@@ -80,6 +102,7 @@ router.post("/bot/start", async (req, res): Promise<void> => {
 router.post("/bot/stop", async (_req, res): Promise<void> => {
   await ensureDefaults();
   await db.update(botStateTable).set({ running: false, activePairs: [] });
+  stopAnalysisScheduler();
   const payload = {
     running: false,
     mode: "paper" as const,

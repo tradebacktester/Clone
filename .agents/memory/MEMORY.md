@@ -1,0 +1,2 @@
+- [Market Analysis Engine](market-analysis-engine.md) — lib/market-analysis built with all algorithms; signal confidence thresholds and synthetic data quirks documented.
+- [Analysis Scheduler](analysis-scheduler.md) — bot start/stop controls the 10-minute analysis loop; signals only cleared from DB when new real ones exist.
