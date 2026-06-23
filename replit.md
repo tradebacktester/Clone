@@ -1,6 +1,6 @@
-# [Project name]
+# TradeClone AI
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+An algorithmic trading bot that learns Smart Money / Supply & Demand / AMD strategy behavior and executes trades on EUR/USD, GBP/USD, and USD/JPY.
 
 ## Run & Operate
 
@@ -19,18 +19,38 @@ _Replace the heading above with the project's name, and this line with one sente
 - Validation: Zod (`zod/v4`), `drizzle-zod`
 - API codegen: Orval (from OpenAPI spec)
 - Build: esbuild (CJS bundle)
+- Frontend: React + Vite, TailwindCSS, Recharts, Wouter, React Query
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `lib/api-spec/openapi.yaml` — single source of truth for all API contracts
+- `lib/db/src/schema/` — Drizzle table definitions (trades, bot, market, learning, backtest, broker)
+- `artifacts/api-server/src/routes/` — Express route handlers (bot, trades, analytics, market, learning, backtest, broker)
+- `artifacts/dashboard/src/` — React dashboard frontend
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- OpenAPI-first: all types generated from `lib/api-spec/openapi.yaml` via Orval — never hand-write API types
+- Broker layer is abstracted behind `/broker/accounts` API; actual broker connectivity (OANDA/MT5/TradeLocker) added when credentials provided
+- Backtesting runs simulated trades server-side (realistic AMD/SMC pattern simulation) stored in DB
+- RL agent state tracked in `rl_agent` table; actual reinforcement learning weights will be persisted as model versions
+- Risk limits enforced at bot start/stop level; daily/weekly loss tracked from closed trades
 
 ## Product
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+- **Dashboard**: Live bot status, open positions, active signals, recent trade feed, key metrics
+- **Trade Journal**: Full trade history with AMD pattern, zone data, R:R, P&L filtering
+- **Analytics**: Equity curve, monthly P&L, drawdown, win rate breakdown by pair/session/zone
+- **Market Analysis**: Supply/demand zones per pair/timeframe, market regime, active signals
+- **Learning Engine**: RL agent stats (episode, epsilon, reward), setup quality scores by pattern
+- **Backtesting**: Run backtests by pair/date/balance, view historical results
+- **Settings**: Bot config, risk management, broker account management
+
+## Supported Pairs & Sessions
+
+- Pairs: EUR/USD, GBP/USD, USD/JPY
+- Sessions: London (primary), New York (secondary)
+- Strategy: Smart Money + Supply & Demand + AMD (Accumulation/Manipulation/Distribution)
 
 ## User preferences
 
@@ -38,7 +58,10 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
+- Always run `pnpm --filter @workspace/api-spec run codegen` after any OpenAPI spec change before building routes or frontend
+- Broker API keys stored in `broker_accounts` table — NOT in environment variables (added via Settings UI)
+- The `rl_agent` table has a single row (singleton) — always use LIMIT 1 and upsert pattern
+- Bot state is a singleton row in `bot_state` table — same pattern
 
 ## Pointers
 

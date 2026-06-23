@@ -1,36 +1,1014 @@
-openapi: 3.1.0
+openapi: "3.1.0"
 info:
-  # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: API specification
+  version: "1.0.0"
+  description: Smart Money Trading Bot API
+
 servers:
   - url: /api
-    description: Base API path
-tags:
-  - name: health
-    description: Health operations
+
 paths:
   /healthz:
     get:
       operationId: healthCheck
-      tags: [health]
       summary: Health check
-      description: Returns server health status
       responses:
         "200":
-          description: Healthy
+          description: OK
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  # ── Bot Control ──────────────────────────────────────────────────────────────
+  /bot/status:
+    get:
+      operationId: getBotStatus
+      summary: Get bot status and current state
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/start:
+    post:
+      operationId: startBot
+      summary: Start the trading bot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotStartInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/stop:
+    post:
+      operationId: stopBot
+      summary: Stop the trading bot
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
+  /bot/config:
+    get:
+      operationId: getBotConfig
+      summary: Get bot configuration
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotConfig"
+    put:
+      operationId: updateBotConfig
+      summary: Update bot configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BotConfigInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotConfig"
+
+  # ── Trades ────────────────────────────────────────────────────────────────────
+  /trades:
+    get:
+      operationId: listTrades
+      summary: List all trades
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, closed, all]
+        - name: pair
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+        - name: offset
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradeList"
+
+  /trades/{id}:
+    get:
+      operationId: getTrade
+      summary: Get a single trade
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trade"
+        "404":
+          description: Not found
+
+  /trades/{id}/close:
+    post:
+      operationId: closeTrade
+      summary: Manually close an open trade
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Trade"
+        "404":
+          description: Not found
+
+  # ── Analytics & Performance ────────────────────────────────────────────────
+  /analytics/summary:
+    get:
+      operationId: getAnalyticsSummary
+      summary: Get overall performance summary
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalyticsSummary"
+
+  /analytics/equity-curve:
+    get:
+      operationId: getEquityCurve
+      summary: Get equity curve data points
+      parameters:
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum: [1d, 7d, 30d, 90d, all]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/EquityPoint"
+
+  /analytics/win-rate-breakdown:
+    get:
+      operationId: getWinRateBreakdown
+      summary: Win rate broken down by pair, session, and setup quality
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WinRateBreakdown"
+
+  /analytics/monthly-pnl:
+    get:
+      operationId: getMonthlyPnl
+      summary: Monthly PnL grouped by month
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MonthlyPnl"
+
+  /analytics/drawdown:
+    get:
+      operationId: getDrawdown
+      summary: Drawdown series over time
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DrawdownPoint"
+
+  # ── Market Analysis ────────────────────────────────────────────────────────
+  /market/zones:
+    get:
+      operationId: getMarketZones
+      summary: Get detected supply and demand zones
+      parameters:
+        - name: pair
+          in: query
+          schema:
+            type: string
+        - name: timeframe
+          in: query
+          schema:
+            type: string
+            enum: [15m, 1h, 4h, 1d]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketZone"
+
+  /market/regime:
+    get:
+      operationId: getMarketRegime
+      summary: Current market regime per pair
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketRegime"
+
+  /market/signals:
+    get:
+      operationId: getActiveSignals
+      summary: Get currently active trade signals
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradeSignal"
+
+  # ── Learning Engine ────────────────────────────────────────────────────────
+  /learning/stats:
+    get:
+      operationId: getLearningStats
+      summary: Get RL agent learning statistics
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningStats"
+
+  /learning/setup-scores:
+    get:
+      operationId: getSetupScores
+      summary: Get setup quality scores by pattern
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SetupScore"
+
+  /learning/reset:
+    post:
+      operationId: resetLearning
+      summary: Reset the RL agent weights
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LearningStats"
+
+  # ── Backtesting ────────────────────────────────────────────────────────────
+  /backtest/run:
+    post:
+      operationId: runBacktest
+      summary: Run a backtest with given parameters
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BacktestInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BacktestResult"
+
+  /backtest/history:
+    get:
+      operationId: listBacktests
+      summary: List past backtest runs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BacktestSummary"
+
+  /backtest/{id}:
+    get:
+      operationId: getBacktest
+      summary: Get a single backtest result
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BacktestResult"
+        "404":
+          description: Not found
+
+  # ── Broker ────────────────────────────────────────────────────────────────
+  /broker/accounts:
+    get:
+      operationId: listBrokerAccounts
+      summary: List configured broker accounts
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/BrokerAccount"
+    post:
+      operationId: addBrokerAccount
+      summary: Add a broker account
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrokerAccountInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerAccount"
+
+  /broker/accounts/{id}:
+    delete:
+      operationId: deleteBrokerAccount
+      summary: Remove a broker account
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Deleted
+
+  # ── Risk Settings ──────────────────────────────────────────────────────────
+  /risk/settings:
+    get:
+      operationId: getRiskSettings
+      summary: Get risk management settings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskSettings"
+    put:
+      operationId: updateRiskSettings
+      summary: Update risk management settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RiskSettingsInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RiskSettings"
+
 components:
   schemas:
     HealthStatus:
       type: object
+      required: [status]
       properties:
         status:
           type: string
-      required:
-        - status
 
+    # ── Bot ──────────────────────────────────────────────────────────────────
+    BotStatus:
+      type: object
+      required: [running, mode, activePairs, openTrades, dailyPnl, dailyLoss, weeklyLoss, lastUpdated]
+      properties:
+        running:
+          type: boolean
+        mode:
+          type: string
+          enum: [live, paper, backtest]
+        activePairs:
+          type: array
+          items:
+            type: string
+        openTrades:
+          type: integer
+        dailyPnl:
+          type: number
+        dailyLoss:
+          type: number
+        weeklyLoss:
+          type: number
+        haltedDueToRisk:
+          type: boolean
+        lastUpdated:
+          type: string
+
+    BotStartInput:
+      type: object
+      required: [mode, pairs]
+      properties:
+        mode:
+          type: string
+          enum: [live, paper]
+        pairs:
+          type: array
+          items:
+            type: string
+        brokerId:
+          type: ["integer", "null"]
+
+    BotConfig:
+      type: object
+      required: [id, pairs, sessions, riskPerTrade, maxDailyLoss, maxWeeklyLoss, newsFilterEnabled, trailingStopEnabled, confirmationRequired, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        pairs:
+          type: array
+          items:
+            type: string
+        sessions:
+          type: array
+          items:
+            type: string
+        riskPerTrade:
+          type: number
+        maxDailyLoss:
+          type: number
+        maxWeeklyLoss:
+          type: number
+        newsFilterEnabled:
+          type: boolean
+        trailingStopEnabled:
+          type: boolean
+        confirmationRequired:
+          type: boolean
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    BotConfigInput:
+      type: object
+      properties:
+        pairs:
+          type: array
+          items:
+            type: string
+        sessions:
+          type: array
+          items:
+            type: string
+        riskPerTrade:
+          type: number
+        maxDailyLoss:
+          type: number
+        maxWeeklyLoss:
+          type: number
+        newsFilterEnabled:
+          type: boolean
+        trailingStopEnabled:
+          type: boolean
+        confirmationRequired:
+          type: boolean
+
+    # ── Trades ───────────────────────────────────────────────────────────────
+    Trade:
+      type: object
+      required: [id, pair, direction, entryPrice, stopLoss, takeProfit, lotSize, status, session, setupScore, amdPattern, zoneType, zoneStrength, riskRewardRatio, openedAt]
+      properties:
+        id:
+          type: integer
+        pair:
+          type: string
+        direction:
+          type: string
+          enum: [buy, sell]
+        entryPrice:
+          type: number
+        stopLoss:
+          type: number
+        takeProfit:
+          type: number
+        currentPrice:
+          type: ["number", "null"]
+        closedPrice:
+          type: ["number", "null"]
+        lotSize:
+          type: number
+        status:
+          type: string
+          enum: [open, closed, cancelled]
+        pnl:
+          type: ["number", "null"]
+        pnlPercent:
+          type: ["number", "null"]
+        session:
+          type: string
+          enum: [london, newyork, asian]
+        setupScore:
+          type: number
+        amdPattern:
+          type: string
+          enum: [accumulation, manipulation, distribution, unknown]
+        zoneType:
+          type: string
+          enum: [demand, supply]
+        zoneStrength:
+          type: number
+        liquiditySweep:
+          type: boolean
+        fibLevel:
+          type: ["number", "null"]
+        riskRewardRatio:
+          type: number
+        breakEvenMoved:
+          type: boolean
+        closeReason:
+          type: ["string", "null"]
+        openedAt:
+          type: string
+        closedAt:
+          type: ["string", "null"]
+
+    TradeList:
+      type: object
+      required: [trades, total]
+      properties:
+        trades:
+          type: array
+          items:
+            $ref: "#/components/schemas/Trade"
+        total:
+          type: integer
+
+    # ── Analytics ─────────────────────────────────────────────────────────────
+    AnalyticsSummary:
+      type: object
+      required: [totalTrades, winningTrades, losingTrades, winRate, totalPnl, avgRr, maxDrawdown, profitFactor, expectancy, avgWin, avgLoss, bestTrade, worstTrade, consecutiveWins, consecutiveLosses]
+      properties:
+        totalTrades:
+          type: integer
+        winningTrades:
+          type: integer
+        losingTrades:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+        avgRr:
+          type: number
+        maxDrawdown:
+          type: number
+        profitFactor:
+          type: number
+        expectancy:
+          type: number
+        avgWin:
+          type: number
+        avgLoss:
+          type: number
+        bestTrade:
+          type: number
+        worstTrade:
+          type: number
+        consecutiveWins:
+          type: integer
+        consecutiveLosses:
+          type: integer
+
+    EquityPoint:
+      type: object
+      required: [date, equity, drawdown]
+      properties:
+        date:
+          type: string
+        equity:
+          type: number
+        drawdown:
+          type: number
+
+    WinRateBreakdown:
+      type: object
+      required: [byPair, bySession, byZoneType, byAmdPattern]
+      properties:
+        byPair:
+          type: array
+          items:
+            $ref: "#/components/schemas/WinRateCategory"
+        bySession:
+          type: array
+          items:
+            $ref: "#/components/schemas/WinRateCategory"
+        byZoneType:
+          type: array
+          items:
+            $ref: "#/components/schemas/WinRateCategory"
+        byAmdPattern:
+          type: array
+          items:
+            $ref: "#/components/schemas/WinRateCategory"
+
+    WinRateCategory:
+      type: object
+      required: [label, winRate, trades, pnl]
+      properties:
+        label:
+          type: string
+        winRate:
+          type: number
+        trades:
+          type: integer
+        pnl:
+          type: number
+
+    MonthlyPnl:
+      type: object
+      required: [month, pnl, trades, winRate]
+      properties:
+        month:
+          type: string
+        pnl:
+          type: number
+        trades:
+          type: integer
+        winRate:
+          type: number
+
+    DrawdownPoint:
+      type: object
+      required: [date, drawdown]
+      properties:
+        date:
+          type: string
+        drawdown:
+          type: number
+
+    # ── Market ────────────────────────────────────────────────────────────────
+    MarketZone:
+      type: object
+      required: [id, pair, timeframe, zoneType, priceTop, priceBottom, strength, tested, active, createdAt]
+      properties:
+        id:
+          type: integer
+        pair:
+          type: string
+        timeframe:
+          type: string
+        zoneType:
+          type: string
+          enum: [demand, supply]
+        priceTop:
+          type: number
+        priceBottom:
+          type: number
+        strength:
+          type: number
+        tested:
+          type: integer
+        active:
+          type: boolean
+        fibLevel:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+
+    MarketRegime:
+      type: object
+      required: [pair, regime, trend, volatility, atr, updatedAt]
+      properties:
+        pair:
+          type: string
+        regime:
+          type: string
+          enum: [trending, ranging, volatile, unknown]
+        trend:
+          type: string
+          enum: [bullish, bearish, neutral]
+        volatility:
+          type: string
+          enum: [low, medium, high]
+        atr:
+          type: number
+        updatedAt:
+          type: string
+
+    TradeSignal:
+      type: object
+      required: [id, pair, direction, confidence, zoneType, zoneStrength, amdPhase, fibLevel, session, generatedAt]
+      properties:
+        id:
+          type: integer
+        pair:
+          type: string
+        direction:
+          type: string
+          enum: [buy, sell]
+        confidence:
+          type: number
+        zoneType:
+          type: string
+          enum: [demand, supply]
+        zoneStrength:
+          type: number
+        amdPhase:
+          type: string
+          enum: [accumulation, manipulation, distribution]
+        fibLevel:
+          type: number
+        session:
+          type: string
+        generatedAt:
+          type: string
+
+    # ── Learning ──────────────────────────────────────────────────────────────
+    LearningStats:
+      type: object
+      required: [episode, totalReward, avgReward, epsilon, learningRate, tradesAnalyzed, modelVersion, lastTrained]
+      properties:
+        episode:
+          type: integer
+        totalReward:
+          type: number
+        avgReward:
+          type: number
+        epsilon:
+          type: number
+        learningRate:
+          type: number
+        tradesAnalyzed:
+          type: integer
+        modelVersion:
+          type: integer
+        lastTrained:
+          type: string
+
+    SetupScore:
+      type: object
+      required: [pattern, avgScore, confidence, trades, winRate, avgPnl]
+      properties:
+        pattern:
+          type: string
+        avgScore:
+          type: number
+        confidence:
+          type: number
+        trades:
+          type: integer
+        winRate:
+          type: number
+        avgPnl:
+          type: number
+
+    # ── Backtesting ──────────────────────────────────────────────────────────
+    BacktestInput:
+      type: object
+      required: [pair, startDate, endDate, initialBalance, riskPerTrade]
+      properties:
+        pair:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        initialBalance:
+          type: number
+        riskPerTrade:
+          type: number
+        sessions:
+          type: array
+          items:
+            type: string
+        enableNewsFilter:
+          type: boolean
+        enableRL:
+          type: boolean
+
+    BacktestResult:
+      type: object
+      required: [id, pair, startDate, endDate, initialBalance, finalBalance, totalTrades, winRate, totalPnl, maxDrawdown, profitFactor, sharpeRatio, trades, createdAt]
+      properties:
+        id:
+          type: integer
+        pair:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        initialBalance:
+          type: number
+        finalBalance:
+          type: number
+        totalTrades:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+        maxDrawdown:
+          type: number
+        profitFactor:
+          type: number
+        sharpeRatio:
+          type: number
+        trades:
+          type: array
+          items:
+            $ref: "#/components/schemas/Trade"
+        createdAt:
+          type: string
+
+    BacktestSummary:
+      type: object
+      required: [id, pair, startDate, endDate, winRate, totalPnl, maxDrawdown, totalTrades, createdAt]
+      properties:
+        id:
+          type: integer
+        pair:
+          type: string
+        startDate:
+          type: string
+        endDate:
+          type: string
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+        maxDrawdown:
+          type: number
+        totalTrades:
+          type: integer
+        createdAt:
+          type: string
+
+    # ── Broker ────────────────────────────────────────────────────────────────
+    BrokerAccount:
+      type: object
+      required: [id, broker, accountId, accountName, active, paperTrading, createdAt]
+      properties:
+        id:
+          type: integer
+        broker:
+          type: string
+          enum: [oanda, mt5, tradelocker]
+        accountId:
+          type: string
+        accountName:
+          type: string
+        active:
+          type: boolean
+        paperTrading:
+          type: boolean
+        balance:
+          type: ["number", "null"]
+        createdAt:
+          type: string
+
+    BrokerAccountInput:
+      type: object
+      required: [broker, accountId, accountName, apiKey]
+      properties:
+        broker:
+          type: string
+          enum: [oanda, mt5, tradelocker]
+        accountId:
+          type: string
+        accountName:
+          type: string
+        apiKey:
+          type: string
+        apiSecret:
+          type: ["string", "null"]
+        paperTrading:
+          type: boolean
+
+    # ── Risk ──────────────────────────────────────────────────────────────────
+    RiskSettings:
+      type: object
+      required: [id, riskPerTrade, maxDailyLoss, maxWeeklyLoss, maxOpenTrades, useTrailingStop, trailingStopAt, breakEvenAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        riskPerTrade:
+          type: number
+        maxDailyLoss:
+          type: number
+        maxWeeklyLoss:
+          type: number
+        maxOpenTrades:
+          type: integer
+        useTrailingStop:
+          type: boolean
+        trailingStopAt:
+          type: number
+        breakEvenAt:
+          type: number
+        updatedAt:
+          type: string
+
+    RiskSettingsInput:
+      type: object
+      properties:
+        riskPerTrade:
+          type: number
+        maxDailyLoss:
+          type: number
+        maxWeeklyLoss:
+          type: number
+        maxOpenTrades:
+          type: integer
+        useTrailingStop:
+          type: boolean
+        trailingStopAt:
+          type: number
+        breakEvenAt:
+          type: number
