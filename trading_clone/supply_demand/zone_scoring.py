@@ -17,6 +17,15 @@ Zones scoring < MIN_SCORE are considered low-quality and filtered out.
 MIN_SCORE = 70
 
 
+def calc_zone_score(zone, candles) -> int:
+    """Return the zone's pre-computed score (computed at detection time).
+
+    The ``candles`` argument is accepted for API compatibility but is not used —
+    zone scoring is baked in during detect_demand_zones / detect_supply_zones.
+    """
+    return zone.score
+
+
 def score_label(score: int) -> str:
     if score >= 90:
         return "A+"

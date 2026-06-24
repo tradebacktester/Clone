@@ -8,6 +8,7 @@ setup(
     python_requires=">=3.11",
     install_requires=[
         "aiohttp>=3.9",
+        "numpy>=1.26",
     ],
     extras_require={
         "dashboard": ["dash>=2.14", "plotly>=5.18"],

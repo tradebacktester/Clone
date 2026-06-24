@@ -30,6 +30,11 @@ class LiquidityResult:
     summary:         str
 
 
+def detect_liquidity_levels(candles: List[Candle], swings) -> list:
+    """Compatibility shim — liquidity levels are resolved internally by calc_liquidity."""
+    return []
+
+
 def calc_liquidity(candles: List[Candle]) -> LiquidityResult:
     sweeps = detect_sweeps(candles)
     hunts  = detect_stop_hunts(candles)

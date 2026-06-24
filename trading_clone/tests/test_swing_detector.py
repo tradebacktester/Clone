@@ -34,8 +34,8 @@ class TestSwingDetector(unittest.TestCase):
     def test_trend_detection(self):
         from trading_clone.market_structure.swing_detector import SwingPoint
         from datetime import datetime
-        highs = [SwingPoint(i * 2, datetime.now(timezone.utc), 1.08 + i * 0.01, "high") for i in range(3)]
-        lows = [SwingPoint(i * 2 + 1, datetime.now(timezone.utc), 1.07 + i * 0.01, "low") for i in range(3)]
+        highs = [SwingPoint(i * 2, datetime.now(timezone.utc), 1.08 + i * 0.01, "high", strength=60) for i in range(3)]
+        lows = [SwingPoint(i * 2 + 1, datetime.now(timezone.utc), 1.07 + i * 0.01, "low", strength=60) for i in range(3)]
         trend = detect_trend(highs + lows)
         self.assertEqual(trend, "bullish")
 

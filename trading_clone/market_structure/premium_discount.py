@@ -185,6 +185,26 @@ def is_discount(fib: FibAnalysis) -> bool:
     return fib.zone == "discount"
 
 
+def is_above_equilibrium(fib: FibAnalysis) -> bool:
+    """True when price is strictly above the 0.5 EQ level (current_ratio < 0.5).
+
+    Rulebook premium gate: SELL signals may only fire when this is True.
+    current_ratio = (swing_high - price) / range, so ratio < 0.5 means
+    price is in the upper half of the range.
+    """
+    return fib.current_ratio < 0.5
+
+
+def is_below_equilibrium(fib: FibAnalysis) -> bool:
+    """True when price is strictly below the 0.5 EQ level (current_ratio > 0.5).
+
+    Rulebook discount gate: BUY signals may only fire when this is True.
+    current_ratio = (swing_high - price) / range, so ratio > 0.5 means
+    price is in the lower half of the range.
+    """
+    return fib.current_ratio > 0.5
+
+
 def get_fib_label(price: float, fib: FibAnalysis) -> Optional[float]:
     """Return the nearest Fibonacci ratio for a given price, or None if > 2% away."""
     if fib.range_size < 1e-10:

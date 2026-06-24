@@ -111,6 +111,22 @@ def most_recent_hunt(hunts: List[StopHunt]) -> Optional[StopHunt]:
     return same[0] if same else (hunts[0] if hunts else None)
 
 
+def detect_liquidity_grabs(candles: List[Candle], _liq_levels=None) -> List[StopHunt]:
+    """Alias for detect_stop_hunts; _liq_levels argument accepted for API compatibility."""
+    return detect_stop_hunts(candles)
+
+
+def recent_grab(
+    hunts: List[StopHunt],
+    lookback: int,
+    candles: List[Candle],
+) -> Optional[StopHunt]:
+    """Return the most recent hunt within `lookback` candles of the end."""
+    n = len(candles)
+    close_enough = [h for h in hunts if (n - h.hunt_index) <= lookback]
+    return most_recent_hunt(close_enough) if close_enough else None
+
+
 def _score(wick_r: float, body_r: float, same: bool, vol: bool) -> int:
     wick_pts = 40 if wick_r > 0.4 else 25 if wick_r > 0.2 else 10
     body_pts = 30 if body_r > 0.4 else 18 if body_r > 0.2 else 5

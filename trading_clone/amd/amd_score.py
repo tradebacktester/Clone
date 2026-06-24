@@ -36,6 +36,14 @@ class AMDResult:
     summary:      str
 
 
+AMDSequence = AMDResult
+
+
+def detect_amd(candles: List[Candle], _grabs=None) -> AMDResult:
+    """Alias for calc_amd; accepts optional _grabs argument for API compatibility."""
+    return calc_amd(candles)
+
+
 def calc_amd(candles: List[Candle]) -> AMDResult:
     if len(candles) < 20:
         return _null_result()

@@ -100,6 +100,17 @@ def most_recent_sweep(sweeps: List[LiquiditySweep]) -> Optional[LiquiditySweep]:
     return confirmed[0] if confirmed else (sweeps[0] if sweeps else None)
 
 
+def recent_sweep(
+    sweeps: List[LiquiditySweep],
+    lookback: int,
+    candles: List[Candle],
+) -> Optional[LiquiditySweep]:
+    """Return the most recent confirmed sweep within `lookback` candles of the end."""
+    n = len(candles)
+    close_enough = [s for s in sweeps if (n - s.sweep_index) <= lookback]
+    return most_recent_sweep(close_enough) if close_enough else None
+
+
 def _score(ext: float, atr: float, rev: float, vol: bool, conf: bool) -> int:
     ratio   = ext / atr if atr else 0
     ext_pts = 40 if ratio > 0.75 else 30 if ratio > 0.4 else 15 if ratio > 0.2 else 5
