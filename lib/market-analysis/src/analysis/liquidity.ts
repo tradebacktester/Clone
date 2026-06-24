@@ -198,6 +198,122 @@ export function detectLiquidityGrabs(
   return grabs.slice(-10);
 }
 
+export function detectSweeps(
+  candles: Candle[],
+  swings: SwingPoint[],
+): import("../types.js").SweepEvent[] {
+  if (candles.length < 10) return [];
+  const atr = calcATR(candles);
+  if (atr === 0) return [];
+
+  const minSweepDist = atr * 0.5;
+  const sweeps: import("../types.js").SweepEvent[] = [];
+
+  for (let i = 10; i < candles.length; i++) {
+    const c = candles[i]!;
+    const lookback20 = candles.slice(Math.max(0, i - 20), i);
+    const avgVol = lookback20.length > 0
+      ? lookback20.reduce((s, x) => s + x.volume, 0) / lookback20.length
+      : 0;
+
+    const priorHighs = swings.filter(s => s.type === "high" && s.index < i);
+    const priorLows  = swings.filter(s => s.type === "low"  && s.index < i);
+
+    // --- BUY-SIDE SWEEP ---
+    // Price takes a previous swing high then closes back below it.
+    if (priorHighs.length > 0) {
+      const level = priorHighs.reduce((a, b) => b.index > a.index ? b : a);
+
+      if (c.high > level.price && c.close < level.price) {
+        const dist = c.high - level.price;
+
+        const distScore   = dist >= minSweepDist ? 40 : 0;
+        const volScore    = avgVol > 0 && c.volume > avgVol * 1.2 ? 20 : 0;
+        const range       = c.high - c.low;
+        const bearBody    = c.open - c.close;
+        const reversalScore = bearBody > 0 && range > 0 && bearBody / range > 0.5 ? 20 : 0;
+        const bosScore    = hasBOSAfterSweep(candles, i, "buy_side") ? 20 : 0;
+
+        const score = distScore + volScore + reversalScore + bosScore;
+        if (score >= 70) {
+          sweeps.push({
+            time: c.time,
+            type: "buy_side",
+            levelPrice: level.price,
+            sweepPrice: c.high,
+            sweepDistance: dist / atr,
+            sweepScore: score,
+          });
+        }
+      }
+    }
+
+    // --- SELL-SIDE SWEEP ---
+    // Price takes a previous swing low then closes back above it.
+    if (priorLows.length > 0) {
+      const level = priorLows.reduce((a, b) => b.index > a.index ? b : a);
+
+      if (c.low < level.price && c.close > level.price) {
+        const dist = level.price - c.low;
+
+        const distScore   = dist >= minSweepDist ? 40 : 0;
+        const volScore    = avgVol > 0 && c.volume > avgVol * 1.2 ? 20 : 0;
+        const range       = c.high - c.low;
+        const bullBody    = c.close - c.open;
+        const reversalScore = bullBody > 0 && range > 0 && bullBody / range > 0.5 ? 20 : 0;
+        const bosScore    = hasBOSAfterSweep(candles, i, "sell_side") ? 20 : 0;
+
+        const score = distScore + volScore + reversalScore + bosScore;
+        if (score >= 70) {
+          sweeps.push({
+            time: c.time,
+            type: "sell_side",
+            levelPrice: level.price,
+            sweepPrice: c.low,
+            sweepDistance: dist / atr,
+            sweepScore: score,
+          });
+        }
+      }
+    }
+  }
+
+  return sweeps;
+}
+
+// Checks if post-sweep candles break structure in the reversal direction.
+// buy_side  sweep → expect bearish BOS: a post-sweep close below the pre-sweep 10-bar low.
+// sell_side sweep → expect bullish BOS: a post-sweep close above the pre-sweep 10-bar high.
+function hasBOSAfterSweep(
+  candles: Candle[],
+  sweepIndex: number,
+  type: "buy_side" | "sell_side",
+): boolean {
+  const post = candles.slice(sweepIndex + 1, sweepIndex + 4);
+  if (post.length === 0) return false;
+  const pre = candles.slice(Math.max(0, sweepIndex - 10), sweepIndex);
+  if (pre.length === 0) return false;
+
+  if (type === "buy_side") {
+    const preLow = pre.reduce((min, c) => (c.low < min ? c.low : min), Infinity);
+    return post.some(c => c.close < preLow);
+  } else {
+    const preHigh = pre.reduce((max, c) => (c.high > max ? c.high : max), -Infinity);
+    return post.some(c => c.close > preHigh);
+  }
+}
+
+export function recentSweep(
+  sweeps: import("../types.js").SweepEvent[],
+  lookbackBars: number,
+  candles: Candle[],
+): import("../types.js").SweepEvent | null {
+  if (sweeps.length === 0 || candles.length === 0) return null;
+  const cutoff = candles[Math.max(0, candles.length - lookbackBars)]!.time;
+  const recent = sweeps.filter(s => s.time >= cutoff);
+  return recent[recent.length - 1] ?? null;
+}
+
 export function recentLiquidityGrab(
   grabs: LiquidityGrab[],
   lookbackBars = 10,

@@ -9,7 +9,7 @@ import { fetchCandles, generateSyntheticCandlesForDateRange } from "../data/fetc
 import { detectSwings, calcATR } from "../analysis/swings.js";
 import { calcFibonacci } from "../analysis/fibonacci.js";
 import { detectZones, isPriceInZone } from "../analysis/zones.js";
-import { detectLiquidityLevels, detectLiquidityGrabs } from "../analysis/liquidity.js";
+import { detectLiquidityLevels, detectLiquidityGrabs, detectSweeps } from "../analysis/liquidity.js";
 import { detectAMD } from "../analysis/amd.js";
 import { generateSignals } from "../signals/generator.js";
 import { calcFullStats } from "./stats.js";
@@ -275,10 +275,11 @@ export async function runBacktest(config: BacktestConfig): Promise<BacktestResul
     const zones = detectZones(pair, timeframe, historicalCandles, fib, 6);
     const liquidityLevels = detectLiquidityLevels(historicalCandles, swings);
     const grabs = detectLiquidityGrabs(historicalCandles, liquidityLevels);
+    const sweeps = detectSweeps(historicalCandles, swings);
     const amd = detectAMD(historicalCandles, grabs);
     const signals = generateSignals(pair, historicalCandles, zones, fib, amd, {
       pair, regime: "trending", trend: "neutral", volatility: "medium", atr, adxEquivalent: 30,
-    }, grabs);
+    }, grabs, undefined, sweeps);
 
     if (signals.length === 0) continue;
 

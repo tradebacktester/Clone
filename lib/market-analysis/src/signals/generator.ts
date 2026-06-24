@@ -5,13 +5,14 @@ import type {
   AMDSequence,
   MarketRegimeResult,
   LiquidityGrab,
+  SweepEvent,
   TradeSignal,
   Pair,
 } from "../types.js";
 import { calcATR, detectTrend } from "../analysis/swings.js";
 import { isPriceInZone } from "../analysis/zones.js";
 import { isPremiumZone, isDiscountZone } from "../analysis/fibonacci.js";
-import { recentLiquidityGrab } from "../analysis/liquidity.js";
+import { recentSweep } from "../analysis/liquidity.js";
 import {
   calcConfidenceWithWeights,
   applyRegimeAdjustment,
@@ -70,6 +71,7 @@ export function generateSignals(
   regime: MarketRegimeResult,
   grabs: LiquidityGrab[],
   learnedWeights: WeightProfile = DEFAULT_WEIGHT_PROFILE,
+  sweeps: SweepEvent[] = [],
 ): TradeSignal[] {
   if (candles.length < 10) return [];
 
@@ -135,12 +137,22 @@ export function generateSignals(
       factors.push("London/NY session");
     }
 
-    const grab = recentLiquidityGrab(grabs, 8, candles);
-    if (grab) {
-      const grabMatchesBuy = grab.type === "sweep_low" && direction === "buy";
-      const grabMatchesSell = grab.type === "sweep_high" && direction === "sell";
-      if (grabMatchesBuy || grabMatchesSell) {
-        factors.push("Liquidity sweep before zone");
+    // Use scored sweeps (≥ 70) for confluence: a sell-side sweep confirms buys,
+    // a buy-side sweep confirms sells. Fall back to raw grabs if no sweeps available.
+    const sweep = recentSweep(sweeps, 8, candles);
+    if (sweep) {
+      if (sweep.type === "sell_side" && direction === "buy") {
+        factors.push(`Sell-side liquidity sweep (score ${sweep.sweepScore})`);
+      } else if (sweep.type === "buy_side" && direction === "sell") {
+        factors.push(`Buy-side liquidity sweep (score ${sweep.sweepScore})`);
+      }
+    } else if (sweeps.length === 0) {
+      // Backward-compat: use raw grabs when no sweep detection data available
+      const rawGrab = grabs[grabs.length - 1];
+      if (rawGrab?.confirmed) {
+        const grabMatchesBuy = rawGrab.type === "sweep_low" && direction === "buy";
+        const grabMatchesSell = rawGrab.type === "sweep_high" && direction === "sell";
+        if (grabMatchesBuy || grabMatchesSell) factors.push("Liquidity sweep before zone");
       }
     }
 

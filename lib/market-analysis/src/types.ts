@@ -68,6 +68,17 @@ export interface LiquidityGrab {
   confirmed: boolean;
 }
 
+export interface SweepEvent {
+  time: Date;
+  // buy_side  = price took a previous HIGH then closed back below → bearish reversal expected
+  // sell_side = price took a previous LOW  then closed back above → bullish reversal expected
+  type: "buy_side" | "sell_side";
+  levelPrice: number;    // the swing high / low that was swept
+  sweepPrice: number;    // the extreme reached (candle high for buy_side, candle low for sell_side)
+  sweepDistance: number; // how far past the level in ATR units
+  sweepScore: number;    // 0–100 (Displacement 40 + Volume 20 + Reversal 20 + BOS 20)
+}
+
 export type AMDPhase = "accumulation" | "manipulation" | "distribution" | "none";
 
 export interface AMDSequence {
@@ -181,6 +192,7 @@ export interface AnalysisResult {
   zones: SupplyDemandZone[];
   liquidity: LiquidityLevel[];
   recentGrabs: LiquidityGrab[];
+  sweeps: SweepEvent[];
   amd: AMDSequence;
   regime: MarketRegimeResult;
   signals: TradeSignal[];

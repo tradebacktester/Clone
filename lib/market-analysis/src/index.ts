@@ -18,7 +18,7 @@ import { fetchCandles } from "./data/fetcher.js";
 import { detectSwings, labelStructure, calcATR } from "./analysis/swings.js";
 import { calcFibForCandles } from "./analysis/fibonacci.js";
 import { detectZones } from "./analysis/zones.js";
-import { detectLiquidityLevels, detectLiquidityGrabs } from "./analysis/liquidity.js";
+import { detectLiquidityLevels, detectLiquidityGrabs, detectSweeps } from "./analysis/liquidity.js";
 import { detectAMD } from "./analysis/amd.js";
 import { detectRegime } from "./analysis/regime.js";
 import { generateSignals } from "./signals/generator.js";
@@ -37,9 +37,10 @@ export async function runFullAnalysis(
   const zones = detectZones(pair, timeframe, candles, fib, 10);
   const liquidity = detectLiquidityLevels(candles, swings);
   const recentGrabs = detectLiquidityGrabs(candles, liquidity);
+  const sweeps = detectSweeps(candles, swings);
   const amd = detectAMD(candles, recentGrabs);
   const regime = detectRegime(pair, candles, swings);
-  const signals = generateSignals(pair, candles, zones, fib, amd, regime, recentGrabs, learnedWeights);
+  const signals = generateSignals(pair, candles, zones, fib, amd, regime, recentGrabs, learnedWeights, sweeps);
 
   return {
     pair,
@@ -51,6 +52,7 @@ export async function runFullAnalysis(
     zones,
     liquidity,
     recentGrabs,
+    sweeps,
     amd,
     regime,
     signals,
