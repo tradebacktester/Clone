@@ -1,0 +1,56 @@
+// Module 9: Final Trade Score
+//
+// Weighted formula (max 100):
+//   Demand/Supply zone score  × 30%
+//   Liquidity sweep score     × 25%
+//   AMD sequence score        × 25%
+//   Confirmation candle score × 20%
+//
+// Entry is allowed only when ALL three gates pass:
+//   1. finalScore ≥ 80
+//   2. London OR New York session
+//   3. No high-impact news
+
+export interface FinalScoreResult {
+  finalScore: number;           // 0–100 weighted sum
+  zoneContrib: number;          // zone score × 0.30
+  liquidityContrib: number;     // liquidity score × 0.25
+  amdContrib: number;           // AMD score × 0.25
+  confirmationContrib: number;  // confirmation score × 0.20
+  allowed: boolean;             // finalScore ≥ 80
+}
+
+export function calcFinalTradeScore(
+  zoneScore: number,
+  liquidityScore: number,
+  amdScore: number,
+  confirmationScore: number,
+): FinalScoreResult {
+  const zoneContrib         = zoneScore        * 0.30;
+  const liquidityContrib    = liquidityScore   * 0.25;
+  const amdContrib          = amdScore         * 0.25;
+  const confirmationContrib = confirmationScore * 0.20;
+
+  const finalScore = zoneContrib + liquidityContrib + amdContrib + confirmationContrib;
+
+  return {
+    finalScore: Math.round(finalScore * 10) / 10,
+    zoneContrib:         Math.round(zoneContrib * 10) / 10,
+    liquidityContrib:    Math.round(liquidityContrib * 10) / 10,
+    amdContrib:          Math.round(amdContrib * 10) / 10,
+    confirmationContrib: Math.round(confirmationContrib * 10) / 10,
+    allowed: finalScore >= 80,
+  };
+}
+
+// Gate 2: London 07:00–12:00 UTC, New York 12:00–20:00 UTC.
+export function isAllowedSession(session: string): boolean {
+  return session === "london" || session === "newyork";
+}
+
+// Gate 3: High-impact news block.
+// Placeholder — always returns false (no news) so all trades pass.
+// Replace with a real economic calendar API integration to activate.
+export function isHighImpactNews(_pair?: string): boolean {
+  return false;
+}

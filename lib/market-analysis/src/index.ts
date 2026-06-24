@@ -9,6 +9,7 @@ export * from "./analysis/regime.js";
 export * from "./analysis/sr.js";
 export * from "./analysis/confirmation.js";
 export * from "./signals/generator.js";
+export * from "./signals/finalScore.js";
 export * from "./backtest/engine.js";
 export * from "./backtest/stats.js";
 export * from "./learning/scorer.js";

@@ -108,6 +108,11 @@ export interface TradeSignal {
   pair: string;
   direction: "buy" | "sell";
   confidence: number;
+  finalScore: number;
+  zoneScore: number;
+  liquidityScore: number;
+  amdScore: number;
+  confirmationScore: number;
   zoneType: "demand" | "supply";
   zoneStrength: number;
   amdPhase: "accumulation" | "manipulation" | "distribution";

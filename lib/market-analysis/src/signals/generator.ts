@@ -14,6 +14,7 @@ import { isPriceInZone } from "../analysis/zones.js";
 import { isPremiumZone, isDiscountZone } from "../analysis/fibonacci.js";
 import { recentSweep } from "../analysis/liquidity.js";
 import { confirmCurrentCandle } from "../analysis/confirmation.js";
+import { calcFinalTradeScore, isAllowedSession, isHighImpactNews } from "./finalScore.js";
 import {
   calcConfidenceWithWeights,
   applyRegimeAdjustment,
@@ -145,9 +146,13 @@ export function generateSignals(
       else if (amd.phase === "manipulation") factors.push(`AMD manipulation (score ${amd.amdScore})`);
     }
 
-    if (session === "london" || session === "newyork") {
-      factors.push("London/NY session");
-    }
+    // Gate 2: London or New York session only.
+    if (!isAllowedSession(session)) continue;
+
+    // Gate 3: No high-impact news.
+    if (isHighImpactNews(pair)) continue;
+
+    factors.push("London/NY session");
 
     // Use scored sweeps (≥ 70) for confluence: a sell-side sweep confirms buys,
     // a buy-side sweep confirms sells. Fall back to raw grabs if no sweeps available.
@@ -176,9 +181,26 @@ export function generateSignals(
     if (direction === "buy" && swingTrend === "bullish") factors.push("Bullish market structure");
     if (direction === "sell" && swingTrend === "bearish") factors.push("Bearish market structure");
 
+    // Liquidity component: most recent matching sweep score, or 0.
+    const liquidityScore = sweep
+      ? (sweep.type === "sell_side" && direction === "buy") ||
+        (sweep.type === "buy_side"  && direction === "sell")
+        ? sweep.sweepScore
+        : 0
+      : 0;
+
+    // Gate 1: Final weighted score must be ≥ 80.
+    //   Zone 30% + Liquidity 25% + AMD 25% + Confirmation 20% = 100 max.
+    const scored = calcFinalTradeScore(
+      zone.strength,
+      liquidityScore,
+      amd.amdScore,
+      confirmation.score,
+    );
+    if (!scored.allowed) continue;
+
     const regimeWeights = applyRegimeAdjustment(learnedWeights, regime);
     const confidence = calcConfidenceWithWeights(factors, regimeWeights);
-    if (confidence < 38) continue;
 
     const { entryPrice, stopLoss, takeProfit } = calcStopAndTarget(zone, direction, atr, pair);
     const riskReward = Math.abs(takeProfit - entryPrice) / Math.abs(entryPrice - stopLoss);
@@ -188,15 +210,22 @@ export function generateSignals(
         ? "accumulation"
         : amd.phase;
 
+    factors.push(`Final score ${scored.finalScore} (zone ${scored.zoneContrib} + liq ${scored.liquidityContrib} + amd ${scored.amdContrib} + conf ${scored.confirmationContrib})`);
+
     signals.push({
       pair,
       direction,
       confidence,
+      finalScore: scored.finalScore,
+      zoneScore: zone.strength,
+      liquidityScore,
+      amdScore: amd.amdScore,
+      confirmationScore: confirmation.score,
       zoneType: zone.zoneType,
       zoneStrength: zone.strength,
       amdPhase,
       fibLevel: zone.fibLevel ?? 0.5,
-      session: session === "london" ? "london" : "newyork",
+      session,
       entryPrice,
       stopLoss,
       takeProfit,
@@ -205,6 +234,6 @@ export function generateSignals(
     });
   }
 
-  signals.sort((a, b) => b.confidence - a.confidence);
+  signals.sort((a, b) => b.finalScore - a.finalScore);
   return signals.slice(0, 3);
 }
