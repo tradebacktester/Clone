@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, integer, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -25,6 +25,26 @@ export const setupScoresTable = pgTable("setup_scores", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
+export const learningDataTable = pgTable(
+  "learning_data",
+  {
+    id: serial("id").primaryKey(),
+    setupType: text("setup_type").notNull(),
+    pair: text("pair").notNull(),
+    session: text("session").notNull(),
+    winRate: numeric("win_rate", { precision: 5, scale: 2 }).notNull().default("0"),
+    avgRr: numeric("avg_rr", { precision: 6, scale: 2 }).notNull().default("0"),
+    sampleSize: integer("sample_size").notNull().default(0),
+    confidenceScore: numeric("confidence_score", { precision: 5, scale: 2 }).notNull().default("0"),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+  },
+  (t) => [uniqueIndex("learning_data_setup_pair_session_idx").on(t.setupType, t.pair, t.session)],
+);
+
 export const insertRlAgentSchema = createInsertSchema(rlAgentTable).omit({ id: true });
 export type InsertRlAgent = z.infer<typeof insertRlAgentSchema>;
 export type RlAgent = typeof rlAgentTable.$inferSelect;
+
+export const insertLearningDataSchema = createInsertSchema(learningDataTable).omit({ id: true, updatedAt: true });
+export type InsertLearningData = z.infer<typeof insertLearningDataSchema>;
+export type LearningData = typeof learningDataTable.$inferSelect;

@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, boolean, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, boolean, integer, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -40,6 +40,25 @@ export const tradeSignalsTable = pgTable("trade_signals", {
   generatedAt: timestamp("generated_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const liquidityEventsTable = pgTable("liquidity_events", {
+  eventId: serial("event_id").primaryKey(),
+  pair: text("pair").notNull(),
+  eventType: text("event_type").notNull(),
+  sweepSize: numeric("sweep_size", { precision: 18, scale: 6 }).notNull().default("0"),
+  score: numeric("score", { precision: 5, scale: 2 }).notNull().default("0"),
+  timestamp: timestamp("timestamp", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const amdEventsTable = pgTable("amd_events", {
+  amdId: serial("amd_id").primaryKey(),
+  pair: text("pair").notNull(),
+  accumulationScore: numeric("accumulation_score", { precision: 5, scale: 2 }).notNull().default("0"),
+  manipulationScore: numeric("manipulation_score", { precision: 5, scale: 2 }).notNull().default("0"),
+  distributionScore: numeric("distribution_score", { precision: 5, scale: 2 }).notNull().default("0"),
+  finalScore: numeric("final_score", { precision: 5, scale: 2 }).notNull().default("0"),
+  timestamp: timestamp("timestamp", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const insertMarketZoneSchema = createInsertSchema(marketZonesTable).omit({ id: true, createdAt: true });
 export type InsertMarketZone = z.infer<typeof insertMarketZoneSchema>;
 export type MarketZone = typeof marketZonesTable.$inferSelect;
@@ -47,3 +66,11 @@ export type MarketZone = typeof marketZonesTable.$inferSelect;
 export const insertMarketRegimeSchema = createInsertSchema(marketRegimeTable).omit({ id: true, updatedAt: true });
 export type InsertMarketRegime = z.infer<typeof insertMarketRegimeSchema>;
 export type MarketRegime = typeof marketRegimeTable.$inferSelect;
+
+export const insertLiquidityEventSchema = createInsertSchema(liquidityEventsTable).omit({ eventId: true });
+export type InsertLiquidityEvent = z.infer<typeof insertLiquidityEventSchema>;
+export type LiquidityEvent = typeof liquidityEventsTable.$inferSelect;
+
+export const insertAmdEventSchema = createInsertSchema(amdEventsTable).omit({ amdId: true });
+export type InsertAmdEvent = z.infer<typeof insertAmdEventSchema>;
+export type AmdEvent = typeof amdEventsTable.$inferSelect;
