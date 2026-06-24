@@ -266,7 +266,7 @@ export async function runBacktest(config: BacktestConfig): Promise<BacktestResul
 
     if (i % 4 !== 0) continue;
 
-    const swings = detectSwings(historicalCandles, 4);
+    const swings = detectSwings(historicalCandles, 3);
     if (swings.length < 4) continue;
 
     const atr = calcATR(historicalCandles);

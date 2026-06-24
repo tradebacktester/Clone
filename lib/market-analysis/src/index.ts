@@ -29,7 +29,7 @@ export async function runFullAnalysis(
   learnedWeights: WeightProfile = DEFAULT_WEIGHT_PROFILE,
 ): Promise<AnalysisResult> {
   const candles = await fetchCandles(pair, timeframe);
-  const swings = detectSwings(candles, timeframe === "1d" ? 7 : 5);
+  const swings = detectSwings(candles, timeframe === "1d" ? 5 : 3);
   const structure = labelStructure(swings);
   const atr = calcATR(candles);
   const fib = calcFibForCandles(candles, swings);

@@ -1,26 +1,26 @@
 import type { Candle, SwingPoint, StructurePoint, StructureLabel } from "../types.js";
 
-export function detectSwings(candles: Candle[], lookback = 5): SwingPoint[] {
+export function detectSwings(candles: Candle[], lookback = 3): SwingPoint[] {
   const swings: SwingPoint[] = [];
+  const L = lookback;
 
-  for (let i = lookback; i < candles.length - lookback; i++) {
+  for (let i = L; i < candles.length - L; i++) {
     const c = candles[i]!;
     let isSwingHigh = true;
     let isSwingLow = true;
 
-    for (let j = i - lookback; j <= i + lookback; j++) {
-      if (j === i) continue;
-      const other = candles[j]!;
-      if (other.high >= c.high) isSwingHigh = false;
-      if (other.low <= c.low) isSwingLow = false;
+    for (let offset = 1; offset <= L; offset++) {
+      const before = candles[i - offset]!;
+      const after = candles[i + offset]!;
+
+      if (before.high >= c.high || after.high >= c.high) isSwingHigh = false;
+      if (before.low <= c.low || after.low <= c.low) isSwingLow = false;
+
+      if (!isSwingHigh && !isSwingLow) break;
     }
 
-    if (isSwingHigh) {
-      swings.push({ time: c.time, price: c.high, type: "high", index: i });
-    }
-    if (isSwingLow) {
-      swings.push({ time: c.time, price: c.low, type: "low", index: i });
-    }
+    if (isSwingHigh) swings.push({ time: c.time, price: c.high, type: "high", index: i });
+    if (isSwingLow) swings.push({ time: c.time, price: c.low, type: "low", index: i });
   }
 
   return swings.sort((a, b) => a.index - b.index);
