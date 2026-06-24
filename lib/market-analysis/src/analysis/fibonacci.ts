@@ -20,41 +20,36 @@ export function calcFibonacci(swings: SwingPoint[], currentPrice: number): FibAn
 
   const trend = detectTrend(swings);
 
-  const recentHigh = highs.slice(-3).reduce((a, b) => (b.price > a.price ? b : a));
-  const recentLow = lows.slice(-3).reduce((a, b) => (b.price < a.price ? b : a));
-
-  const swingHigh = recentHigh.price;
-  const swingLow = recentLow.price;
+  // Use the absolute highest and lowest of ALL detected swings.
+  // 0 = Swing Low (anchor), 1 = Swing High (anchor) — always.
+  const swingHigh = highs.reduce((max, s) => (s.price > max ? s.price : max), -Infinity);
+  const swingLow = lows.reduce((min, s) => (s.price < min ? s.price : min), Infinity);
   const range = swingHigh - swingLow;
 
   if (range <= 0) return null;
 
-  const levels: FibLevel[] = FIB_RATIOS.map(({ ratio, label }) => {
-    const price = trend === "bullish"
-      ? swingLow + ratio * range
-      : swingHigh - ratio * range;
-    return { ratio, label, price };
-  });
+  // Levels always run from 0 (swingLow) to 1 (swingHigh).
+  const levels: FibLevel[] = FIB_RATIOS.map(({ ratio, label }) => ({
+    ratio,
+    label,
+    price: swingLow + ratio * range,
+  }));
 
+  // Equilibrium is always exactly 0.5 of the full range.
   const equilibrium = swingLow + 0.5 * range;
 
-  const premiumZone = {
-    top: swingHigh,
-    bottom: equilibrium,
-  };
-
-  const discountZone = {
-    top: equilibrium,
-    bottom: swingLow,
-  };
+  // Premium zone: above equilibrium (price > 0.5) → shorts preferred.
+  // Discount zone: below equilibrium (price < 0.5) → longs preferred.
+  const premiumZone = { top: swingHigh, bottom: equilibrium };
+  const discountZone = { top: equilibrium, bottom: swingLow };
 
   let currentPriceBias: "premium" | "discount" | "equilibrium";
-  if (Math.abs(currentPrice - equilibrium) < range * 0.05) {
-    currentPriceBias = "equilibrium";
-  } else if (currentPrice > equilibrium) {
+  if (currentPrice > equilibrium) {
     currentPriceBias = "premium";
-  } else {
+  } else if (currentPrice < equilibrium) {
     currentPriceBias = "discount";
+  } else {
+    currentPriceBias = "equilibrium";
   }
 
   return {
@@ -91,23 +86,31 @@ export function findNearestFibLevel(
   return nearest?.ratio ?? null;
 }
 
+// Price strictly above 0.5 → premium → shorts preferred.
 export function isPremiumZone(price: number, fib: FibAnalysis): boolean {
-  return price >= fib.equilibrium;
+  return price > fib.equilibrium;
 }
 
+// Price strictly below 0.5 → discount → longs preferred.
 export function isDiscountZone(price: number, fib: FibAnalysis): boolean {
-  return price <= fib.equilibrium;
+  return price < fib.equilibrium;
 }
 
+// Returns the ratio (0–1) of where a price sits within the swing range.
+// 0 = at swingLow, 1 = at swingHigh, 0.5 = equilibrium.
+export function getPricePosition(price: number, fib: FibAnalysis): number {
+  const range = fib.swingHigh - fib.swingLow;
+  if (range === 0) return 0.5;
+  return (price - fib.swingLow) / range;
+}
+
+// Levels always run swingLow → swingHigh, so no direction check needed.
 export function getFibLevelForZone(zonePrice: number, fib: FibAnalysis): number | null {
   const keyLevels = [0.5, 0.618, 0.705, 0.786];
   const range = fib.swingHigh - fib.swingLow;
 
   for (const ratio of keyLevels) {
-    const levelPrice = fib.trend === "bullish"
-      ? fib.swingLow + ratio * range
-      : fib.swingHigh - ratio * range;
-
+    const levelPrice = fib.swingLow + ratio * range;
     if (Math.abs(zonePrice - levelPrice) / range < 0.05) {
       return ratio;
     }

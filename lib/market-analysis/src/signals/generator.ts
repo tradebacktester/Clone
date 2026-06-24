@@ -92,6 +92,16 @@ export function generateSignals(
     if (!inZone && !approaching) continue;
 
     const direction: "buy" | "sell" = zone.zoneType === "demand" ? "buy" : "sell";
+
+    // Hard premium/discount filter:
+    // Discount zone (price < 0.5) → only longs allowed.
+    // Premium zone  (price > 0.5) → only shorts allowed.
+    // Price exactly at equilibrium → allow both directions.
+    if (fib) {
+      if (direction === "buy" && isPremiumZone(currentPrice, fib)) continue;
+      if (direction === "sell" && isDiscountZone(currentPrice, fib)) continue;
+    }
+
     const factors: string[] = [];
 
     if (inZone) {
@@ -106,7 +116,6 @@ export function generateSignals(
 
     if (zone.strength > 80) factors.push("Zone strength > 80");
     else if (zone.strength > 70) factors.push("Zone strength > 70");
-    else if (zone.strength > 60) factors.push("Zone strength > 60");
 
     if (zone.freshness === "fresh") factors.push("Fresh zone (untested)");
 
@@ -115,12 +124,8 @@ export function generateSignals(
     else if (zone.fibLevel === 0.5) factors.push("FIB 0.5 confluence");
 
     if (fib) {
-      if (direction === "buy" && isDiscountZone(currentPrice, fib)) {
-        factors.push("Discount zone (bullish bias)");
-      }
-      if (direction === "sell" && isPremiumZone(currentPrice, fib)) {
-        factors.push("Premium zone (bearish bias)");
-      }
+      if (direction === "buy") factors.push("Discount zone — longs preferred");
+      if (direction === "sell") factors.push("Premium zone — shorts preferred");
     }
 
     if (amd.phase === "distribution") factors.push("AMD distribution phase");
