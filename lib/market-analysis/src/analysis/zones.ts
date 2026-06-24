@@ -10,6 +10,7 @@ interface RawZoneCandidate {
   originIndex: number;
   originTime: Date;
   baseCandles: number;
+  impulseWick: number;
 }
 
 function findImpulseCandles(candles: Candle[], atr: number): RawZoneCandidate[] {
@@ -23,6 +24,10 @@ function findImpulseCandles(candles: Candle[], atr: number): RawZoneCandidate[] 
     if (body < impulseThreshold) continue;
 
     const direction: "bullish" | "bearish" = c.close > c.open ? "bullish" : "bearish";
+
+    const impulseWick = direction === "bullish"
+      ? Math.min(c.open, c.close) - c.low
+      : c.high - Math.max(c.open, c.close);
 
     let baseTop = c.open;
     let baseBottom = c.open;
@@ -51,27 +56,47 @@ function findImpulseCandles(candles: Candle[], atr: number): RawZoneCandidate[] 
       originIndex: i,
       originTime: c.time,
       baseCandles: baseCount,
+      impulseWick,
     });
   }
 
   return candidates;
 }
 
-function scoreZone(candidate: RawZoneCandidate, atr: number): number {
-  let score = 50;
+function scoreTouches(touches: number): number {
+  if (touches >= 4) return 40;
+  if (touches === 3) return 30;
+  if (touches === 2) return 20;
+  return 10;
+}
 
-  if (candidate.moveSize > 3) score += 20;
-  else if (candidate.moveSize > 2) score += 12;
-  else if (candidate.moveSize > 1.5) score += 6;
+function scoreRejection(wick: number, atr: number): number {
+  if (atr === 0) return 0;
+  if (wick > atr) return 30;
+  if (wick > atr * 0.5) return 20;
+  if (wick > atr * 0.25) return 10;
+  return 0;
+}
 
-  if (candidate.baseCandles >= 2) score += 10;
-  else if (candidate.baseCandles === 1) score += 5;
+function scoreHistorical(originTime: Date, referenceTime: Date): number {
+  const days = (referenceTime.getTime() - originTime.getTime()) / (1000 * 60 * 60 * 24);
+  if (days >= 180) return 30;
+  if (days >= 90) return 20;
+  if (days >= 30) return 10;
+  return 0;
+}
 
-  const zoneHeight = candidate.baseTop - candidate.baseBottom;
-  if (zoneHeight < atr * 0.5) score += 8;
-  else if (zoneHeight > atr * 1.5) score -= 8;
-
-  return Math.min(100, Math.max(0, score));
+function scoreZone(
+  candidate: RawZoneCandidate,
+  tested: number,
+  atr: number,
+  referenceTime: Date,
+): number {
+  const touches = tested + 1;
+  const ts = scoreTouches(touches);
+  const rs = scoreRejection(candidate.impulseWick, atr);
+  const hs = scoreHistorical(candidate.originTime, referenceTime);
+  return ts + rs + hs;
 }
 
 function countRetests(
@@ -138,14 +163,14 @@ export function detectZones(
 
     if (overlapping) continue;
 
-    const rawScore = scoreZone(cand, atr);
     const tested = countRetests(
       { top: cand.baseTop, bottom: cand.baseBottom },
       candles,
       cand.originIndex,
     );
 
-    const score = Math.max(0, rawScore - tested * 8);
+    const referenceTime = candles[candles.length - 1]!.time;
+    const score = scoreZone(cand, tested, atr, referenceTime);
 
     const broken = isZoneBroken(
       { top: cand.baseTop, bottom: cand.baseBottom, type: zoneType },
@@ -154,6 +179,7 @@ export function detectZones(
     );
 
     if (broken) continue;
+    if (score < 70) continue;
 
     const freshness: "fresh" | "tested" | "stale" =
       tested === 0 ? "fresh" : tested <= 2 ? "tested" : "stale";

@@ -80,7 +80,7 @@ export function generateSignals(
   const session = getBestSessionForPair(pair);
   const signals: TradeSignal[] = [];
 
-  const activeZones = zones.filter(z => z.active && z.strength > 40);
+  const activeZones = zones.filter(z => z.active && z.strength >= 70);
 
   for (const zone of activeZones) {
     const inZone = isPriceInZone(currentPrice, zone, atr);
