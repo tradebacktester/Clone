@@ -63,40 +63,66 @@ function findImpulseCandles(candles: Candle[], atr: number): RawZoneCandidate[] 
   return candidates;
 }
 
-function scoreTouches(touches: number): number {
-  if (touches >= 4) return 40;
-  if (touches === 3) return 30;
-  if (touches === 2) return 20;
-  return 10;
-}
-
-function scoreRejection(wick: number, atr: number): number {
-  if (atr === 0) return 0;
-  if (wick > atr) return 30;
-  if (wick > atr * 0.5) return 20;
-  if (wick > atr * 0.25) return 10;
+// +40 / +30 / +20 based on how far the impulse body moved vs ATR.
+function scoreDisplacement(moveSize: number): number {
+  if (moveSize > 2) return 40;
+  if (moveSize > 1.5) return 30;
+  if (moveSize > 1) return 20;
   return 0;
 }
 
-function scoreHistorical(originTime: Date, referenceTime: Date): number {
-  const days = (referenceTime.getTime() - originTime.getTime()) / (1000 * 60 * 60 * 24);
-  if (days >= 180) return 30;
-  if (days >= 90) return 20;
-  if (days >= 30) return 10;
+// +25 if the impulse candle broke the most recent structure before it.
+// Demand (bullish): close must exceed the prior 20-candle swing high.
+// Supply (bearish): close must break below the prior 20-candle swing low.
+function scoreBOS(candidate: RawZoneCandidate, candles: Candle[]): number {
+  const { originIndex, direction } = candidate;
+  const lookback = candles.slice(Math.max(0, originIndex - 20), originIndex);
+  if (lookback.length === 0) return 0;
+  const impulseClose = candles[originIndex]!.close;
+
+  if (direction === "bullish") {
+    const priorHigh = lookback.reduce((max, c) => (c.high > max ? c.high : max), -Infinity);
+    return impulseClose > priorHigh ? 25 : 0;
+  } else {
+    const priorLow = lookback.reduce((min, c) => (c.low < min ? c.low : min), Infinity);
+    return impulseClose < priorLow ? 25 : 0;
+  }
+}
+
+// +25 / +15 / +5 / 0 based on how many times the zone has been revisited.
+function scoreFreshness(tested: number): number {
+  if (tested === 0) return 25;
+  if (tested === 1) return 15;
+  if (tested === 2) return 5;
   return 0;
 }
 
+// +10 if the impulse candle's volume exceeded 150% of the 20-candle average.
+function scoreVolume(candidate: RawZoneCandidate, candles: Candle[]): number {
+  const { originIndex } = candidate;
+  const impulse = candles[originIndex]!;
+  if (impulse.volume === 0) return 0;
+  const lookback = candles.slice(Math.max(0, originIndex - 20), originIndex);
+  if (lookback.length === 0) return 0;
+  const avgVol = lookback.reduce((s, c) => s + c.volume, 0) / lookback.length;
+  if (avgVol === 0) return 0;
+  return impulse.volume > avgVol * 1.5 ? 10 : 0;
+}
+
+// Max possible score = 40 + 25 + 25 + 10 = 100.
+// Zones scoring < 70 are discarded in detectZones.
 function scoreZone(
   candidate: RawZoneCandidate,
   tested: number,
-  atr: number,
-  referenceTime: Date,
+  _atr: number,
+  candles: Candle[],
 ): number {
-  const touches = tested + 1;
-  const ts = scoreTouches(touches);
-  const rs = scoreRejection(candidate.impulseWick, atr);
-  const hs = scoreHistorical(candidate.originTime, referenceTime);
-  return ts + rs + hs;
+  return (
+    scoreDisplacement(candidate.moveSize) +
+    scoreBOS(candidate, candles) +
+    scoreFreshness(tested) +
+    scoreVolume(candidate, candles)
+  );
 }
 
 function countRetests(
@@ -169,8 +195,7 @@ export function detectZones(
       cand.originIndex,
     );
 
-    const referenceTime = candles[candles.length - 1]!.time;
-    const score = scoreZone(cand, tested, atr, referenceTime);
+    const score = scoreZone(cand, tested, atr, candles);
 
     const broken = isZoneBroken(
       { top: cand.baseTop, bottom: cand.baseBottom, type: zoneType },
