@@ -13,6 +13,7 @@ import { calcATR, detectTrend } from "../analysis/swings.js";
 import { isPriceInZone } from "../analysis/zones.js";
 import { isPremiumZone, isDiscountZone } from "../analysis/fibonacci.js";
 import { recentSweep } from "../analysis/liquidity.js";
+import { confirmCurrentCandle } from "../analysis/confirmation.js";
 import {
   calcConfidenceWithWeights,
   applyRegimeAdjustment,
@@ -104,6 +105,12 @@ export function generateSignals(
       if (direction === "sell" && isDiscountZone(currentPrice, fib)) continue;
     }
 
+    // Hard confirmation candle filter (Module 8):
+    // The most recent closed candle must score ≥ 70 to allow a trade.
+    // Score = Direction(30) + BOS(40) + Body>60%(30). Max 100.
+    const confirmation = confirmCurrentCandle(candles, direction);
+    if (!confirmation.valid) continue;
+
     const factors: string[] = [];
 
     if (inZone) {
@@ -115,6 +122,8 @@ export function generateSignals(
         direction === "buy" ? "Approaching demand zone" : "Approaching supply zone",
       );
     }
+
+    factors.push(`Confirmation candle (score ${confirmation.score})`);
 
     if (zone.strength > 80) factors.push("Zone strength > 80");
     else if (zone.strength > 70) factors.push("Zone strength > 70");
