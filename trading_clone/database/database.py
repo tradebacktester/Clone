@@ -1,124 +1,163 @@
+"""
+Trades database — JSON-backed store (dev).
+Swap _backend for a real PostgreSQL driver when ready;
+the public API surface stays identical.
+"""
+
+import json
 import logging
 import os
-import json
-import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Literal, Optional
 
-from trading_clone.database.models import (
-    TradeModel, SignalModel, ZoneModel, BotStateModel, BacktestModel, LearningModel,
-)
+from trading_clone.database.models import Trade
 
 logger = logging.getLogger(__name__)
 
-_DB_PATH = Path(os.getenv("LOCAL_DB_PATH", ".local/trading_clone_db"))
-_tables: Dict[str, List[dict]] = {
-    "trades": [], "signals": [], "zones": [],
-    "bot_state": [], "backtests": [], "learning": [],
-}
+_DB_DIR  = Path(os.getenv("LOCAL_DB_PATH", ".local/tradeclone_db"))
+_TRADES  = _DB_DIR / "trades.json"
 
+
+# ── init ─────────────────────────────────────────────────────────────────────
 
 def init_db() -> None:
-    _DB_PATH.mkdir(parents=True, exist_ok=True)
-    for table in _tables:
-        fpath = _DB_PATH / f"{table}.json"
-        if fpath.exists():
-            try:
-                with open(fpath) as f:
-                    _tables[table] = json.load(f)
-            except Exception:
-                _tables[table] = []
-    logger.info("Database initialised at %s", _DB_PATH)
+    _DB_DIR.mkdir(parents=True, exist_ok=True)
+    if not _TRADES.exists():
+        _TRADES.write_text("[]")
+    logger.info("DB initialised at %s", _DB_DIR)
 
 
-def _persist(table: str) -> None:
-    fpath = _DB_PATH / f"{table}.json"
+# ── internal helpers ──────────────────────────────────────────────────────────
+
+def _load() -> List[dict]:
     try:
-        with open(fpath, "w") as f:
-            json.dump(_tables[table], f, default=str, indent=2)
-    except Exception as exc:
-        logger.error("Failed to persist table %s: %s", table, exc)
+        return json.loads(_TRADES.read_text())
+    except Exception:
+        return []
 
 
-def insert_trade(trade: TradeModel) -> None:
-    _tables["trades"].append(trade.__dict__.copy())
-    _persist("trades")
+def _save(rows: List[dict]) -> None:
+    _TRADES.write_text(json.dumps(rows, indent=2, default=str))
 
 
-def update_trade(trade_id: str, updates: dict) -> None:
-    for row in _tables["trades"]:
-        if row.get("id") == trade_id:
-            row.update(updates)
-            break
-    _persist("trades")
+# ── CRUD ──────────────────────────────────────────────────────────────────────
+
+def insert_trade(trade: Trade) -> Trade:
+    """Validate and persist a new trade row."""
+    trade.validate()
+    rows = _load()
+    rows.append(trade.to_dict())
+    _save(rows)
+    logger.info("INSERT trade %s  %s %s  score=%.1f",
+                trade.trade_id, trade.pair, trade.direction, trade.final_score)
+    return trade
 
 
-def get_open_trades() -> List[dict]:
-    return [t for t in _tables["trades"] if t.get("status") == "open"]
+def update_result(
+    trade_id: str,
+    result: Literal["WIN", "LOSS", "BREAKEVEN"],
+) -> bool:
+    """Close a trade with its final result."""
+    rows = _load()
+    for row in rows:
+        if row["trade_id"] == trade_id:
+            row["result"] = result
+            _save(rows)
+            logger.info("UPDATE trade %s → result=%s", trade_id, result)
+            return True
+    logger.warning("update_result: trade_id %s not found", trade_id)
+    return False
 
 
-def get_closed_trades(limit: int = 100) -> List[dict]:
-    closed = [t for t in _tables["trades"] if t.get("status") == "closed"]
-    return closed[-limit:]
+def get_trade(trade_id: str) -> Optional[Trade]:
+    for row in _load():
+        if row["trade_id"] == trade_id:
+            return Trade.from_dict(row)
+    return None
 
 
-def insert_signal(signal: SignalModel) -> None:
-    _tables["signals"].append(signal.__dict__.copy())
-    if len(_tables["signals"]) > 200:
-        _tables["signals"] = _tables["signals"][-200:]
-    _persist("signals")
+def get_all_trades() -> List[Trade]:
+    return [Trade.from_dict(r) for r in _load()]
 
 
-def get_latest_signals(pair: Optional[str] = None, limit: int = 20) -> List[dict]:
-    sigs = _tables["signals"]
-    if pair:
-        sigs = [s for s in sigs if s.get("pair") == pair]
-    return sigs[-limit:]
+def get_open_trades() -> List[Trade]:
+    return [Trade.from_dict(r) for r in _load() if r["result"] == "OPEN"]
 
 
-def upsert_bot_state(state: BotStateModel) -> None:
-    if _tables["bot_state"]:
-        _tables["bot_state"][0] = state.__dict__.copy()
-    else:
-        _tables["bot_state"].append(state.__dict__.copy())
-    _persist("bot_state")
+def get_closed_trades(limit: int = 100) -> List[Trade]:
+    closed = [r for r in _load() if r["result"] != "OPEN"]
+    return [Trade.from_dict(r) for r in closed[-limit:]]
 
 
-def get_bot_state() -> Optional[dict]:
-    return _tables["bot_state"][0] if _tables["bot_state"] else None
+def get_trades_by_pair(pair: str) -> List[Trade]:
+    return [Trade.from_dict(r) for r in _load() if r["pair"] == pair]
 
 
-def upsert_learning(model: LearningModel) -> None:
-    d = model.__dict__.copy()
-    d["updated_at"] = datetime.now(timezone.utc).isoformat()
-    if _tables["learning"]:
-        _tables["learning"][0] = d
-    else:
-        _tables["learning"].append(d)
-    _persist("learning")
+def get_trades_by_session(session: str) -> List[Trade]:
+    return [Trade.from_dict(r) for r in _load() if r["session"] == session]
 
 
-def get_learning() -> Optional[dict]:
-    return _tables["learning"][0] if _tables["learning"] else None
+# ── Analytics queries ─────────────────────────────────────────────────────────
+
+def win_rate_by_pair() -> dict:
+    """{ 'EURUSD': {'total': 10, 'wins': 7, 'win_rate': 70.0, 'avg_rr': 2.1} }"""
+    rows = [r for r in _load() if r["result"] != "OPEN"]
+    stats: dict = {}
+    for r in rows:
+        p = r["pair"]
+        if p not in stats:
+            stats[p] = {"total": 0, "wins": 0, "rr_sum": 0.0, "score_sum": 0.0}
+        stats[p]["total"] += 1
+        if r["result"] == "WIN":
+            stats[p]["wins"] += 1
+        stats[p]["rr_sum"]    += r["risk_reward"]
+        stats[p]["score_sum"] += r["final_score"]
+    out = {}
+    for pair, s in stats.items():
+        t = s["total"]
+        out[pair] = {
+            "total":     t,
+            "wins":      s["wins"],
+            "win_rate":  round(s["wins"] / t * 100, 1) if t else 0.0,
+            "avg_rr":    round(s["rr_sum"] / t, 2)    if t else 0.0,
+            "avg_score": round(s["score_sum"] / t, 1)  if t else 0.0,
+        }
+    return out
 
 
-def insert_backtest(bt: BacktestModel) -> None:
-    _tables["backtests"].append(bt.__dict__.copy())
-    _persist("backtests")
+def win_rate_by_session() -> dict:
+    rows = [r for r in _load() if r["result"] != "OPEN"]
+    stats: dict = {}
+    for r in rows:
+        s = r["session"]
+        if s not in stats:
+            stats[s] = {"total": 0, "wins": 0}
+        stats[s]["total"] += 1
+        if r["result"] == "WIN":
+            stats[s]["wins"] += 1
+    return {
+        sess: {
+            "total":    s["total"],
+            "wins":     s["wins"],
+            "win_rate": round(s["wins"] / s["total"] * 100, 1) if s["total"] else 0.0,
+        }
+        for sess, s in stats.items()
+    }
 
 
-def get_backtests(limit: int = 20) -> List[dict]:
-    return _tables["backtests"][-limit:]
-
-
-def insert_zones(zones: List[ZoneModel]) -> None:
-    _tables["zones"] = [z.__dict__.copy() for z in zones]
-    _persist("zones")
-
-
-def get_zones(pair: Optional[str] = None) -> List[dict]:
-    z = _tables["zones"]
-    if pair:
-        z = [x for x in z if x.get("pair") == pair]
-    return z
+def score_distribution() -> dict:
+    """Bucket final_scores: <70, 70-79, 80-89, 90+"""
+    rows = _load()
+    buckets = {"<70": 0, "70-79": 0, "80-89": 0, "90+": 0}
+    for r in rows:
+        s = r["final_score"]
+        if s < 70:
+            buckets["<70"] += 1
+        elif s < 80:
+            buckets["70-79"] += 1
+        elif s < 90:
+            buckets["80-89"] += 1
+        else:
+            buckets["90+"] += 1
+    return buckets

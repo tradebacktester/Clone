@@ -1,102 +1,79 @@
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Optional
+from datetime import datetime, timezone
+from typing import Literal, Optional
+import uuid
+
+
+PairType      = Literal["EURUSD", "GBPUSD", "USDJPY"]
+DirectionType = Literal["BUY", "SELL"]
+ResultType    = Literal["WIN", "LOSS", "BREAKEVEN", "OPEN"]
+SessionType   = Literal["london", "newyork", "asian"]
 
 
 @dataclass
-class TradeModel:
-    id: str
-    pair: str
-    direction: str
-    entry_price: float
-    stop_loss: float
-    take_profit: float
-    lot_size: float
-    open_time: datetime
-    close_time: Optional[datetime] = None
-    close_price: Optional[float] = None
-    pnl: Optional[float] = None
-    status: str = "open"
-    amd_phase: str = "none"
-    zone_score: int = 0
-    amd_score: int = 0
-    final_score: float = 0.0
-    session: str = ""
-    risk_reward: float = 0.0
-
-
-@dataclass
-class SignalModel:
-    id: str
-    pair: str
-    direction: str
-    final_score: float
-    zone_score: int
-    liquidity_score: int
-    amd_score: int
+class Trade:
+    pair:               PairType
+    direction:          DirectionType
+    entry:              float
+    stop_loss:          float
+    take_profit:        float
+    risk_reward:        float
+    zone_score:         int
+    liquidity_score:    int
+    amd_score:          int
     confirmation_score: int
-    entry_price: float
-    stop_loss: float
-    take_profit: float
-    risk_reward: float
-    amd_phase: str
-    session: str
-    confidence: float
-    generated_at: datetime
-    confluence_factors: str = ""
+    final_score:        float
+    session:            SessionType
+    trade_id:           str           = field(default_factory=lambda: str(uuid.uuid4()))
+    result:             ResultType    = "OPEN"
+    date:               datetime      = field(default_factory=lambda: datetime.now(timezone.utc))
 
+    def validate(self) -> None:
+        assert self.pair      in ("EURUSD", "GBPUSD", "USDJPY"),       f"Invalid pair: {self.pair}"
+        assert self.direction in ("BUY", "SELL"),                       f"Invalid direction: {self.direction}"
+        assert self.result    in ("WIN", "LOSS", "BREAKEVEN", "OPEN"),  f"Invalid result: {self.result}"
+        assert self.session   in ("london", "newyork", "asian"),        f"Invalid session: {self.session}"
+        assert 0 <= self.zone_score          <= 100, "zone_score out of range"
+        assert 0 <= self.liquidity_score     <= 100, "liquidity_score out of range"
+        assert 0 <= self.amd_score           <= 100, "amd_score out of range"
+        assert 0 <= self.confirmation_score  <= 100, "confirmation_score out of range"
+        assert 0 <= self.final_score         <= 100, "final_score out of range"
 
-@dataclass
-class ZoneModel:
-    id: str
-    pair: str
-    timeframe: str
-    zone_type: str
-    price_top: float
-    price_bottom: float
-    strength: int
-    tested: int
-    active: bool
-    freshness: str
-    origin_time: datetime
+    def to_dict(self) -> dict:
+        return {
+            "trade_id":           self.trade_id,
+            "pair":               self.pair,
+            "direction":          self.direction,
+            "entry":              self.entry,
+            "stop_loss":          self.stop_loss,
+            "take_profit":        self.take_profit,
+            "risk_reward":        round(self.risk_reward, 3),
+            "zone_score":         self.zone_score,
+            "liquidity_score":    self.liquidity_score,
+            "amd_score":          self.amd_score,
+            "confirmation_score": self.confirmation_score,
+            "final_score":        round(self.final_score, 2),
+            "result":             self.result,
+            "session":            self.session,
+            "date":               self.date.isoformat(),
+        }
 
-
-@dataclass
-class BotStateModel:
-    id: int = 1
-    running: bool = False
-    mode: str = "paper"
-    started_at: Optional[datetime] = None
-    stopped_at: Optional[datetime] = None
-    analysis_count: int = 0
-    signal_count: int = 0
-
-
-@dataclass
-class BacktestModel:
-    id: str
-    pair: str
-    timeframe: str
-    start_date: datetime
-    end_date: datetime
-    initial_balance: float
-    final_balance: float
-    total_trades: int
-    win_rate: float
-    profit_factor: float
-    max_drawdown: float
-    sharpe_ratio: float
-    created_at: datetime
-
-
-@dataclass
-class LearningModel:
-    id: int = 1
-    episode: int = 0
-    epsilon: float = 0.1
-    total_reward: float = 0.0
-    zone_weight: float = 0.30
-    liquidity_weight: float = 0.25
-    amd_weight: float = 0.25
-    confirmation_weight: float = 0.20
-    updated_at: Optional[datetime] = None
+    @staticmethod
+    def from_dict(d: dict) -> "Trade":
+        return Trade(
+            trade_id=           d["trade_id"],
+            pair=               d["pair"],
+            direction=          d["direction"],
+            entry=              d["entry"],
+            stop_loss=          d["stop_loss"],
+            take_profit=        d["take_profit"],
+            risk_reward=        d["risk_reward"],
+            zone_score=         d["zone_score"],
+            liquidity_score=    d["liquidity_score"],
+            amd_score=          d["amd_score"],
+            confirmation_score= d["confirmation_score"],
+            final_score=        d["final_score"],
+            result=             d["result"],
+            session=            d["session"],
+            date=               datetime.fromisoformat(d["date"]),
+        )
