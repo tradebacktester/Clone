@@ -92,6 +92,7 @@ export interface AMDSequence {
   rangeLow: number | null;
   rangeHigh: number | null;
   complete: boolean;
+  amdScore: number;
 }
 
 export interface MarketRegimeResult {

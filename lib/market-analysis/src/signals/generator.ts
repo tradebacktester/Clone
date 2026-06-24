@@ -130,8 +130,11 @@ export function generateSignals(
       if (direction === "sell") factors.push("Premium zone — shorts preferred");
     }
 
-    if (amd.phase === "distribution") factors.push("AMD distribution phase");
-    else if (amd.phase === "manipulation") factors.push("AMD manipulation phase");
+    // AMD confluence only counts when the full sequence scores ≥ 80.
+    if (amd.amdScore >= 80) {
+      if (amd.phase === "distribution") factors.push(`AMD distribution (score ${amd.amdScore})`);
+      else if (amd.phase === "manipulation") factors.push(`AMD manipulation (score ${amd.amdScore})`);
+    }
 
     if (session === "london" || session === "newyork") {
       factors.push("London/NY session");
