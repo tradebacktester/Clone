@@ -2135,6 +2135,74 @@ export const updateRiskSettings = async (riskSettingsInput: RiskSettingsInput, o
 
 
 
+export const getGetNewsEventsUrl = (params?: GetNewsEventsParams) => {
+  const searchParams = new URLSearchParams();
+  if (params?.pair !== undefined) searchParams.set('pair', params.pair);
+  if (params?.hours !== undefined) searchParams.set('hours', String(params.hours));
+  const qs = searchParams.toString();
+  return `/news/events${qs ? `?${qs}` : ''}`;
+};
+
+export const getNewsEvents = async (params?: GetNewsEventsParams, options?: RequestInit): Promise<GetNewsEventsResponse> => {
+  return customFetch<GetNewsEventsResponse>(getGetNewsEventsUrl(params), { ...options });
+};
+
+export const getGetNewsEventsQueryKey = (params?: GetNewsEventsParams) => [`/news/events`, ...(params ? [params] : [])] as const;
+
+export const getGetNewsEventsQueryOptions = <TData = Awaited<ReturnType<typeof getNewsEvents>>, TError = ErrorType<unknown>>(params?: GetNewsEventsParams, options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetNewsEventsQueryKey(params);
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getNewsEvents>>> = () => getNewsEvents(params, requestOptions);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getNewsEvents>>, TError, TData>;
+};
+
+export type GetNewsEventsQueryResult = NonNullable<Awaited<ReturnType<typeof getNewsEvents>>>;
+export type GetNewsEventsQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get upcoming high-impact news events
+ */
+export const useGetNewsEvents = <TData = Awaited<ReturnType<typeof getNewsEvents>>, TError = ErrorType<unknown>>(params?: GetNewsEventsParams, options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+  const queryOptions = getGetNewsEventsQueryOptions(params, options);
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey;
+  return query;
+};
+
+
+
+
+export const getGetNewsStatusUrl = () => `/news/status`;
+
+export const getNewsStatus = async (options?: RequestInit): Promise<GetNewsStatusResponse> => {
+  return customFetch<GetNewsStatusResponse>(getGetNewsStatusUrl(), { ...options });
+};
+
+export const getGetNewsStatusQueryKey = () => [`/news/status`] as const;
+
+export const getGetNewsStatusQueryOptions = <TData = Awaited<ReturnType<typeof getNewsStatus>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetNewsStatusQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getNewsStatus>>> = () => getNewsStatus(requestOptions);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData>;
+};
+
+export type GetNewsStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getNewsStatus>>>;
+export type GetNewsStatusQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get news blocking status for all tracked pairs
+ */
+export const useGetNewsStatus = <TData = Awaited<ReturnType<typeof getNewsStatus>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+  const queryOptions = getGetNewsStatusQueryOptions(options);
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey;
+  return query;
+};
+
+
+
+
 export const getUpdateRiskSettingsMutationOptions = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRiskSettings>>, TError,{data: BodyType<RiskSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateRiskSettings>>, TError,{data: BodyType<RiskSettingsInput>}, TContext> => {

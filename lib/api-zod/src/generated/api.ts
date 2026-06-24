@@ -701,3 +701,48 @@ export const UpdateRiskSettingsResponse = zod.object({
 })
 
 
+/**
+ * @summary Get upcoming high-impact news events
+ */
+export const GetNewsEventsQueryParams = zod.object({
+  "pair": zod.string().optional(),
+  "hours": zod.coerce.number().optional()
+})
+
+export const NewsEventItem = zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "currency": zod.string(),
+  "eventTime": zod.string(),
+  "impact": zod.enum(["high", "medium", "low"]),
+  "forecast": zod.string(),
+  "previous": zod.string(),
+  "actual": zod.string(),
+  "minutesUntil": zod.number(),
+  "isBlocking": zod.boolean()
+})
+
+export const GetNewsEventsResponse = zod.object({
+  "events": zod.array(NewsEventItem),
+  "fetchedAt": zod.string(),
+  "source": zod.string()
+})
+
+
+/**
+ * @summary Get news blocking status for all tracked pairs
+ */
+export const NewsStatusItem = zod.object({
+  "pair": zod.string(),
+  "blocked": zod.boolean(),
+  "reason": zod.string(),
+  "nextEventIn": zod.number().nullable()
+})
+
+export const GetNewsStatusResponse = zod.object({
+  "items": zod.array(NewsStatusItem),
+  "windowMinutes": zod.number(),
+  "fetchedAt": zod.string()
+})
+
+

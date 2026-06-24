@@ -7,6 +7,7 @@ import marketRouter from "./market";
 import learningRouter from "./learning";
 import backtestRouter from "./backtest";
 import brokerRouter from "./broker";
+import newsRouter from "./news";
 
 const router: IRouter = Router();
 
@@ -18,5 +19,6 @@ router.use(marketRouter);
 router.use(learningRouter);
 router.use(backtestRouter);
 router.use(brokerRouter);
+router.use(newsRouter);
 
 export default router;

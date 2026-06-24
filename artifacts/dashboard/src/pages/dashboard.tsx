@@ -1,4 +1,5 @@
 import { useGetBotStatus, useGetAnalyticsSummary, useListTrades, useGetActiveSignals, useStartBot, useStopBot, getGetBotStatusQueryKey } from "@workspace/api-client-react";
+import { NewsCalendarWidget } from "@/components/news-calendar";
 import { useQueryClient } from "@tanstack/react-query";
 import { MetricCard } from "@/components/metric-card";
 import { formatCurrency, formatPercent, formatPips } from "@/lib/format";
@@ -118,6 +119,8 @@ export default function Dashboard() {
           description="Historical peak-to-trough"
         />
       </div>
+
+      <NewsCalendarWidget />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2 flex flex-col">

@@ -1,10 +1,10 @@
 import logging
 from datetime import datetime, timezone
+from trading_clone.market_data.news_calendar import is_news_blocked
 
 logger = logging.getLogger(__name__)
 
 ALLOWED_SESSIONS = {"london", "newyork"}
-_HIGH_IMPACT_PAIRS: set = set()
 
 
 def session_allowed(session: str) -> bool:
@@ -12,15 +12,15 @@ def session_allowed(session: str) -> bool:
 
 
 def news_blocked(pair: str) -> bool:
-    return pair in _HIGH_IMPACT_PAIRS
-
-
-def register_news_block(pair: str) -> None:
-    _HIGH_IMPACT_PAIRS.add(pair)
-
-
-def clear_news_block(pair: str) -> None:
-    _HIGH_IMPACT_PAIRS.discard(pair)
+    """Return True if a high-impact news event blocks trading this pair right now."""
+    try:
+        blocked = is_news_blocked(pair)
+        if blocked:
+            logger.info("News filter blocking %s", pair)
+        return blocked
+    except Exception as exc:
+        logger.warning("News filter error for %s: %s — allowing trade", pair, exc)
+        return False
 
 
 def is_trading_hours() -> bool:

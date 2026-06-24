@@ -526,3 +526,48 @@ export const GetMarketZonesTimeframe = {
   '1d': '1d',
 } as const;
 
+export type NewsEventImpact = typeof NewsEventImpact[keyof typeof NewsEventImpact];
+
+export const NewsEventImpact = {
+  high: 'high',
+  medium: 'medium',
+  low: 'low',
+} as const;
+
+export interface NewsEvent {
+  id: string;
+  title: string;
+  currency: string;
+  eventTime: string;
+  impact: NewsEventImpact;
+  forecast: string;
+  previous: string;
+  actual: string;
+  minutesUntil: number;
+  isBlocking: boolean;
+}
+
+export interface GetNewsEventsResponse {
+  events: NewsEvent[];
+  fetchedAt: string;
+  source: string;
+}
+
+export interface NewsStatusItem {
+  pair: string;
+  blocked: boolean;
+  reason: string;
+  nextEventIn: number | null;
+}
+
+export interface GetNewsStatusResponse {
+  items: NewsStatusItem[];
+  windowMinutes: number;
+  fetchedAt: string;
+}
+
+export type GetNewsEventsParams = {
+  pair?: string;
+  hours?: number;
+};
+

@@ -5,3 +5,4 @@ export * from "./learning";
 export * from "./backtest";
 export * from "./broker";
 export * from "./candles";
+export * from "./news";
