@@ -45,6 +45,25 @@ export const insertRlAgentSchema = createInsertSchema(rlAgentTable).omit({ id: t
 export type InsertRlAgent = z.infer<typeof insertRlAgentSchema>;
 export type RlAgent = typeof rlAgentTable.$inferSelect;
 
+export const weightProfilesTable = pgTable(
+  "weight_profiles",
+  {
+    id: serial("id").primaryKey(),
+    pair: text("pair"),
+    zoneWeight: numeric("zone_weight", { precision: 6, scale: 4 }).notNull().default("0.25"),
+    liquidityWeight: numeric("liquidity_weight", { precision: 6, scale: 4 }).notNull().default("0.25"),
+    amdWeight: numeric("amd_weight", { precision: 6, scale: 4 }).notNull().default("0.25"),
+    confirmationWeight: numeric("confirmation_weight", { precision: 6, scale: 4 }).notNull().default("0.25"),
+    sampleSize: integer("sample_size").notNull().default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+  },
+  (t) => [uniqueIndex("weight_profiles_pair_idx").on(t.pair)],
+);
+
 export const insertLearningDataSchema = createInsertSchema(learningDataTable).omit({ id: true, updatedAt: true });
 export type InsertLearningData = z.infer<typeof insertLearningDataSchema>;
 export type LearningData = typeof learningDataTable.$inferSelect;
+
+export const insertWeightProfileSchema = createInsertSchema(weightProfilesTable).omit({ id: true, updatedAt: true });
+export type InsertWeightProfile = z.infer<typeof insertWeightProfileSchema>;
+export type WeightProfileRow = typeof weightProfilesTable.$inferSelect;

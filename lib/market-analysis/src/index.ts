@@ -9,6 +9,7 @@ export * from "./analysis/regime.js";
 export * from "./signals/generator.js";
 export * from "./backtest/engine.js";
 export * from "./learning/scorer.js";
+export * from "./learning/weights.js";
 
 import type { Pair, Timeframe, AnalysisResult } from "./types.js";
 import { fetchCandles } from "./data/fetcher.js";
@@ -19,10 +20,12 @@ import { detectLiquidityLevels, detectLiquidityGrabs } from "./analysis/liquidit
 import { detectAMD } from "./analysis/amd.js";
 import { detectRegime } from "./analysis/regime.js";
 import { generateSignals } from "./signals/generator.js";
+import { DEFAULT_WEIGHT_PROFILE, type WeightProfile } from "./learning/weights.js";
 
 export async function runFullAnalysis(
   pair: Pair,
   timeframe: Timeframe = "4h",
+  learnedWeights: WeightProfile = DEFAULT_WEIGHT_PROFILE,
 ): Promise<AnalysisResult> {
   const candles = await fetchCandles(pair, timeframe);
   const swings = detectSwings(candles, timeframe === "1d" ? 7 : 5);
@@ -34,7 +37,7 @@ export async function runFullAnalysis(
   const recentGrabs = detectLiquidityGrabs(candles, liquidity);
   const amd = detectAMD(candles, recentGrabs);
   const regime = detectRegime(pair, candles, swings);
-  const signals = generateSignals(pair, candles, zones, fib, amd, regime, recentGrabs);
+  const signals = generateSignals(pair, candles, zones, fib, amd, regime, recentGrabs, learnedWeights);
 
   return {
     pair,

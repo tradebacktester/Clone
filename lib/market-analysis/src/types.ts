@@ -29,7 +29,7 @@ export interface FibLevel {
 export interface FibAnalysis {
   swingHigh: number;
   swingLow: number;
-  trend: "bullish" | "bearish";
+  trend: "bullish" | "bearish" | "neutral";
   levels: FibLevel[];
   premiumZone: { top: number; bottom: number };
   discountZone: { top: number; bottom: number };

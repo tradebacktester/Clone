@@ -12,6 +12,12 @@ import { calcATR, detectTrend } from "../analysis/swings.js";
 import { isPriceInZone } from "../analysis/zones.js";
 import { isPremiumZone, isDiscountZone } from "../analysis/fibonacci.js";
 import { recentLiquidityGrab } from "../analysis/liquidity.js";
+import {
+  calcConfidenceWithWeights,
+  applyRegimeAdjustment,
+  DEFAULT_WEIGHT_PROFILE,
+  type WeightProfile,
+} from "../learning/weights.js";
 
 function getBestSessionForPair(pair: Pair): string {
   const hour = new Date().getUTCHours();
@@ -20,34 +26,6 @@ function getBestSessionForPair(pair: Pair): string {
   if (pair === "USDJPY" && (hour < 7 || hour >= 20)) return "asian";
   if (hour >= 20 || hour < 7) return "london";
   return "london";
-}
-
-function calcConfidence(factors: string[]): number {
-  const weights: Record<string, number> = {
-    "Price in active demand zone": 28,
-    "Price in active supply zone": 28,
-    "Approaching demand zone": 18,
-    "Approaching supply zone": 18,
-    "Zone strength > 80": 12,
-    "Zone strength > 70": 7,
-    "Zone strength > 60": 4,
-    "FIB 0.618 confluence": 15,
-    "FIB 0.786 confluence": 12,
-    "FIB 0.5 confluence": 8,
-    "AMD distribution phase": 20,
-    "AMD manipulation phase": 15,
-    "London/NY session": 12,
-    "Liquidity sweep before zone": 12,
-    "Discount zone (bullish bias)": 8,
-    "Premium zone (bearish bias)": 8,
-    "Bullish market structure": 8,
-    "Bearish market structure": 8,
-    "Fresh zone (untested)": 8,
-    "Good regime for trading": 5,
-  };
-
-  const total = factors.reduce((sum, f) => sum + (weights[f] ?? 3), 0);
-  return Math.min(100, total);
 }
 
 function calcStopAndTarget(
@@ -91,6 +69,7 @@ export function generateSignals(
   amd: AMDSequence,
   regime: MarketRegimeResult,
   grabs: LiquidityGrab[],
+  learnedWeights: WeightProfile = DEFAULT_WEIGHT_PROFILE,
 ): TradeSignal[] {
   if (candles.length < 10) return [];
 
@@ -168,7 +147,8 @@ export function generateSignals(
     if (direction === "buy" && swingTrend === "bullish") factors.push("Bullish market structure");
     if (direction === "sell" && swingTrend === "bearish") factors.push("Bearish market structure");
 
-    const confidence = calcConfidence(factors);
+    const regimeWeights = applyRegimeAdjustment(learnedWeights, regime);
+    const confidence = calcConfidenceWithWeights(factors, regimeWeights);
     if (confidence < 38) continue;
 
     const { entryPrice, stopLoss, takeProfit } = calcStopAndTarget(zone, direction, atr, pair);
