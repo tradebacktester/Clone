@@ -445,6 +445,12 @@ export const RunBacktestResponse = zod.object({
   "maxDrawdown": zod.number(),
   "profitFactor": zod.number(),
   "sharpeRatio": zod.number(),
+  "expectancy": zod.number(),
+  "avgRR": zod.number(),
+  "avgWin": zod.number(),
+  "avgLoss": zod.number(),
+  "maxConsecWins": zod.number(),
+  "maxConsecLosses": zod.number(),
   "trades": zod.array(zod.object({
   "id": zod.number(),
   "pair": zod.string(),
@@ -470,6 +476,40 @@ export const RunBacktestResponse = zod.object({
   "closeReason": zod.string().nullish(),
   "openedAt": zod.string(),
   "closedAt": zod.string().nullish()
+})),
+  "sessionStats": zod.array(zod.object({
+  "session": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number(),
+  "avgRR": zod.number(),
+  "profitFactor": zod.number(),
+  "expectancy": zod.number()
+})),
+  "pairStats": zod.array(zod.object({
+  "pair": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number(),
+  "avgRR": zod.number(),
+  "profitFactor": zod.number(),
+  "expectancy": zod.number()
+})),
+  "zoneStats": zod.array(zod.object({
+  "category": zod.enum(['demand_zone', 'supply_zone', 'liquidity', 'amd', 'confirmation']),
+  "label": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "winRate": zod.number(),
+  "avgPnl": zod.number(),
+  "avgScore": zod.number(),
+  "contribution": zod.number()
 })),
   "createdAt": zod.string()
 })
@@ -512,6 +552,12 @@ export const GetBacktestResponse = zod.object({
   "maxDrawdown": zod.number(),
   "profitFactor": zod.number(),
   "sharpeRatio": zod.number(),
+  "expectancy": zod.number(),
+  "avgRR": zod.number(),
+  "avgWin": zod.number(),
+  "avgLoss": zod.number(),
+  "maxConsecWins": zod.number(),
+  "maxConsecLosses": zod.number(),
   "trades": zod.array(zod.object({
   "id": zod.number(),
   "pair": zod.string(),
@@ -537,6 +583,40 @@ export const GetBacktestResponse = zod.object({
   "closeReason": zod.string().nullish(),
   "openedAt": zod.string(),
   "closedAt": zod.string().nullish()
+})),
+  "sessionStats": zod.array(zod.object({
+  "session": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number(),
+  "avgRR": zod.number(),
+  "profitFactor": zod.number(),
+  "expectancy": zod.number()
+})),
+  "pairStats": zod.array(zod.object({
+  "pair": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number(),
+  "avgRR": zod.number(),
+  "profitFactor": zod.number(),
+  "expectancy": zod.number()
+})),
+  "zoneStats": zod.array(zod.object({
+  "category": zod.enum(['demand_zone', 'supply_zone', 'liquidity', 'amd', 'confirmation']),
+  "label": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "winRate": zod.number(),
+  "avgPnl": zod.number(),
+  "avgScore": zod.number(),
+  "contribution": zod.number()
 })),
   "createdAt": zod.string()
 })

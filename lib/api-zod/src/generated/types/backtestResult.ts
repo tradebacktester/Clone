@@ -5,7 +5,10 @@
  * Smart Money Trading Bot API
  * OpenAPI spec version: 1.0.0
  */
+import type { PairStats } from './pairStats';
+import type { SessionStats } from './sessionStats';
 import type { Trade } from './trade';
+import type { ZoneCategoryStats } from './zoneCategoryStats';
 
 export interface BacktestResult {
   id: number;
@@ -20,6 +23,15 @@ export interface BacktestResult {
   maxDrawdown: number;
   profitFactor: number;
   sharpeRatio: number;
+  expectancy: number;
+  avgRR: number;
+  avgWin: number;
+  avgLoss: number;
+  maxConsecWins: number;
+  maxConsecLosses: number;
   trades: Trade[];
+  sessionStats: SessionStats[];
+  pairStats: PairStats[];
+  zoneStats: ZoneCategoryStats[];
   createdAt: string;
 }

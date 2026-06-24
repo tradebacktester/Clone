@@ -8,6 +8,7 @@ export * from "./analysis/amd.js";
 export * from "./analysis/regime.js";
 export * from "./signals/generator.js";
 export * from "./backtest/engine.js";
+export * from "./backtest/stats.js";
 export * from "./learning/scorer.js";
 export * from "./learning/weights.js";
 

@@ -129,7 +129,16 @@ router.post("/backtest/run", async (req, res): Promise<void> => {
     maxDrawdown: parseFloat(bt!.maxDrawdown),
     profitFactor: parseFloat(bt!.profitFactor),
     sharpeRatio: parseFloat(bt!.sharpeRatio),
+    expectancy: result.expectancy,
+    avgRR: result.avgRR,
+    avgWin: result.avgWin,
+    avgLoss: result.avgLoss,
+    maxConsecWins: result.maxConsecWins,
+    maxConsecLosses: result.maxConsecLosses,
     trades: result.trades,
+    sessionStats: result.sessionStats,
+    pairStats: result.pairStats,
+    zoneStats: result.zoneStats,
     createdAt: bt!.createdAt?.toISOString() ?? new Date().toISOString(),
   }));
 });

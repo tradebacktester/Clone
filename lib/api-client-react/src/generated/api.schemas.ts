@@ -332,6 +332,54 @@ export interface BacktestInput {
   enableRL?: boolean;
 }
 
+export interface SessionStats {
+  session: string;
+  trades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  totalPnl: number;
+  avgPnl: number;
+  avgRR: number;
+  profitFactor: number;
+  expectancy: number;
+}
+
+export interface PairStats {
+  pair: string;
+  trades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  totalPnl: number;
+  avgPnl: number;
+  avgRR: number;
+  profitFactor: number;
+  expectancy: number;
+}
+
+export type ZoneCategoryStatsCategory = typeof ZoneCategoryStatsCategory[keyof typeof ZoneCategoryStatsCategory];
+
+
+export const ZoneCategoryStatsCategory = {
+  demand_zone: 'demand_zone',
+  supply_zone: 'supply_zone',
+  liquidity: 'liquidity',
+  amd: 'amd',
+  confirmation: 'confirmation',
+} as const;
+
+export interface ZoneCategoryStats {
+  category: ZoneCategoryStatsCategory;
+  label: string;
+  trades: number;
+  wins: number;
+  winRate: number;
+  avgPnl: number;
+  avgScore: number;
+  contribution: number;
+}
+
 export interface BacktestResult {
   id: number;
   pair: string;
@@ -345,7 +393,16 @@ export interface BacktestResult {
   maxDrawdown: number;
   profitFactor: number;
   sharpeRatio: number;
+  expectancy: number;
+  avgRR: number;
+  avgWin: number;
+  avgLoss: number;
+  maxConsecWins: number;
+  maxConsecLosses: number;
   trades: Trade[];
+  sessionStats: SessionStats[];
+  pairStats: PairStats[];
+  zoneStats: ZoneCategoryStats[];
   createdAt: string;
 }
 

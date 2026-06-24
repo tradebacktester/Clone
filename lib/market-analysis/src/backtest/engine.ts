@@ -12,6 +12,7 @@ import { detectZones, isPriceInZone } from "../analysis/zones.js";
 import { detectLiquidityLevels, detectLiquidityGrabs } from "../analysis/liquidity.js";
 import { detectAMD } from "../analysis/amd.js";
 import { generateSignals } from "../signals/generator.js";
+import { calcFullStats } from "./stats.js";
 
 interface BacktestConfig {
   pair: Pair;
@@ -332,6 +333,8 @@ export async function runBacktest(config: BacktestConfig): Promise<BacktestResul
     balance: Math.round(balance * 100) / 100,
   }));
 
+  const stats = calcFullStats(trades);
+
   return {
     trades,
     totalTrades: trades.length,
@@ -344,5 +347,14 @@ export async function runBacktest(config: BacktestConfig): Promise<BacktestResul
     profitFactor: Math.round(profitFactor * 1000) / 1000,
     sharpeRatio: Math.round(sharpeRatio * 1000) / 1000,
     equityCurve: equityCurveFormatted,
+    expectancy: stats.expectancy,
+    avgRR: stats.avgRR,
+    avgWin: stats.avgWin,
+    avgLoss: stats.avgLoss,
+    maxConsecWins: stats.maxConsecWins,
+    maxConsecLosses: stats.maxConsecLosses,
+    sessionStats: stats.sessionStats,
+    pairStats: stats.pairStats,
+    zoneStats: stats.zoneStats,
   };
 }

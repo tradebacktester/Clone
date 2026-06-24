@@ -872,9 +872,81 @@ components:
         enableRL:
           type: boolean
 
+    SessionStats:
+      type: object
+      required: [session, trades, wins, losses, winRate, totalPnl, avgPnl, avgRR, profitFactor, expectancy]
+      properties:
+        session:
+          type: string
+        trades:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+        avgPnl:
+          type: number
+        avgRR:
+          type: number
+        profitFactor:
+          type: number
+        expectancy:
+          type: number
+
+    PairStats:
+      type: object
+      required: [pair, trades, wins, losses, winRate, totalPnl, avgPnl, avgRR, profitFactor, expectancy]
+      properties:
+        pair:
+          type: string
+        trades:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+        avgPnl:
+          type: number
+        avgRR:
+          type: number
+        profitFactor:
+          type: number
+        expectancy:
+          type: number
+
+    ZoneCategoryStats:
+      type: object
+      required: [category, label, trades, wins, winRate, avgPnl, avgScore, contribution]
+      properties:
+        category:
+          type: string
+          enum: [demand_zone, supply_zone, liquidity, amd, confirmation]
+        label:
+          type: string
+        trades:
+          type: integer
+        wins:
+          type: integer
+        winRate:
+          type: number
+        avgPnl:
+          type: number
+        avgScore:
+          type: number
+        contribution:
+          type: number
+
     BacktestResult:
       type: object
-      required: [id, pair, startDate, endDate, initialBalance, finalBalance, totalTrades, winRate, totalPnl, maxDrawdown, profitFactor, sharpeRatio, trades, createdAt]
+      required: [id, pair, startDate, endDate, initialBalance, finalBalance, totalTrades, winRate, totalPnl, maxDrawdown, profitFactor, sharpeRatio, trades, createdAt, expectancy, avgRR, avgWin, avgLoss, maxConsecWins, maxConsecLosses, sessionStats, pairStats, zoneStats]
       properties:
         id:
           type: integer
@@ -900,10 +972,34 @@ components:
           type: number
         sharpeRatio:
           type: number
+        expectancy:
+          type: number
+        avgRR:
+          type: number
+        avgWin:
+          type: number
+        avgLoss:
+          type: number
+        maxConsecWins:
+          type: integer
+        maxConsecLosses:
+          type: integer
         trades:
           type: array
           items:
             $ref: "#/components/schemas/Trade"
+        sessionStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/SessionStats"
+        pairStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/PairStats"
+        zoneStats:
+          type: array
+          items:
+            $ref: "#/components/schemas/ZoneCategoryStats"
         createdAt:
           type: string
 

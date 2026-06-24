@@ -146,6 +146,15 @@ export interface BacktestResult {
   profitFactor: number;
   sharpeRatio: number;
   equityCurve: { time: string; balance: number }[];
+  expectancy: number;
+  avgRR: number;
+  avgWin: number;
+  avgLoss: number;
+  maxConsecWins: number;
+  maxConsecLosses: number;
+  sessionStats: import("./backtest/stats.js").SessionStats[];
+  pairStats: import("./backtest/stats.js").PairStats[];
+  zoneStats: import("./backtest/stats.js").ZoneCategoryStats[];
 }
 
 export interface PatternScore {
