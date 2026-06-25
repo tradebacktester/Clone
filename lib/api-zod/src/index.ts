@@ -1,2 +1,4 @@
 export * from "./generated/api";
-export * from "./generated/types";
+export type { GetNewsEventsResponse as GetNewsEventsResponseType } from "./generated/types/getNewsEventsResponse";
+export type { GetNewsStatusResponse as GetNewsStatusResponseType } from "./generated/types/getNewsStatusResponse";
+export type { GetNewsCalendarResponse as GetNewsCalendarResponseType } from "./generated/types/getNewsCalendarResponse";

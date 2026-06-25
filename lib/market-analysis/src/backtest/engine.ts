@@ -279,6 +279,7 @@ export async function runBacktest(config: BacktestConfig): Promise<BacktestResul
     const amd = detectAMD(historicalCandles, grabs);
     const signals = generateSignals(pair, historicalCandles, zones, fib, amd, {
       pair, regime: "trending", trend: "neutral", volatility: "medium", atr, adxEquivalent: 30,
+      regimeConfidence: 0.5, volatilityPercentile: 50, rangeCompression: 0,
     }, grabs, undefined, sweeps);
 
     if (signals.length === 0) continue;

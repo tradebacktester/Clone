@@ -19,7 +19,7 @@ import type { Candle, SwingPoint } from "../../types.js";
 function makeCandle(close: number, high?: number, low?: number): Candle {
   const h = high ?? close * 1.002;
   const l = low  ?? close * 0.998;
-  return { open: close, high: h, low: l, close, volume: 1000, timestamp: Date.now() };
+  return { open: close, high: h, low: l, close, volume: 1000, time: new Date() };
 }
 
 function makeTrendingCandles(count = 60): Candle[] {
@@ -51,7 +51,7 @@ function makeVolatileCandles(count = 60): Candle[] {
   return out;
 }
 
-function makeLowVolatilityCandles(): Candle[] {
+function makeLowVolatilityCandles(count = 80): Candle[] {
   // 60 normal candles first to build ATR history, then 20 very flat candles.
   // The current ATR (from flat tail) ranks in the bottom quartile of the series.
   const out: Candle[] = [];
@@ -69,12 +69,12 @@ function makeLowVolatilityCandles(): Candle[] {
 
 function makeBullishSwings(): SwingPoint[] {
   return [
-    { price: 1.095, type: "low",  index: 0,  timestamp: Date.now() - 50000 },
-    { price: 1.100, type: "high", index: 5,  timestamp: Date.now() - 40000 },
-    { price: 1.097, type: "low",  index: 10, timestamp: Date.now() - 30000 },
-    { price: 1.105, type: "high", index: 15, timestamp: Date.now() - 20000 },
-    { price: 1.100, type: "low",  index: 20, timestamp: Date.now() - 10000 },
-    { price: 1.110, type: "high", index: 25, timestamp: Date.now() },
+    { price: 1.095, type: "low",  index: 0,  time: new Date(Date.now() - 50000) },
+    { price: 1.100, type: "high", index: 5,  time: new Date(Date.now() - 40000) },
+    { price: 1.097, type: "low",  index: 10, time: new Date(Date.now() - 30000) },
+    { price: 1.105, type: "high", index: 15, time: new Date(Date.now() - 20000) },
+    { price: 1.100, type: "low",  index: 20, time: new Date(Date.now() - 10000) },
+    { price: 1.110, type: "high", index: 25, time: new Date() },
   ];
 }
 

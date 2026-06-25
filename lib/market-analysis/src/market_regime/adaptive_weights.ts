@@ -1,6 +1,7 @@
 import type { RegimeType } from "./regime_detector.js";
+import type { WeightCategory } from "../learning/weights.js";
 
-export type WeightCategory = "zone" | "liquidity" | "amd" | "confirmation";
+export type { WeightCategory };
 
 export interface RegimeWeightProfile {
   regime: RegimeType;
@@ -229,7 +230,7 @@ export function adaptRegimeWeights(
   };
 }
 
-export function weightsToPercent(p: RegimeWeightProfile): Record<WeightCategory, number> {
+export function regimeWeightsToPercent(p: RegimeWeightProfile): Record<WeightCategory, number> {
   return {
     zone:         Math.round(p.zone         * 1000) / 10,
     liquidity:    Math.round(p.liquidity    * 1000) / 10,

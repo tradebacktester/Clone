@@ -70,10 +70,11 @@ const REGIME_MULTIPLIERS: Record<
   MarketRegimeResult["regime"],
   Record<WeightCategory, number>
 > = {
-  trending: { zone: 1.0, liquidity: 1.3, amd: 0.85, confirmation: 1.0 },
-  ranging:  { zone: 1.1, liquidity: 0.85, amd: 1.3, confirmation: 0.9 },
-  volatile: { zone: 1.1, liquidity: 0.8, amd: 0.8, confirmation: 1.2 },
-  unknown:  { zone: 1.0, liquidity: 1.0, amd: 1.0, confirmation: 1.0 },
+  trending:      { zone: 1.0, liquidity: 1.3, amd: 0.85, confirmation: 1.0 },
+  ranging:       { zone: 1.1, liquidity: 0.85, amd: 1.3, confirmation: 0.9 },
+  volatile:      { zone: 1.1, liquidity: 0.8, amd: 0.8, confirmation: 1.2 },
+  low_volatility:{ zone: 1.2, liquidity: 0.9, amd: 1.1, confirmation: 1.0 },
+  unknown:       { zone: 1.0, liquidity: 1.0, amd: 1.0, confirmation: 1.0 },
 };
 
 function normalizeWeights(
