@@ -162,6 +162,31 @@ paths:
         "404":
           description: Not found
 
+  # ── Paper Trading ─────────────────────────────────────────────────────────
+  /paper/positions:
+    get:
+      operationId: getPaperPositions
+      summary: Get open paper trading positions with live unrealized P&L
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperPositions"
+
+  /paper/performance:
+    get:
+      operationId: getPaperPerformance
+      summary: Get paper trading performance stats and account balance
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperPerformance"
+
   # ── Analytics & Performance ────────────────────────────────────────────────
   /analytics/summary:
     get:
@@ -221,6 +246,24 @@ paths:
                 items:
                   $ref: "#/components/schemas/MonthlyPnl"
 
+  /analytics/monte-carlo:
+    post:
+      operationId: runMonteCarlo
+      summary: Run Monte Carlo simulation on trading strategy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MonteCarloRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonteCarloResult"
+
   /analytics/drawdown:
     get:
       operationId: getDrawdown
@@ -273,6 +316,32 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/MarketRegime"
+
+  /regime/analytics:
+    get:
+      operationId: getRegimeAnalytics
+      summary: Get regime performance analytics and adaptive weights
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegimeAnalyticsResponse"
+
+  /regime/weights:
+    get:
+      operationId: getRegimeWeights
+      summary: Get adaptive weights per regime
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RegimeWeightEntry"
 
   /market/signals:
     get:
@@ -659,9 +728,108 @@ components:
           type: boolean
         closeReason:
           type: ["string", "null"]
+        slippagePips:
+          type: ["number", "null"]
+        exitSlippagePips:
+          type: ["number", "null"]
         openedAt:
           type: string
         closedAt:
+          type: ["string", "null"]
+
+    PaperPosition:
+      type: object
+      required: [id, pair, direction, entryPrice, currentPrice, stopLoss, takeProfit, lotSize, unrealizedPnl, unrealizedPips, distanceToSL, distanceToTP, riskRewardRatio, amdPattern, setupScore, session, openedAt, priceSource]
+      properties:
+        id:
+          type: integer
+        pair:
+          type: string
+        direction:
+          type: string
+          enum: [buy, sell]
+        entryPrice:
+          type: number
+        currentPrice:
+          type: ["number", "null"]
+        stopLoss:
+          type: number
+        takeProfit:
+          type: number
+        lotSize:
+          type: number
+        unrealizedPnl:
+          type: number
+        unrealizedPips:
+          type: number
+        distanceToSL:
+          type: number
+        distanceToTP:
+          type: number
+        slippagePips:
+          type: ["number", "null"]
+        riskRewardRatio:
+          type: number
+        amdPattern:
+          type: string
+        setupScore:
+          type: number
+        session:
+          type: string
+        openedAt:
+          type: string
+        priceSource:
+          type: string
+          enum: [live, fallback, stale]
+
+    PaperPositions:
+      type: object
+      required: [positions, totalUnrealizedPnl]
+      properties:
+        positions:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaperPosition"
+        totalUnrealizedPnl:
+          type: number
+        priceUpdatedAt:
+          type: ["string", "null"]
+
+    PaperPerformance:
+      type: object
+      required: [balance, startBalance, totalReturn, totalTrades, openTrades, winningTrades, losingTrades, winRate, totalPnl, unrealizedPnl, dailyPnl, avgWin, avgLoss, profitFactor, avgSlippagePips]
+      properties:
+        balance:
+          type: number
+        startBalance:
+          type: number
+        totalReturn:
+          type: number
+        totalTrades:
+          type: integer
+        openTrades:
+          type: integer
+        winningTrades:
+          type: integer
+        losingTrades:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+        unrealizedPnl:
+          type: number
+        dailyPnl:
+          type: number
+        avgWin:
+          type: number
+        avgLoss:
+          type: number
+        profitFactor:
+          type: number
+        avgSlippagePips:
+          type: number
+        priceUpdatedAt:
           type: ["string", "null"]
 
     TradeList:
@@ -778,6 +946,138 @@ components:
         drawdown:
           type: number
 
+    MonteCarloRequest:
+      type: object
+      required: [winRate, avgWin, avgLoss]
+      properties:
+        numSimulations:
+          type: integer
+        numTrades:
+          type: integer
+        winRate:
+          type: number
+        avgWin:
+          type: number
+        avgLoss:
+          type: number
+        startingCapital:
+          type: number
+        ruinThreshold:
+          type: number
+        tradesPerMonth:
+          type: integer
+        useHistoricalData:
+          type: boolean
+
+    EquityCurves:
+      type: object
+      required: [worst, p10, median, p90, best, labels]
+      properties:
+        worst:
+          type: array
+          items:
+            type: number
+        p10:
+          type: array
+          items:
+            type: number
+        median:
+          type: array
+          items:
+            type: number
+        p90:
+          type: array
+          items:
+            type: number
+        best:
+          type: array
+          items:
+            type: number
+        labels:
+          type: array
+          items:
+            type: number
+
+    HistogramBucket:
+      type: object
+      required: [rangeLabel, count, frequency]
+      properties:
+        rangeLabel:
+          type: string
+        count:
+          type: integer
+        frequency:
+          type: number
+
+    MonteCarloResult:
+      type: object
+      required: [numSimulations, numTrades, startingCapital, winRate, avgWin, avgLoss, ruinThreshold, tradesPerMonth, probabilityOfRuin, worstDrawdown, expectedDrawdown, medianDrawdown, drawdownPercentile90, expectedMonthlyReturn, medianMonthlyReturn, worstLosingStreak, expectedLosingStreak, medianLosingStreak, worstCaseReturn, percentile10, percentile25, medianReturn, percentile75, percentile90, bestCaseReturn, expectedReturn, worstCaseReturnPct, expectedReturnPct, bestCaseReturnPct, histogram, equityCurves]
+      properties:
+        numSimulations:
+          type: integer
+        numTrades:
+          type: integer
+        startingCapital:
+          type: number
+        winRate:
+          type: number
+        avgWin:
+          type: number
+        avgLoss:
+          type: number
+        ruinThreshold:
+          type: number
+        tradesPerMonth:
+          type: integer
+        probabilityOfRuin:
+          type: number
+        worstDrawdown:
+          type: number
+        expectedDrawdown:
+          type: number
+        medianDrawdown:
+          type: number
+        drawdownPercentile90:
+          type: number
+        expectedMonthlyReturn:
+          type: number
+        medianMonthlyReturn:
+          type: number
+        worstLosingStreak:
+          type: integer
+        expectedLosingStreak:
+          type: number
+        medianLosingStreak:
+          type: number
+        worstCaseReturn:
+          type: number
+        percentile10:
+          type: number
+        percentile25:
+          type: number
+        medianReturn:
+          type: number
+        percentile75:
+          type: number
+        percentile90:
+          type: number
+        bestCaseReturn:
+          type: number
+        expectedReturn:
+          type: number
+        worstCaseReturnPct:
+          type: number
+        expectedReturnPct:
+          type: number
+        bestCaseReturnPct:
+          type: number
+        histogram:
+          type: array
+          items:
+            $ref: "#/components/schemas/HistogramBucket"
+        equityCurves:
+          $ref: "#/components/schemas/EquityCurves"
+
     # ── Market ────────────────────────────────────────────────────────────────
     MarketZone:
       type: object
@@ -824,6 +1124,91 @@ components:
           enum: [low, medium, high]
         atr:
           type: number
+        updatedAt:
+          type: string
+
+    RegimeWeights:
+      type: object
+      required: [zone, liquidity, amd, confirmation]
+      properties:
+        zone:
+          type: number
+        liquidity:
+          type: number
+        amd:
+          type: number
+        confirmation:
+          type: number
+
+    RegimePerformanceStat:
+      type: object
+      required: [regime, totalTrades, wins, losses, winRate, profitFactor, maxDrawdown, avgSetupScore, zoneWinRate, liquidityWinRate, amdWinRate, confirmationWinRate, bestComponent, weights, isBestRegime]
+      properties:
+        regime:
+          type: string
+          enum: [trending, ranging, volatile, low_volatility, unknown]
+        totalTrades:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        winRate:
+          type: number
+        profitFactor:
+          type: number
+        maxDrawdown:
+          type: number
+        avgSetupScore:
+          type: number
+        zoneWinRate:
+          type: number
+        liquidityWinRate:
+          type: number
+        amdWinRate:
+          type: number
+        confirmationWinRate:
+          type: number
+        bestComponent:
+          type: string
+          enum: [zone, liquidity, amd, confirmation]
+        weights:
+          $ref: "#/components/schemas/RegimeWeights"
+        isBestRegime:
+          type: boolean
+
+    RegimeAnalyticsResponse:
+      type: object
+      required: [regimes, bestRegime, currentRegimes]
+      properties:
+        regimes:
+          type: array
+          items:
+            $ref: "#/components/schemas/RegimePerformanceStat"
+        bestRegime:
+          type: ["string", "null"]
+        currentRegimes:
+          type: object
+          additionalProperties:
+            type: string
+
+    RegimeWeightEntry:
+      type: object
+      required: [regime, zone, liquidity, amd, confirmation, sampleSize, updatedAt]
+      properties:
+        regime:
+          type: string
+          enum: [trending, ranging, volatile, low_volatility, unknown]
+        zone:
+          type: number
+        liquidity:
+          type: number
+        amd:
+          type: number
+        confirmation:
+          type: number
+        sampleSize:
+          type: integer
         updatedAt:
           type: string
 

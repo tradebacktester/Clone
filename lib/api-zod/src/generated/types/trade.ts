@@ -40,6 +40,10 @@ export interface Trade {
   breakEvenMoved?: boolean;
   /** @nullable */
   closeReason?: string | null;
+  /** @nullable */
+  slippagePips?: number | null;
+  /** @nullable */
+  exitSlippagePips?: number | null;
   openedAt: string;
   /** @nullable */
   closedAt?: string | null;

@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { LivePositions } from "@/components/live-positions";
 
 export default function Dashboard() {
   const queryClient = useQueryClient();
@@ -38,7 +40,7 @@ export default function Dashboard() {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetBotStatusQueryKey() })
       });
     } else {
-      startBot.mutate({ data: { mode: botStatus?.mode || 'paper', pairs: botStatus?.activePairs || [] } }, {
+      startBot.mutate({ data: { mode: botStatus?.mode || 'paper', pairs: botStatus?.activePairs?.length ? botStatus.activePairs : ['EURUSD', 'GBPUSD', 'USDJPY'] } }, {
         onSuccess: () => queryClient.invalidateQueries({ queryKey: getGetBotStatusQueryKey() })
       });
     }
@@ -122,89 +124,121 @@ export default function Dashboard() {
 
       <NewsCalendarWidget />
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="lg:col-span-2 flex flex-col">
-          <CardHeader className="border-b border-border bg-muted/10 py-3">
-            <CardTitle className="text-sm font-mono uppercase tracking-wide flex items-center gap-2">
-              <Zap className="w-4 h-4 text-primary" /> Active Trade Signals
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex-1">
-            <ScrollArea className="h-[300px]">
-              {isLoadingSignals ? (
-                <div className="p-4 space-y-3">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : !Array.isArray(activeSignals) || activeSignals.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground font-mono text-sm">No active signals</div>
-              ) : (
-                <div className="divide-y divide-border">
-                  {activeSignals.map(signal => (
-                    <div key={signal.id} className="p-4 hover:bg-muted/20 transition-colors flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-2 h-10 rounded-full ${signal.direction === 'buy' ? 'bg-success' : 'bg-destructive'}`} />
-                        <div>
-                          <div className="font-mono font-bold text-lg">{signal.pair}</div>
-                          <div className="text-xs text-muted-foreground font-mono uppercase">
-                            {signal.session} • {signal.amdPhase}
+      <Tabs defaultValue="positions" className="w-full">
+        <TabsList className="font-mono text-xs uppercase">
+          <TabsTrigger value="positions">Live Positions</TabsTrigger>
+          <TabsTrigger value="signals">Active Signals</TabsTrigger>
+          <TabsTrigger value="executions">Recent Executions</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="positions" className="mt-4">
+          <LivePositions />
+        </TabsContent>
+
+        <TabsContent value="signals" className="mt-4">
+          <Card className="flex flex-col">
+            <CardHeader className="border-b border-border bg-muted/10 py-3">
+              <CardTitle className="text-sm font-mono uppercase tracking-wide flex items-center gap-2">
+                <Zap className="w-4 h-4 text-primary" /> Active Trade Signals
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 flex-1">
+              <ScrollArea className="h-[400px]">
+                {isLoadingSignals ? (
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                ) : !Array.isArray(activeSignals) || activeSignals.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground font-mono text-sm">No active signals</div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {activeSignals.map(signal => (
+                      <div key={signal.id} className="p-4 hover:bg-muted/20 transition-colors flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className={`w-2 h-10 rounded-full ${signal.direction === 'buy' ? 'bg-success' : 'bg-destructive'}`} />
+                          <div>
+                            <div className="font-mono font-bold text-lg">{signal.pair}</div>
+                            <div className="text-xs text-muted-foreground font-mono uppercase">
+                              {signal.session} • {signal.amdPhase}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <Badge variant="outline" className={signal.direction === 'buy' ? 'text-success border-success/30 bg-success/10' : 'text-destructive border-destructive/30 bg-destructive/10'}>
+                            {signal.direction.toUpperCase()}
+                          </Badge>
+                          <div className="mt-1 text-xs font-mono text-muted-foreground">
+                            Conf: {formatPercent(signal.confidence)}
                           </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <Badge variant="outline" className={signal.direction === 'buy' ? 'text-success border-success/30 bg-success/10' : 'text-destructive border-destructive/30 bg-destructive/10'}>
-                          {signal.direction.toUpperCase()}
-                        </Badge>
-                        <div className="mt-1 text-xs font-mono text-muted-foreground">
-                          Conf: {formatPercent(signal.confidence)}
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="executions" className="mt-4">
+          <Card className="flex flex-col">
+            <CardHeader className="border-b border-border bg-muted/10 py-3">
+              <CardTitle className="text-sm font-mono uppercase tracking-wide">Recent Executions</CardTitle>
+            </CardHeader>
+            <CardContent className="p-0 flex-1">
+              <ScrollArea className="h-[400px]">
+                {isLoadingRecentTrades ? (
+                  <div className="p-4 space-y-3">
+                    <Skeleton className="h-10 w-full" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ) : recentTradesData?.trades?.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground font-mono text-sm">No recent trades</div>
+                ) : (
+                  <div className="divide-y divide-border">
+                    {recentTradesData?.trades?.map(trade => (
+                      <div key={trade.id} className="p-4 text-sm hover:bg-muted/20 flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-1.5 h-8 rounded-full ${trade.direction === 'buy' ? 'bg-success' : 'bg-destructive'}`} />
+                          <div>
+                            <div className="font-mono font-medium">
+                              {trade.pair}{" "}
+                              <span className={trade.direction === 'buy' ? 'text-success' : 'text-destructive'}>
+                                {trade.direction.toUpperCase()}
+                              </span>
+                            </div>
+                            <div className="text-xs text-muted-foreground font-mono flex items-center gap-2">
+                              <span>{format(new Date(trade.openedAt), 'HH:mm:ss')}</span>
+                              {trade.closeReason && (
+                                <Badge variant="outline" className="text-[10px] h-4 px-1">
+                                  {trade.closeReason === 'sl_hit' ? 'SL' : trade.closeReason === 'tp_hit' ? 'TP' : trade.closeReason}
+                                </Badge>
+                              )}
+                              {trade.slippagePips != null && (
+                                <span className="text-warning">slip {trade.slippagePips.toFixed(1)}p</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right font-mono">
+                          {trade.status === 'closed' ? (
+                            <span className={trade.pnl && trade.pnl > 0 ? 'text-success' : 'text-destructive'}>
+                              {trade.pnl && trade.pnl > 0 ? '+' : ''}{formatCurrency(trade.pnl)}
+                            </span>
+                          ) : (
+                            <span className="text-warning text-xs animate-pulse">OPEN</span>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-
-        <Card className="flex flex-col">
-          <CardHeader className="border-b border-border bg-muted/10 py-3">
-            <CardTitle className="text-sm font-mono uppercase tracking-wide">Recent Executions</CardTitle>
-          </CardHeader>
-          <CardContent className="p-0 flex-1">
-            <ScrollArea className="h-[300px]">
-              {isLoadingRecentTrades ? (
-                <div className="p-4 space-y-3">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                </div>
-              ) : recentTradesData?.trades?.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground font-mono text-sm">No recent trades</div>
-              ) : (
-                <div className="divide-y divide-border">
-                  {recentTradesData?.trades?.slice(0, 5).map(trade => (
-                    <div key={trade.id} className="p-3 text-sm hover:bg-muted/20 flex justify-between items-center">
-                      <div>
-                        <div className="font-mono font-medium">{trade.pair} <span className={trade.direction === 'buy' ? 'text-success' : 'text-destructive'}>{trade.direction.toUpperCase()}</span></div>
-                        <div className="text-xs text-muted-foreground">{format(new Date(trade.openedAt), 'HH:mm:ss')}</div>
-                      </div>
-                      <div className="text-right font-mono">
-                        {trade.status === 'closed' ? (
-                          <span className={trade.pnl && trade.pnl > 0 ? 'text-success' : 'text-destructive'}>
-                            {trade.pnl && trade.pnl > 0 ? '+' : ''}{formatCurrency(trade.pnl)}
-                          </span>
-                        ) : (
-                          <span className="text-warning">OPEN</span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      </div>
+                    ))}
+                  </div>
+                )}
+              </ScrollArea>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

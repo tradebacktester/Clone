@@ -143,9 +143,81 @@ export interface Trade {
   breakEvenMoved?: boolean;
   /** @nullable */
   closeReason?: string | null;
+  /** @nullable */
+  slippagePips?: number | null;
+  /** @nullable */
+  exitSlippagePips?: number | null;
   openedAt: string;
   /** @nullable */
   closedAt?: string | null;
+}
+
+export type PaperPositionDirection = typeof PaperPositionDirection[keyof typeof PaperPositionDirection];
+
+
+export const PaperPositionDirection = {
+  buy: 'buy',
+  sell: 'sell',
+} as const;
+
+export type PaperPositionPriceSource = typeof PaperPositionPriceSource[keyof typeof PaperPositionPriceSource];
+
+
+export const PaperPositionPriceSource = {
+  live: 'live',
+  fallback: 'fallback',
+  stale: 'stale',
+} as const;
+
+export interface PaperPosition {
+  id: number;
+  pair: string;
+  direction: PaperPositionDirection;
+  entryPrice: number;
+  /** @nullable */
+  currentPrice: number | null;
+  stopLoss: number;
+  takeProfit: number;
+  lotSize: number;
+  unrealizedPnl: number;
+  unrealizedPips: number;
+  distanceToSL: number;
+  distanceToTP: number;
+  /** @nullable */
+  slippagePips?: number | null;
+  riskRewardRatio: number;
+  amdPattern: string;
+  setupScore: number;
+  session: string;
+  openedAt: string;
+  priceSource: PaperPositionPriceSource;
+}
+
+export interface PaperPositions {
+  positions: PaperPosition[];
+  totalUnrealizedPnl: number;
+  /** @nullable */
+  priceUpdatedAt?: string | null;
+}
+
+export interface PaperPerformance {
+  balance: number;
+  startBalance: number;
+  totalReturn: number;
+  totalTrades: number;
+  openTrades: number;
+  winningTrades: number;
+  losingTrades: number;
+  winRate: number;
+  totalPnl: number;
+  unrealizedPnl: number;
+  dailyPnl: number;
+  avgWin: number;
+  avgLoss: number;
+  profitFactor: number;
+  avgSlippagePips: number;
+  /** @nullable */
+  priceUpdatedAt?: string | null;
 }
 
 export interface TradeList {
@@ -201,6 +273,67 @@ export interface MonthlyPnl {
 export interface DrawdownPoint {
   date: string;
   drawdown: number;
+}
+
+export interface MonteCarloRequest {
+  numSimulations?: number;
+  numTrades?: number;
+  winRate: number;
+  avgWin: number;
+  avgLoss: number;
+  startingCapital?: number;
+  ruinThreshold?: number;
+  tradesPerMonth?: number;
+  useHistoricalData?: boolean;
+}
+
+export interface EquityCurves {
+  worst: number[];
+  p10: number[];
+  median: number[];
+  p90: number[];
+  best: number[];
+  labels: number[];
+}
+
+export interface HistogramBucket {
+  rangeLabel: string;
+  count: number;
+  frequency: number;
+}
+
+export interface MonteCarloResult {
+  numSimulations: number;
+  numTrades: number;
+  startingCapital: number;
+  winRate: number;
+  avgWin: number;
+  avgLoss: number;
+  ruinThreshold: number;
+  tradesPerMonth: number;
+  probabilityOfRuin: number;
+  worstDrawdown: number;
+  expectedDrawdown: number;
+  medianDrawdown: number;
+  drawdownPercentile90: number;
+  expectedMonthlyReturn: number;
+  medianMonthlyReturn: number;
+  worstLosingStreak: number;
+  expectedLosingStreak: number;
+  medianLosingStreak: number;
+  worstCaseReturn: number;
+  percentile10: number;
+  percentile25: number;
+  medianReturn: number;
+  percentile75: number;
+  percentile90: number;
+  bestCaseReturn: number;
+  expectedReturn: number;
+  worstCaseReturnPct: number;
+  expectedReturnPct: number;
+  bestCaseReturnPct: number;
+  histogram: HistogramBucket[];
+  equityCurves: EquityCurves;
 }
 
 export type MarketZoneZoneType = typeof MarketZoneZoneType[keyof typeof MarketZoneZoneType];
@@ -260,6 +393,82 @@ export interface MarketRegime {
   trend: MarketRegimeTrend;
   volatility: MarketRegimeVolatility;
   atr: number;
+  updatedAt: string;
+}
+
+export interface RegimeWeights {
+  zone: number;
+  liquidity: number;
+  amd: number;
+  confirmation: number;
+}
+
+export type RegimePerformanceStatRegime = typeof RegimePerformanceStatRegime[keyof typeof RegimePerformanceStatRegime];
+
+
+export const RegimePerformanceStatRegime = {
+  trending: 'trending',
+  ranging: 'ranging',
+  volatile: 'volatile',
+  low_volatility: 'low_volatility',
+  unknown: 'unknown',
+} as const;
+
+export type RegimePerformanceStatBestComponent = typeof RegimePerformanceStatBestComponent[keyof typeof RegimePerformanceStatBestComponent];
+
+
+export const RegimePerformanceStatBestComponent = {
+  zone: 'zone',
+  liquidity: 'liquidity',
+  amd: 'amd',
+  confirmation: 'confirmation',
+} as const;
+
+export interface RegimePerformanceStat {
+  regime: RegimePerformanceStatRegime;
+  totalTrades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  profitFactor: number;
+  maxDrawdown: number;
+  avgSetupScore: number;
+  zoneWinRate: number;
+  liquidityWinRate: number;
+  amdWinRate: number;
+  confirmationWinRate: number;
+  bestComponent: RegimePerformanceStatBestComponent;
+  weights: RegimeWeights;
+  isBestRegime: boolean;
+}
+
+export type RegimeAnalyticsResponseCurrentRegimes = {[key: string]: string};
+
+export interface RegimeAnalyticsResponse {
+  regimes: RegimePerformanceStat[];
+  /** @nullable */
+  bestRegime: string | null;
+  currentRegimes: RegimeAnalyticsResponseCurrentRegimes;
+}
+
+export type RegimeWeightEntryRegime = typeof RegimeWeightEntryRegime[keyof typeof RegimeWeightEntryRegime];
+
+
+export const RegimeWeightEntryRegime = {
+  trending: 'trending',
+  ranging: 'ranging',
+  volatile: 'volatile',
+  low_volatility: 'low_volatility',
+  unknown: 'unknown',
+} as const;
+
+export interface RegimeWeightEntry {
+  regime: RegimeWeightEntryRegime;
+  zone: number;
+  liquidity: number;
+  amd: number;
+  confirmation: number;
+  sampleSize: number;
   updatedAt: string;
 }
 
@@ -458,6 +667,87 @@ export interface BrokerAccountInput {
   paperTrading?: boolean;
 }
 
+export type NewsEventCategory = typeof NewsEventCategory[keyof typeof NewsEventCategory];
+
+
+export const NewsEventCategory = {
+  NFP: 'NFP',
+  CPI: 'CPI',
+  FOMC: 'FOMC',
+  INTEREST_RATE: 'INTEREST_RATE',
+  GDP: 'GDP',
+  CENTRAL_BANK_SPEECH: 'CENTRAL_BANK_SPEECH',
+  OTHER: 'OTHER',
+} as const;
+
+export type NewsEventImpact = typeof NewsEventImpact[keyof typeof NewsEventImpact];
+
+
+export const NewsEventImpact = {
+  high: 'high',
+  medium: 'medium',
+  low: 'low',
+} as const;
+
+export type NewsEventBlockingPhase = typeof NewsEventBlockingPhase[keyof typeof NewsEventBlockingPhase];
+
+
+export const NewsEventBlockingPhase = {
+  clear: 'clear',
+  pre_event: 'pre_event',
+  active: 'active',
+  post_event: 'post_event',
+} as const;
+
+export interface NewsEvent {
+  id: string;
+  title: string;
+  currency: string;
+  eventTime: string;
+  impact: NewsEventImpact;
+  category: NewsEventCategory;
+  forecast: string;
+  previous: string;
+  actual: string;
+  minutesUntil: number;
+  isBlocking: boolean;
+  blockingPhase: NewsEventBlockingPhase;
+}
+
+export interface GetNewsEventsResponse {
+  events: NewsEvent[];
+  fetchedAt: string;
+  source: string;
+}
+
+export interface NewsStatusItem {
+  pair: string;
+  blocked: boolean;
+  reason: string;
+  /** @nullable */
+  category?: string | null;
+  /** @nullable */
+  nextEventIn: number | null;
+}
+
+export interface GetNewsStatusResponse {
+  items: NewsStatusItem[];
+  windowMinutes: number;
+  fetchedAt: string;
+}
+
+export interface NewsCalendarDay {
+  date: string;
+  events: NewsEvent[];
+}
+
+export interface GetNewsCalendarResponse {
+  days: NewsCalendarDay[];
+  windowMinutes: number;
+  fetchedAt: string;
+  source: string;
+}
+
 export interface RiskSettings {
   id: number;
   riskPerTrade: number;
@@ -526,200 +816,8 @@ export const GetMarketZonesTimeframe = {
   '1d': '1d',
 } as const;
 
-export type NewsEventImpact = typeof NewsEventImpact[keyof typeof NewsEventImpact];
-
-export const NewsEventImpact = {
-  high: 'high',
-  medium: 'medium',
-  low: 'low',
-} as const;
-
-export type NewsEventCategory = typeof NewsEventCategory[keyof typeof NewsEventCategory];
-
-export const NewsEventCategory = {
-  NFP: 'NFP',
-  CPI: 'CPI',
-  FOMC: 'FOMC',
-  INTEREST_RATE: 'INTEREST_RATE',
-  GDP: 'GDP',
-  CENTRAL_BANK_SPEECH: 'CENTRAL_BANK_SPEECH',
-  OTHER: 'OTHER',
-} as const;
-
-export type NewsEventBlockingPhase = typeof NewsEventBlockingPhase[keyof typeof NewsEventBlockingPhase];
-
-export const NewsEventBlockingPhase = {
-  clear: 'clear',
-  pre_event: 'pre_event',
-  active: 'active',
-  post_event: 'post_event',
-} as const;
-
-export interface NewsEvent {
-  id: string;
-  title: string;
-  currency: string;
-  eventTime: string;
-  impact: NewsEventImpact;
-  category: NewsEventCategory;
-  forecast: string;
-  previous: string;
-  actual: string;
-  minutesUntil: number;
-  isBlocking: boolean;
-  blockingPhase: NewsEventBlockingPhase;
-}
-
-export interface GetNewsEventsResponse {
-  events: NewsEvent[];
-  fetchedAt: string;
-  source: string;
-}
-
-export interface NewsStatusItem {
-  pair: string;
-  blocked: boolean;
-  reason: string;
-  category?: string | null;
-  nextEventIn: number | null;
-}
-
-export interface GetNewsStatusResponse {
-  items: NewsStatusItem[];
-  windowMinutes: number;
-  fetchedAt: string;
-}
-
-export interface NewsCalendarDay {
-  date: string;
-  events: NewsEvent[];
-}
-
-export interface GetNewsCalendarResponse {
-  days: NewsCalendarDay[];
-  windowMinutes: number;
-  fetchedAt: string;
-  source: string;
-}
-
 export type GetNewsEventsParams = {
-  pair?: string;
-  hours?: number;
+pair?: string;
+hours?: number;
 };
 
-
-
-export interface RegimeWeightsItem {
-  zone: number;
-  liquidity: number;
-  amd: number;
-  confirmation: number;
-}
-
-export interface RegimeAnalyticsItem {
-  regime: string;
-  totalTrades: number;
-  wins: number;
-  losses: number;
-  winRate: number;
-  profitFactor: number;
-  maxDrawdown: number;
-  avgSetupScore: number;
-  zoneWinRate: number;
-  liquidityWinRate: number;
-  amdWinRate: number;
-  confirmationWinRate: number;
-  bestComponent: string;
-  isBestRegime: boolean;
-  weights: RegimeWeightsItem;
-}
-
-export interface GetRegimeAnalyticsResponse {
-  regimes: RegimeAnalyticsItem[];
-  bestRegime: string | null;
-  currentRegimes: Record<string, string>;
-}
-
-export interface RegimeWeightRow {
-  regime: string;
-  zone: number;
-  liquidity: number;
-  amd: number;
-  confirmation: number;
-  sampleSize: number;
-  updatedAt: string;
-}
-
-export interface RegimeCurrentItem {
-  pair: string;
-  regime: string;
-  trend: string;
-  volatility: string;
-  atr: number;
-  adxEquivalent: number;
-  regimeConfidence: number;
-  volatilityPercentile: number;
-  rangeCompression: number;
-  updatedAt: string;
-}
-
-export interface MonteCarloRequest {
-  numSimulations?: number;
-  numTrades?: number;
-  winRate?: number;
-  avgWin?: number;
-  avgLoss?: number;
-  startingCapital?: number;
-  ruinThreshold?: number;
-  tradesPerMonth?: number;
-  useHistoricalData?: boolean;
-}
-
-export interface HistogramBucket {
-  rangeLabel: string;
-  count: number;
-  frequency: number;
-}
-
-export interface EquityCurves {
-  worst: number[];
-  p10: number[];
-  median: number[];
-  p90: number[];
-  best: number[];
-  labels: number[];
-}
-
-export interface MonteCarloResult {
-  numSimulations: number;
-  numTrades: number;
-  startingCapital: number;
-  winRate: number;
-  avgWin: number;
-  avgLoss: number;
-  ruinThreshold: number;
-  tradesPerMonth: number;
-  probabilityOfRuin: number;
-  worstDrawdown: number;
-  expectedDrawdown: number;
-  medianDrawdown: number;
-  drawdownPercentile90: number;
-  expectedMonthlyReturn: number;
-  medianMonthlyReturn: number;
-  worstLosingStreak: number;
-  expectedLosingStreak: number;
-  medianLosingStreak: number;
-  worstCaseReturn: number;
-  percentile10: number;
-  percentile25: number;
-  medianReturn: number;
-  percentile75: number;
-  percentile90: number;
-  bestCaseReturn: number;
-  expectedReturn: number;
-  worstCaseReturnPct: number;
-  expectedReturnPct: number;
-  bestCaseReturnPct: number;
-  histogram: HistogramBucket[];
-  equityCurves: EquityCurves;
-}

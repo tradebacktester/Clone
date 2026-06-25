@@ -43,7 +43,13 @@ import type {
   ListTradesParams,
   MarketRegime,
   MarketZone,
+  MonteCarloRequest,
+  MonteCarloResult,
   MonthlyPnl,
+  PaperPerformance,
+  PaperPositions,
+  RegimeAnalyticsResponse,
+  RegimeWeightEntry,
   RiskSettings,
   RiskSettingsInput,
   SetupScore,
@@ -739,6 +745,160 @@ export const useCloseTrade = <TError = ErrorType<void>,
       return useMutation(getCloseTradeMutationOptions(options));
     }
 
+export const getGetPaperPositionsUrl = () => {
+
+
+
+
+  return `/api/paper/positions`
+}
+
+/**
+ * @summary Get open paper trading positions with live unrealized P&L
+ */
+export const getPaperPositions = async ( options?: RequestInit): Promise<PaperPositions> => {
+
+  return customFetch<PaperPositions>(getGetPaperPositionsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPaperPositionsQueryKey = () => {
+    return [
+    `/api/paper/positions`
+    ] as const;
+    }
+
+
+export const getGetPaperPositionsQueryOptions = <TData = Awaited<ReturnType<typeof getPaperPositions>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperPositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPaperPositionsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaperPositions>>> = ({ signal }) => getPaperPositions({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaperPositions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPaperPositionsQueryResult = NonNullable<Awaited<ReturnType<typeof getPaperPositions>>>
+export type GetPaperPositionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get open paper trading positions with live unrealized P&L
+ */
+
+export function useGetPaperPositions<TData = Awaited<ReturnType<typeof getPaperPositions>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperPositions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPaperPositionsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPaperPerformanceUrl = () => {
+
+
+
+
+  return `/api/paper/performance`
+}
+
+/**
+ * @summary Get paper trading performance stats and account balance
+ */
+export const getPaperPerformance = async ( options?: RequestInit): Promise<PaperPerformance> => {
+
+  return customFetch<PaperPerformance>(getGetPaperPerformanceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPaperPerformanceQueryKey = () => {
+    return [
+    `/api/paper/performance`
+    ] as const;
+    }
+
+
+export const getGetPaperPerformanceQueryOptions = <TData = Awaited<ReturnType<typeof getPaperPerformance>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperPerformance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPaperPerformanceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaperPerformance>>> = ({ signal }) => getPaperPerformance({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaperPerformance>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPaperPerformanceQueryResult = NonNullable<Awaited<ReturnType<typeof getPaperPerformance>>>
+export type GetPaperPerformanceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get paper trading performance stats and account balance
+ */
+
+export function useGetPaperPerformance<TData = Awaited<ReturnType<typeof getPaperPerformance>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperPerformance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPaperPerformanceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetAnalyticsSummaryUrl = () => {
 
 
@@ -1054,6 +1214,77 @@ export function useGetMonthlyPnl<TData = Awaited<ReturnType<typeof getMonthlyPnl
 
 
 
+export const getRunMonteCarloUrl = () => {
+
+
+
+
+  return `/api/analytics/monte-carlo`
+}
+
+/**
+ * @summary Run Monte Carlo simulation on trading strategy
+ */
+export const runMonteCarlo = async (monteCarloRequest: MonteCarloRequest, options?: RequestInit): Promise<MonteCarloResult> => {
+
+  return customFetch<MonteCarloResult>(getRunMonteCarloUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      monteCarloRequest,)
+  }
+);}
+
+
+
+
+export const getRunMonteCarloMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runMonteCarlo>>, TError,{data: BodyType<MonteCarloRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runMonteCarlo>>, TError,{data: BodyType<MonteCarloRequest>}, TContext> => {
+
+const mutationKey = ['runMonteCarlo'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runMonteCarlo>>, {data: BodyType<MonteCarloRequest>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runMonteCarlo(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunMonteCarloMutationResult = NonNullable<Awaited<ReturnType<typeof runMonteCarlo>>>
+    export type RunMonteCarloMutationBody = BodyType<MonteCarloRequest>
+    export type RunMonteCarloMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run Monte Carlo simulation on trading strategy
+ */
+export const useRunMonteCarlo = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runMonteCarlo>>, TError,{data: BodyType<MonteCarloRequest>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runMonteCarlo>>,
+        TError,
+        {data: BodyType<MonteCarloRequest>},
+        TContext
+      > => {
+      return useMutation(getRunMonteCarloMutationOptions(options));
+    }
+
 export const getGetDrawdownUrl = () => {
 
 
@@ -1280,6 +1511,160 @@ export function useGetMarketRegime<TData = Awaited<ReturnType<typeof getMarketRe
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetMarketRegimeQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRegimeAnalyticsUrl = () => {
+
+
+
+
+  return `/api/regime/analytics`
+}
+
+/**
+ * @summary Get regime performance analytics and adaptive weights
+ */
+export const getRegimeAnalytics = async ( options?: RequestInit): Promise<RegimeAnalyticsResponse> => {
+
+  return customFetch<RegimeAnalyticsResponse>(getGetRegimeAnalyticsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRegimeAnalyticsQueryKey = () => {
+    return [
+    `/api/regime/analytics`
+    ] as const;
+    }
+
+
+export const getGetRegimeAnalyticsQueryOptions = <TData = Awaited<ReturnType<typeof getRegimeAnalytics>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRegimeAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRegimeAnalyticsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRegimeAnalytics>>> = ({ signal }) => getRegimeAnalytics({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRegimeAnalytics>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRegimeAnalyticsQueryResult = NonNullable<Awaited<ReturnType<typeof getRegimeAnalytics>>>
+export type GetRegimeAnalyticsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get regime performance analytics and adaptive weights
+ */
+
+export function useGetRegimeAnalytics<TData = Awaited<ReturnType<typeof getRegimeAnalytics>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRegimeAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRegimeAnalyticsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRegimeWeightsUrl = () => {
+
+
+
+
+  return `/api/regime/weights`
+}
+
+/**
+ * @summary Get adaptive weights per regime
+ */
+export const getRegimeWeights = async ( options?: RequestInit): Promise<RegimeWeightEntry[]> => {
+
+  return customFetch<RegimeWeightEntry[]>(getGetRegimeWeightsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRegimeWeightsQueryKey = () => {
+    return [
+    `/api/regime/weights`
+    ] as const;
+    }
+
+
+export const getGetRegimeWeightsQueryOptions = <TData = Awaited<ReturnType<typeof getRegimeWeights>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRegimeWeights>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRegimeWeightsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRegimeWeights>>> = ({ signal }) => getRegimeWeights({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRegimeWeights>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRegimeWeightsQueryResult = NonNullable<Awaited<ReturnType<typeof getRegimeWeights>>>
+export type GetRegimeWeightsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get adaptive weights per regime
+ */
+
+export function useGetRegimeWeights<TData = Awaited<ReturnType<typeof getRegimeWeights>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRegimeWeights>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRegimeWeightsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 
@@ -2036,6 +2421,244 @@ export const useDeleteBrokerAccount = <TError = ErrorType<unknown>,
       return useMutation(getDeleteBrokerAccountMutationOptions(options));
     }
 
+export const getGetNewsEventsUrl = (params?: GetNewsEventsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/news/events?${stringifiedParams}` : `/api/news/events`
+}
+
+/**
+ * @summary Get upcoming high-impact news events
+ */
+export const getNewsEvents = async (params?: GetNewsEventsParams, options?: RequestInit): Promise<GetNewsEventsResponse> => {
+
+  return customFetch<GetNewsEventsResponse>(getGetNewsEventsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNewsEventsQueryKey = (params?: GetNewsEventsParams,) => {
+    return [
+    `/api/news/events`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetNewsEventsQueryOptions = <TData = Awaited<ReturnType<typeof getNewsEvents>>, TError = ErrorType<unknown>>(params?: GetNewsEventsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNewsEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNewsEventsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNewsEvents>>> = ({ signal }) => getNewsEvents(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNewsEvents>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetNewsEventsQueryResult = NonNullable<Awaited<ReturnType<typeof getNewsEvents>>>
+export type GetNewsEventsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get upcoming high-impact news events
+ */
+
+export function useGetNewsEvents<TData = Awaited<ReturnType<typeof getNewsEvents>>, TError = ErrorType<unknown>>(
+ params?: GetNewsEventsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNewsEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetNewsEventsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetNewsStatusUrl = () => {
+
+
+
+
+  return `/api/news/status`
+}
+
+/**
+ * @summary Get news blocking status for all tracked pairs
+ */
+export const getNewsStatus = async ( options?: RequestInit): Promise<GetNewsStatusResponse> => {
+
+  return customFetch<GetNewsStatusResponse>(getGetNewsStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNewsStatusQueryKey = () => {
+    return [
+    `/api/news/status`
+    ] as const;
+    }
+
+
+export const getGetNewsStatusQueryOptions = <TData = Awaited<ReturnType<typeof getNewsStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNewsStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNewsStatus>>> = ({ signal }) => getNewsStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetNewsStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getNewsStatus>>>
+export type GetNewsStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get news blocking status for all tracked pairs
+ */
+
+export function useGetNewsStatus<TData = Awaited<ReturnType<typeof getNewsStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetNewsStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetNewsCalendarUrl = () => {
+
+
+
+
+  return `/api/news/calendar`
+}
+
+/**
+ * @summary Get full week economic calendar grouped by day
+ */
+export const getNewsCalendar = async ( options?: RequestInit): Promise<GetNewsCalendarResponse> => {
+
+  return customFetch<GetNewsCalendarResponse>(getGetNewsCalendarUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetNewsCalendarQueryKey = () => {
+    return [
+    `/api/news/calendar`
+    ] as const;
+    }
+
+
+export const getGetNewsCalendarQueryOptions = <TData = Awaited<ReturnType<typeof getNewsCalendar>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNewsCalendar>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetNewsCalendarQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getNewsCalendar>>> = ({ signal }) => getNewsCalendar({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getNewsCalendar>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetNewsCalendarQueryResult = NonNullable<Awaited<ReturnType<typeof getNewsCalendar>>>
+export type GetNewsCalendarQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get full week economic calendar grouped by day
+ */
+
+export function useGetNewsCalendar<TData = Awaited<ReturnType<typeof getNewsCalendar>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getNewsCalendar>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetNewsCalendarQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getGetRiskSettingsUrl = () => {
 
 
@@ -2139,105 +2762,6 @@ export const updateRiskSettings = async (riskSettingsInput: RiskSettingsInput, o
 
 
 
-export const getGetNewsEventsUrl = (params?: GetNewsEventsParams) => {
-  const searchParams = new URLSearchParams();
-  if (params?.pair !== undefined) searchParams.set('pair', params.pair);
-  if (params?.hours !== undefined) searchParams.set('hours', String(params.hours));
-  const qs = searchParams.toString();
-  return `/news/events${qs ? `?${qs}` : ''}`;
-};
-
-export const getNewsEvents = async (params?: GetNewsEventsParams, options?: RequestInit): Promise<GetNewsEventsResponse> => {
-  return customFetch<GetNewsEventsResponse>(getGetNewsEventsUrl(params), { ...options });
-};
-
-export const getGetNewsEventsQueryKey = (params?: GetNewsEventsParams) => [`/news/events`, ...(params ? [params] : [])] as const;
-
-export const getGetNewsEventsQueryOptions = <TData = Awaited<ReturnType<typeof getNewsEvents>>, TError = ErrorType<unknown>>(params?: GetNewsEventsParams, options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-  const queryKey = queryOptions?.queryKey ?? getGetNewsEventsQueryKey(params);
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getNewsEvents>>> = () => getNewsEvents(params, requestOptions);
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getNewsEvents>>, TError, TData>;
-};
-
-export type GetNewsEventsQueryResult = NonNullable<Awaited<ReturnType<typeof getNewsEvents>>>;
-export type GetNewsEventsQueryError = ErrorType<unknown>;
-
-/**
- * @summary Get upcoming high-impact news events
- */
-export const useGetNewsEvents = <TData = Awaited<ReturnType<typeof getNewsEvents>>, TError = ErrorType<unknown>>(params?: GetNewsEventsParams, options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions = getGetNewsEventsQueryOptions(params, options);
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
-  query.queryKey = queryOptions.queryKey;
-  return query;
-};
-
-
-
-
-export const getGetNewsStatusUrl = () => `/news/status`;
-
-export const getNewsStatus = async (options?: RequestInit): Promise<GetNewsStatusResponse> => {
-  return customFetch<GetNewsStatusResponse>(getGetNewsStatusUrl(), { ...options });
-};
-
-export const getGetNewsStatusQueryKey = () => [`/news/status`] as const;
-
-export const getGetNewsStatusQueryOptions = <TData = Awaited<ReturnType<typeof getNewsStatus>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-  const queryKey = queryOptions?.queryKey ?? getGetNewsStatusQueryKey();
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getNewsStatus>>> = () => getNewsStatus(requestOptions);
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData>;
-};
-
-export type GetNewsStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getNewsStatus>>>;
-export type GetNewsStatusQueryError = ErrorType<unknown>;
-
-/**
- * @summary Get news blocking status for all tracked pairs
- */
-export const useGetNewsStatus = <TData = Awaited<ReturnType<typeof getNewsStatus>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions = getGetNewsStatusQueryOptions(options);
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
-  query.queryKey = queryOptions.queryKey;
-  return query;
-};
-
-
-
-
-export const getGetNewsCalendarUrl = () => `/news/calendar`;
-
-export const getNewsCalendar = async (options?: RequestInit): Promise<GetNewsCalendarResponse> => {
-  return customFetch<GetNewsCalendarResponse>(getGetNewsCalendarUrl(), { ...options });
-};
-
-export const getGetNewsCalendarQueryKey = () => [`/news/calendar`] as const;
-
-export const getGetNewsCalendarQueryOptions = <TData = Awaited<ReturnType<typeof getNewsCalendar>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsCalendar>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-  const queryKey = queryOptions?.queryKey ?? getGetNewsCalendarQueryKey();
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getNewsCalendar>>> = () => getNewsCalendar(requestOptions);
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getNewsCalendar>>, TError, TData>;
-};
-
-export type GetNewsCalendarQueryResult = NonNullable<Awaited<ReturnType<typeof getNewsCalendar>>>;
-export type GetNewsCalendarQueryError = ErrorType<unknown>;
-
-/**
- * @summary Get full week economic calendar grouped by day
- */
-export const useGetNewsCalendar = <TData = Awaited<ReturnType<typeof getNewsCalendar>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsCalendar>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions = getGetNewsCalendarQueryOptions(options);
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
-  query.queryKey = queryOptions.queryKey;
-  return query;
-};
-
-
-
-
 export const getUpdateRiskSettingsMutationOptions = <TError = ErrorType<unknown>,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateRiskSettings>>, TError,{data: BodyType<RiskSettingsInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
 ): UseMutationOptions<Awaited<ReturnType<typeof updateRiskSettings>>, TError,{data: BodyType<RiskSettingsInput>}, TContext> => {
@@ -2283,106 +2807,3 @@ export const useUpdateRiskSettings = <TError = ErrorType<unknown>,
       return useMutation(getUpdateRiskSettingsMutationOptions(options));
     }
 
-
-
-export const getRegimeAnalytics = async (options?: RequestInit): Promise<GetRegimeAnalyticsResponse> => {
-  return customFetch<GetRegimeAnalyticsResponse>(`/api/regime/analytics`, { ...options, method: 'GET' });
-};
-
-export const getGetRegimeAnalyticsQueryOptions = <TData = Awaited<ReturnType<typeof getRegimeAnalytics>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-  const queryKey = queryOptions?.queryKey ?? ['getRegimeAnalytics'];
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRegimeAnalytics>>> = () => getRegimeAnalytics(requestOptions);
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getRegimeAnalytics>>, TError, TData>;
-};
-
-export type GetRegimeAnalyticsQueryResult = NonNullable<Awaited<ReturnType<typeof getRegimeAnalytics>>>;
-export type GetRegimeAnalyticsQueryError = ErrorType<unknown>;
-
-export const useGetRegimeAnalytics = <TData = Awaited<ReturnType<typeof getRegimeAnalytics>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions = getGetRegimeAnalyticsQueryOptions(options);
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
-  query.queryKey = queryOptions.queryKey;
-  return query;
-};
-
-
-export const getRegimeWeights = async (options?: RequestInit): Promise<RegimeWeightRow[]> => {
-  return customFetch<RegimeWeightRow[]>(`/api/regime/weights`, { ...options, method: 'GET' });
-};
-
-export const getGetRegimeWeightsQueryOptions = <TData = Awaited<ReturnType<typeof getRegimeWeights>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeWeights>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-  const queryKey = queryOptions?.queryKey ?? ['getRegimeWeights'];
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRegimeWeights>>> = () => getRegimeWeights(requestOptions);
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getRegimeWeights>>, TError, TData>;
-};
-
-export type GetRegimeWeightsQueryResult = NonNullable<Awaited<ReturnType<typeof getRegimeWeights>>>;
-export type GetRegimeWeightsQueryError = ErrorType<unknown>;
-
-export const useGetRegimeWeights = <TData = Awaited<ReturnType<typeof getRegimeWeights>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeWeights>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions = getGetRegimeWeightsQueryOptions(options);
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
-  query.queryKey = queryOptions.queryKey;
-  return query;
-};
-
-
-export const getRegimeCurrent = async (options?: RequestInit): Promise<RegimeCurrentItem[]> => {
-  return customFetch<RegimeCurrentItem[]>(`/api/regime/current`, { ...options, method: 'GET' });
-};
-
-export const getGetRegimeCurrentQueryOptions = <TData = Awaited<ReturnType<typeof getRegimeCurrent>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeCurrent>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
-  const { query: queryOptions, request: requestOptions } = options ?? {};
-  const queryKey = queryOptions?.queryKey ?? ['getRegimeCurrent'];
-  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRegimeCurrent>>> = () => getRegimeCurrent(requestOptions);
-  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getRegimeCurrent>>, TError, TData>;
-};
-
-export type GetRegimeCurrentQueryResult = NonNullable<Awaited<ReturnType<typeof getRegimeCurrent>>>;
-export type GetRegimeCurrentQueryError = ErrorType<unknown>;
-
-export const useGetRegimeCurrent = <TData = Awaited<ReturnType<typeof getRegimeCurrent>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeCurrent>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
-  const queryOptions = getGetRegimeCurrentQueryOptions(options);
-  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
-  query.queryKey = queryOptions.queryKey;
-  return query;
-};
-
-
-export const runMonteCarlo = async (data: MonteCarloRequest, options?: RequestInit): Promise<MonteCarloResult> => {
-  return customFetch<MonteCarloResult>(`/api/analytics/monte-carlo`, {
-    ...options,
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', ...(options?.headers ?? {}) },
-    body: JSON.stringify(data),
-  });
-};
-
-export const getRunMonteCarloMutationOptions = <TError = ErrorType<unknown>, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof runMonteCarlo>>, TError, { data: BodyType<MonteCarloRequest> }, TContext>, request?: SecondParameter<typeof customFetch> }
-): UseMutationOptions<Awaited<ReturnType<typeof runMonteCarlo>>, TError, { data: BodyType<MonteCarloRequest> }, TContext> => {
-  const mutationKey = ['runMonteCarlo'];
-  const { mutation: mutationOptions, request: requestOptions } = options ?
-    options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
-    options : { ...options, mutation: { ...options.mutation, mutationKey } }
-    : { mutation: { mutationKey }, request: undefined };
-
-  const mutationFn: MutationFunction<Awaited<ReturnType<typeof runMonteCarlo>>, { data: BodyType<MonteCarloRequest> }> = (props) => {
-    const { data } = props ?? {};
-    return runMonteCarlo(data, requestOptions);
-  };
-
-  return { mutationFn, ...mutationOptions };
-};
-
-export type RunMonteCarloMutationResult = NonNullable<Awaited<ReturnType<typeof runMonteCarlo>>>;
-export type RunMonteCarloMutationBody = BodyType<MonteCarloRequest>;
-export type RunMonteCarloMutationError = ErrorType<unknown>;
-
-export const useRunMonteCarlo = <TError = ErrorType<unknown>, TContext = unknown>(
-  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof runMonteCarlo>>, TError, { data: BodyType<MonteCarloRequest> }, TContext>, request?: SecondParameter<typeof customFetch> }
-): UseMutationResult<Awaited<ReturnType<typeof runMonteCarlo>>, TError, { data: BodyType<MonteCarloRequest> }, TContext> => {
-  return useMutation(getRunMonteCarloMutationOptions(options));
-};

@@ -36,6 +36,8 @@ function mapTrade(t: typeof tradesTable.$inferSelect) {
     riskRewardRatio: parseFloat(t.riskRewardRatio ?? "0"),
     breakEvenMoved: t.breakEvenMoved ?? false,
     closeReason: t.closeReason ?? null,
+    slippagePips: t.slippagePips != null ? parseFloat(t.slippagePips) : null,
+    exitSlippagePips: t.exitSlippagePips != null ? parseFloat(t.exitSlippagePips) : null,
     openedAt: t.openedAt?.toISOString() ?? new Date().toISOString(),
     closedAt: t.closedAt?.toISOString() ?? null,
   };

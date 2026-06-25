@@ -11,6 +11,7 @@ import {
   UpdateBotConfigResponse,
 } from "@workspace/api-zod";
 import { startAnalysisScheduler, stopAnalysisScheduler } from "../lib/analyzer.js";
+import { startPaperMonitor, stopPaperMonitor } from "../lib/paper-engine.js";
 
 const router: IRouter = Router();
 
@@ -83,6 +84,9 @@ router.post("/bot/start", async (req, res): Promise<void> => {
     .set({ running: true, mode: parsed.data.mode, activePairs: parsed.data.pairs, haltedDueToRisk: false });
 
   startAnalysisScheduler(10);
+  if (parsed.data.mode === "paper") {
+    startPaperMonitor(30);
+  }
 
   const [state] = await db.select().from(botStateTable).limit(1);
   const payload = {
@@ -103,6 +107,7 @@ router.post("/bot/stop", async (_req, res): Promise<void> => {
   await ensureDefaults();
   await db.update(botStateTable).set({ running: false, activePairs: [] });
   stopAnalysisScheduler();
+  stopPaperMonitor();
   const payload = {
     running: false,
     mode: "paper" as const,

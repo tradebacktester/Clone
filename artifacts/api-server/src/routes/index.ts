@@ -10,6 +10,7 @@ import brokerRouter from "./broker";
 import newsRouter from "./news";
 import regimeRouter from "./regime";
 import montecarloRouter from "./montecarlo";
+import paperRouter from "./paper";
 
 const router: IRouter = Router();
 
@@ -24,5 +25,6 @@ router.use(brokerRouter);
 router.use(newsRouter);
 router.use(regimeRouter);
 router.use(montecarloRouter);
+router.use(paperRouter);
 
 export default router;

@@ -151,6 +151,8 @@ export const ListTradesResponse = zod.object({
   "riskRewardRatio": zod.number(),
   "breakEvenMoved": zod.boolean().optional(),
   "closeReason": zod.string().nullish(),
+  "slippagePips": zod.number().nullish(),
+  "exitSlippagePips": zod.number().nullish(),
   "openedAt": zod.string(),
   "closedAt": zod.string().nullish()
 })),
@@ -188,6 +190,8 @@ export const GetTradeResponse = zod.object({
   "riskRewardRatio": zod.number(),
   "breakEvenMoved": zod.boolean().optional(),
   "closeReason": zod.string().nullish(),
+  "slippagePips": zod.number().nullish(),
+  "exitSlippagePips": zod.number().nullish(),
   "openedAt": zod.string(),
   "closedAt": zod.string().nullish()
 })
@@ -223,8 +227,63 @@ export const CloseTradeResponse = zod.object({
   "riskRewardRatio": zod.number(),
   "breakEvenMoved": zod.boolean().optional(),
   "closeReason": zod.string().nullish(),
+  "slippagePips": zod.number().nullish(),
+  "exitSlippagePips": zod.number().nullish(),
   "openedAt": zod.string(),
   "closedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Get open paper trading positions with live unrealized P&L
+ */
+export const GetPaperPositionsResponse = zod.object({
+  "positions": zod.array(zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "direction": zod.enum(['buy', 'sell']),
+  "entryPrice": zod.number(),
+  "currentPrice": zod.number().nullable(),
+  "stopLoss": zod.number(),
+  "takeProfit": zod.number(),
+  "lotSize": zod.number(),
+  "unrealizedPnl": zod.number(),
+  "unrealizedPips": zod.number(),
+  "distanceToSL": zod.number(),
+  "distanceToTP": zod.number(),
+  "slippagePips": zod.number().nullish(),
+  "riskRewardRatio": zod.number(),
+  "amdPattern": zod.string(),
+  "setupScore": zod.number(),
+  "session": zod.string(),
+  "openedAt": zod.string(),
+  "priceSource": zod.enum(['live', 'fallback', 'stale'])
+})),
+  "totalUnrealizedPnl": zod.number(),
+  "priceUpdatedAt": zod.string().nullish()
+})
+
+
+/**
+ * @summary Get paper trading performance stats and account balance
+ */
+export const GetPaperPerformanceResponse = zod.object({
+  "balance": zod.number(),
+  "startBalance": zod.number(),
+  "totalReturn": zod.number(),
+  "totalTrades": zod.number(),
+  "openTrades": zod.number(),
+  "winningTrades": zod.number(),
+  "losingTrades": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "unrealizedPnl": zod.number(),
+  "dailyPnl": zod.number(),
+  "avgWin": zod.number(),
+  "avgLoss": zod.number(),
+  "profitFactor": zod.number(),
+  "avgSlippagePips": zod.number(),
+  "priceUpdatedAt": zod.string().nullish()
 })
 
 
@@ -309,6 +368,67 @@ export const GetMonthlyPnlResponse = zod.array(GetMonthlyPnlResponseItem)
 
 
 /**
+ * @summary Run Monte Carlo simulation on trading strategy
+ */
+export const RunMonteCarloBody = zod.object({
+  "numSimulations": zod.number().optional(),
+  "numTrades": zod.number().optional(),
+  "winRate": zod.number(),
+  "avgWin": zod.number(),
+  "avgLoss": zod.number(),
+  "startingCapital": zod.number().optional(),
+  "ruinThreshold": zod.number().optional(),
+  "tradesPerMonth": zod.number().optional(),
+  "useHistoricalData": zod.boolean().optional()
+})
+
+export const RunMonteCarloResponse = zod.object({
+  "numSimulations": zod.number(),
+  "numTrades": zod.number(),
+  "startingCapital": zod.number(),
+  "winRate": zod.number(),
+  "avgWin": zod.number(),
+  "avgLoss": zod.number(),
+  "ruinThreshold": zod.number(),
+  "tradesPerMonth": zod.number(),
+  "probabilityOfRuin": zod.number(),
+  "worstDrawdown": zod.number(),
+  "expectedDrawdown": zod.number(),
+  "medianDrawdown": zod.number(),
+  "drawdownPercentile90": zod.number(),
+  "expectedMonthlyReturn": zod.number(),
+  "medianMonthlyReturn": zod.number(),
+  "worstLosingStreak": zod.number(),
+  "expectedLosingStreak": zod.number(),
+  "medianLosingStreak": zod.number(),
+  "worstCaseReturn": zod.number(),
+  "percentile10": zod.number(),
+  "percentile25": zod.number(),
+  "medianReturn": zod.number(),
+  "percentile75": zod.number(),
+  "percentile90": zod.number(),
+  "bestCaseReturn": zod.number(),
+  "expectedReturn": zod.number(),
+  "worstCaseReturnPct": zod.number(),
+  "expectedReturnPct": zod.number(),
+  "bestCaseReturnPct": zod.number(),
+  "histogram": zod.array(zod.object({
+  "rangeLabel": zod.string(),
+  "count": zod.number(),
+  "frequency": zod.number()
+})),
+  "equityCurves": zod.object({
+  "worst": zod.array(zod.number()),
+  "p10": zod.array(zod.number()),
+  "median": zod.array(zod.number()),
+  "p90": zod.array(zod.number()),
+  "best": zod.array(zod.number()),
+  "labels": zod.array(zod.number())
+})
+})
+
+
+/**
  * @summary Drawdown series over time
  */
 export const GetDrawdownResponseItem = zod.object({
@@ -354,6 +474,52 @@ export const GetMarketRegimeResponseItem = zod.object({
   "updatedAt": zod.string()
 })
 export const GetMarketRegimeResponse = zod.array(GetMarketRegimeResponseItem)
+
+
+/**
+ * @summary Get regime performance analytics and adaptive weights
+ */
+export const GetRegimeAnalyticsResponse = zod.object({
+  "regimes": zod.array(zod.object({
+  "regime": zod.enum(['trending', 'ranging', 'volatile', 'low_volatility', 'unknown']),
+  "totalTrades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "profitFactor": zod.number(),
+  "maxDrawdown": zod.number(),
+  "avgSetupScore": zod.number(),
+  "zoneWinRate": zod.number(),
+  "liquidityWinRate": zod.number(),
+  "amdWinRate": zod.number(),
+  "confirmationWinRate": zod.number(),
+  "bestComponent": zod.enum(['zone', 'liquidity', 'amd', 'confirmation']),
+  "weights": zod.object({
+  "zone": zod.number(),
+  "liquidity": zod.number(),
+  "amd": zod.number(),
+  "confirmation": zod.number()
+}),
+  "isBestRegime": zod.boolean()
+})),
+  "bestRegime": zod.string().nullable(),
+  "currentRegimes": zod.record(zod.string(), zod.string())
+})
+
+
+/**
+ * @summary Get adaptive weights per regime
+ */
+export const GetRegimeWeightsResponseItem = zod.object({
+  "regime": zod.enum(['trending', 'ranging', 'volatile', 'low_volatility', 'unknown']),
+  "zone": zod.number(),
+  "liquidity": zod.number(),
+  "amd": zod.number(),
+  "confirmation": zod.number(),
+  "sampleSize": zod.number(),
+  "updatedAt": zod.string()
+})
+export const GetRegimeWeightsResponse = zod.array(GetRegimeWeightsResponseItem)
 
 
 /**
@@ -474,6 +640,8 @@ export const RunBacktestResponse = zod.object({
   "riskRewardRatio": zod.number(),
   "breakEvenMoved": zod.boolean().optional(),
   "closeReason": zod.string().nullish(),
+  "slippagePips": zod.number().nullish(),
+  "exitSlippagePips": zod.number().nullish(),
   "openedAt": zod.string(),
   "closedAt": zod.string().nullish()
 })),
@@ -581,6 +749,8 @@ export const GetBacktestResponse = zod.object({
   "riskRewardRatio": zod.number(),
   "breakEvenMoved": zod.boolean().optional(),
   "closeReason": zod.string().nullish(),
+  "slippagePips": zod.number().nullish(),
+  "exitSlippagePips": zod.number().nullish(),
   "openedAt": zod.string(),
   "closedAt": zod.string().nullish()
 })),
@@ -660,6 +830,77 @@ export const DeleteBrokerAccountParams = zod.object({
 
 
 /**
+ * @summary Get upcoming high-impact news events
+ */
+export const GetNewsEventsQueryParams = zod.object({
+  "pair": zod.coerce.string().optional(),
+  "hours": zod.coerce.number().optional()
+})
+
+export const GetNewsEventsResponse = zod.object({
+  "events": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "currency": zod.string(),
+  "eventTime": zod.string(),
+  "impact": zod.enum(['high', 'medium', 'low']),
+  "category": zod.enum(['NFP', 'CPI', 'FOMC', 'INTEREST_RATE', 'GDP', 'CENTRAL_BANK_SPEECH', 'OTHER']),
+  "forecast": zod.string(),
+  "previous": zod.string(),
+  "actual": zod.string(),
+  "minutesUntil": zod.number(),
+  "isBlocking": zod.boolean(),
+  "blockingPhase": zod.enum(['clear', 'pre_event', 'active', 'post_event'])
+})),
+  "fetchedAt": zod.string(),
+  "source": zod.string()
+})
+
+
+/**
+ * @summary Get news blocking status for all tracked pairs
+ */
+export const GetNewsStatusResponse = zod.object({
+  "items": zod.array(zod.object({
+  "pair": zod.string(),
+  "blocked": zod.boolean(),
+  "reason": zod.string(),
+  "category": zod.string().nullish(),
+  "nextEventIn": zod.number().nullable()
+})),
+  "windowMinutes": zod.number(),
+  "fetchedAt": zod.string()
+})
+
+
+/**
+ * @summary Get full week economic calendar grouped by day
+ */
+export const GetNewsCalendarResponse = zod.object({
+  "days": zod.array(zod.object({
+  "date": zod.string(),
+  "events": zod.array(zod.object({
+  "id": zod.string(),
+  "title": zod.string(),
+  "currency": zod.string(),
+  "eventTime": zod.string(),
+  "impact": zod.enum(['high', 'medium', 'low']),
+  "category": zod.enum(['NFP', 'CPI', 'FOMC', 'INTEREST_RATE', 'GDP', 'CENTRAL_BANK_SPEECH', 'OTHER']),
+  "forecast": zod.string(),
+  "previous": zod.string(),
+  "actual": zod.string(),
+  "minutesUntil": zod.number(),
+  "isBlocking": zod.boolean(),
+  "blockingPhase": zod.enum(['clear', 'pre_event', 'active', 'post_event'])
+}))
+})),
+  "windowMinutes": zod.number(),
+  "fetchedAt": zod.string(),
+  "source": zod.string()
+})
+
+
+/**
  * @summary Get risk management settings
  */
 export const GetRiskSettingsResponse = zod.object({
@@ -701,190 +942,3 @@ export const UpdateRiskSettingsResponse = zod.object({
 })
 
 
-/**
- * @summary Get upcoming high-impact news events
- */
-export const GetNewsEventsQueryParams = zod.object({
-  "pair": zod.string().optional(),
-  "hours": zod.coerce.number().optional()
-})
-
-export const NewsEventCategory = zod.enum(["NFP", "CPI", "FOMC", "INTEREST_RATE", "GDP", "CENTRAL_BANK_SPEECH", "OTHER"])
-
-export const NewsEventItem = zod.object({
-  "id": zod.string(),
-  "title": zod.string(),
-  "currency": zod.string(),
-  "eventTime": zod.string(),
-  "impact": zod.enum(["high", "medium", "low"]),
-  "category": NewsEventCategory,
-  "forecast": zod.string(),
-  "previous": zod.string(),
-  "actual": zod.string(),
-  "minutesUntil": zod.number(),
-  "isBlocking": zod.boolean(),
-  "blockingPhase": zod.enum(["clear", "pre_event", "active", "post_event"])
-})
-
-export const GetNewsEventsResponse = zod.object({
-  "events": zod.array(NewsEventItem),
-  "fetchedAt": zod.string(),
-  "source": zod.string()
-})
-
-
-/**
- * @summary Get news blocking status for all tracked pairs
- */
-export const NewsStatusItem = zod.object({
-  "pair": zod.string(),
-  "blocked": zod.boolean(),
-  "reason": zod.string(),
-  "category": zod.string().nullable().optional(),
-  "nextEventIn": zod.number().nullable()
-})
-
-export const GetNewsStatusResponse = zod.object({
-  "items": zod.array(NewsStatusItem),
-  "windowMinutes": zod.number(),
-  "fetchedAt": zod.string()
-})
-
-
-/**
- * @summary Get full week economic calendar grouped by day
- */
-export const NewsCalendarDay = zod.object({
-  "date": zod.string(),
-  "events": zod.array(NewsEventItem)
-})
-
-export const GetNewsCalendarResponse = zod.object({
-  "days": zod.array(NewsCalendarDay),
-  "windowMinutes": zod.number(),
-  "fetchedAt": zod.string(),
-  "source": zod.string()
-})
-
-
-
-
-export const RegimeWeightsItem = zod.object({
-  zone: zod.number(),
-  liquidity: zod.number(),
-  amd: zod.number(),
-  confirmation: zod.number(),
-})
-
-export const RegimeAnalyticsItem = zod.object({
-  regime: zod.string(),
-  totalTrades: zod.number().int(),
-  wins: zod.number().int(),
-  losses: zod.number().int(),
-  winRate: zod.number(),
-  profitFactor: zod.number(),
-  maxDrawdown: zod.number(),
-  avgSetupScore: zod.number(),
-  zoneWinRate: zod.number(),
-  liquidityWinRate: zod.number(),
-  amdWinRate: zod.number(),
-  confirmationWinRate: zod.number(),
-  bestComponent: zod.string(),
-  isBestRegime: zod.boolean(),
-  weights: RegimeWeightsItem,
-})
-
-export const GetRegimeAnalyticsResponse = zod.object({
-  regimes: zod.array(RegimeAnalyticsItem),
-  bestRegime: zod.string().nullable(),
-  currentRegimes: zod.record(zod.string(), zod.string()),
-})
-
-export const RegimeWeightRow = zod.object({
-  regime: zod.string(),
-  zone: zod.number(),
-  liquidity: zod.number(),
-  amd: zod.number(),
-  confirmation: zod.number(),
-  sampleSize: zod.number().int(),
-  updatedAt: zod.string(),
-})
-
-export const GetRegimeWeightsResponse = zod.array(RegimeWeightRow)
-
-export const RegimeCurrentItem = zod.object({
-  pair: zod.string(),
-  regime: zod.string(),
-  trend: zod.string(),
-  volatility: zod.string(),
-  atr: zod.number(),
-  adxEquivalent: zod.number(),
-  regimeConfidence: zod.number(),
-  volatilityPercentile: zod.number(),
-  rangeCompression: zod.number(),
-  updatedAt: zod.string(),
-})
-
-export const GetRegimeCurrentResponse = zod.array(RegimeCurrentItem)
-
-
-export const MonteCarloRequest = zod.object({
-  numSimulations: zod.number().int().min(100).max(50000).optional(),
-  numTrades: zod.number().int().min(10).max(1000).optional(),
-  winRate: zod.number().min(0.01).max(0.99).optional(),
-  avgWin: zod.number().positive().optional(),
-  avgLoss: zod.number().positive().optional(),
-  startingCapital: zod.number().positive().optional(),
-  ruinThreshold: zod.number().min(0.01).max(0.99).optional(),
-  tradesPerMonth: zod.number().int().min(1).optional(),
-  useHistoricalData: zod.boolean().optional(),
-})
-
-export const HistogramBucket = zod.object({
-  rangeLabel: zod.string(),
-  count: zod.number().int(),
-  frequency: zod.number(),
-})
-
-export const EquityCurves = zod.object({
-  worst: zod.array(zod.number()),
-  p10: zod.array(zod.number()),
-  median: zod.array(zod.number()),
-  p90: zod.array(zod.number()),
-  best: zod.array(zod.number()),
-  labels: zod.array(zod.number()),
-})
-
-export const MonteCarloResult = zod.object({
-  numSimulations: zod.number().int(),
-  numTrades: zod.number().int(),
-  startingCapital: zod.number(),
-  winRate: zod.number(),
-  avgWin: zod.number(),
-  avgLoss: zod.number(),
-  ruinThreshold: zod.number(),
-  tradesPerMonth: zod.number().int(),
-  probabilityOfRuin: zod.number(),
-  worstDrawdown: zod.number(),
-  expectedDrawdown: zod.number(),
-  medianDrawdown: zod.number(),
-  drawdownPercentile90: zod.number(),
-  expectedMonthlyReturn: zod.number(),
-  medianMonthlyReturn: zod.number(),
-  worstLosingStreak: zod.number().int(),
-  expectedLosingStreak: zod.number(),
-  medianLosingStreak: zod.number().int(),
-  worstCaseReturn: zod.number(),
-  percentile10: zod.number(),
-  percentile25: zod.number(),
-  medianReturn: zod.number(),
-  percentile75: zod.number(),
-  percentile90: zod.number(),
-  bestCaseReturn: zod.number(),
-  expectedReturn: zod.number(),
-  worstCaseReturnPct: zod.number(),
-  expectedReturnPct: zod.number(),
-  bestCaseReturnPct: zod.number(),
-  histogram: zod.array(HistogramBucket),
-  equityCurves: EquityCurves,
-})
