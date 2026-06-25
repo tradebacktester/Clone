@@ -24,6 +24,8 @@ import type {
   BacktestInput,
   BacktestResult,
   BacktestSummary,
+  BatchBacktestInput,
+  BatchBacktestResult,
   BotConfig,
   BotConfigInput,
   BotStartInput,
@@ -2609,6 +2611,77 @@ export const useRunBacktest = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getRunBacktestMutationOptions(options));
+    }
+
+export const getRunBatchBacktestUrl = () => {
+
+
+
+
+  return `/api/backtest/batch`
+}
+
+/**
+ * @summary Run backtests for all three pairs (EURUSD, GBPUSD, USDJPY) over 5 years
+ */
+export const runBatchBacktest = async (batchBacktestInput: BatchBacktestInput, options?: RequestInit): Promise<BatchBacktestResult> => {
+
+  return customFetch<BatchBacktestResult>(getRunBatchBacktestUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      batchBacktestInput,)
+  }
+);}
+
+
+
+
+export const getRunBatchBacktestMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runBatchBacktest>>, TError,{data: BodyType<BatchBacktestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runBatchBacktest>>, TError,{data: BodyType<BatchBacktestInput>}, TContext> => {
+
+const mutationKey = ['runBatchBacktest'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runBatchBacktest>>, {data: BodyType<BatchBacktestInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runBatchBacktest(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunBatchBacktestMutationResult = NonNullable<Awaited<ReturnType<typeof runBatchBacktest>>>
+    export type RunBatchBacktestMutationBody = BodyType<BatchBacktestInput>
+    export type RunBatchBacktestMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run backtests for all three pairs (EURUSD, GBPUSD, USDJPY) over 5 years
+ */
+export const useRunBatchBacktest = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runBatchBacktest>>, TError,{data: BodyType<BatchBacktestInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runBatchBacktest>>,
+        TError,
+        {data: BodyType<BatchBacktestInput>},
+        TContext
+      > => {
+      return useMutation(getRunBatchBacktestMutationOptions(options));
     }
 
 export const getListBacktestsUrl = () => {

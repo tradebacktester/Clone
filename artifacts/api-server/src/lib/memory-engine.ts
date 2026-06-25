@@ -165,6 +165,7 @@ export async function recordMissedOpportunity(
       amdPattern:        signal.amdPhase,
       riskReward:        String(signal.riskReward),
       entryPrice:        String(signal.entryPrice),
+      rejectionReason,
       createdAt:         new Date(),
     });
 
@@ -195,7 +196,7 @@ export async function updateMissedOpportunityAftermath(): Promise<void> {
       const entryPrice = parseFloat(opp.entryPrice ?? "0");
       if (!entryPrice) continue;
 
-      const livePrice = getCurrentPrice(opp.pair);
+      const livePrice = getCurrentPrice(opp.pair as import("@workspace/market-analysis").Pair);
       if (!livePrice) continue;
 
       const pipSize = opp.pair.includes("JPY") ? 0.01 : 0.0001;

@@ -22,6 +22,15 @@ import {
   type WeightProfile,
 } from "../learning/weights.js";
 
+function getSessionForTime(pair: Pair, time: Date): string {
+  const hour = time.getUTCHours();
+  if (hour >= 7 && hour < 12) return "london";
+  if (hour >= 12 && hour < 20) return "newyork";
+  if (pair === "USDJPY" && (hour < 7 || hour >= 20)) return "asian";
+  if (hour >= 20 || hour < 7) return "london";
+  return "london";
+}
+
 function getBestSessionForPair(pair: Pair): string {
   const hour = new Date().getUTCHours();
   if (hour >= 7 && hour < 12) return "london";
@@ -74,6 +83,7 @@ export function generateSignals(
   grabs: LiquidityGrab[],
   learnedWeights: WeightProfile = DEFAULT_WEIGHT_PROFILE,
   sweeps: SweepEvent[] = [],
+  backtestCandleTime?: Date,
 ): TradeSignal[] {
   if (candles.length < 10) return [];
 
@@ -81,7 +91,9 @@ export function generateSignals(
   if (atr === 0) return [];
 
   const currentPrice = candles[candles.length - 1]!.close;
-  const session = getBestSessionForPair(pair);
+  const session = backtestCandleTime
+    ? getSessionForTime(pair, backtestCandleTime)
+    : getBestSessionForPair(pair);
   const signals: TradeSignal[] = [];
 
   const activeZones = zones.filter(z => z.active && z.strength >= 70);

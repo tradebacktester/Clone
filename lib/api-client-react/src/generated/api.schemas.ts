@@ -728,6 +728,69 @@ export interface BacktestInput {
   enableRL?: boolean;
 }
 
+export interface BatchBacktestInput {
+  initialBalance: number;
+  riskPerTrade: number;
+  startDate?: string;
+  endDate?: string;
+  sessions?: string[];
+}
+
+export interface MonthlyReturn {
+  year: number;
+  month: number;
+  label: string;
+  trades: number;
+  pnl: number;
+  returnPct: number;
+  winRate: number;
+}
+
+export interface YearlyReturn {
+  year: number;
+  trades: number;
+  pnl: number;
+  returnPct: number;
+  winRate: number;
+  profitFactor: number;
+  maxDrawdown: number;
+  sharpeRatio: number;
+}
+
+export type RegimeStatsRegime = typeof RegimeStatsRegime[keyof typeof RegimeStatsRegime];
+
+
+export const RegimeStatsRegime = {
+  trending: 'trending',
+  ranging: 'ranging',
+  volatile: 'volatile',
+  low_volatility: 'low_volatility',
+  unknown: 'unknown',
+} as const;
+
+export interface RegimeStats {
+  regime: RegimeStatsRegime;
+  trades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  totalPnl: number;
+  avgPnl: number;
+  profitFactor: number;
+  expectancy: number;
+  avgRR: number;
+}
+
+export type BatchBacktestResultCombinedStats = {
+  totalTrades: number;
+  winRate: number;
+  totalPnl: number;
+  profitFactor: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  expectancy: number;
+};
+
 export interface SessionStats {
   session: string;
   trades: number;
@@ -776,6 +839,11 @@ export interface ZoneCategoryStats {
   contribution: number;
 }
 
+export type BacktestResultEquityCurveItem = {
+  time: string;
+  balance: number;
+};
+
 export interface BacktestResult {
   id: number;
   pair: string;
@@ -799,7 +867,17 @@ export interface BacktestResult {
   sessionStats: SessionStats[];
   pairStats: PairStats[];
   zoneStats: ZoneCategoryStats[];
+  equityCurve: BacktestResultEquityCurveItem[];
+  monthlyReturns: MonthlyReturn[];
+  yearlyReturns: YearlyReturn[];
+  regimeStats: RegimeStats[];
   createdAt: string;
+}
+
+export interface BatchBacktestResult {
+  results: BacktestResult[];
+  combinedStats: BatchBacktestResultCombinedStats;
+  ranAt: string;
 }
 
 export interface BacktestSummary {

@@ -5,9 +5,13 @@
  * Smart Money Trading Bot API
  * OpenAPI spec version: 1.0.0
  */
+import type { BacktestResultEquityCurveItem } from './backtestResultEquityCurveItem';
+import type { MonthlyReturn } from './monthlyReturn';
 import type { PairStats } from './pairStats';
+import type { RegimeStats } from './regimeStats';
 import type { SessionStats } from './sessionStats';
 import type { Trade } from './trade';
+import type { YearlyReturn } from './yearlyReturn';
 import type { ZoneCategoryStats } from './zoneCategoryStats';
 
 export interface BacktestResult {
@@ -33,5 +37,9 @@ export interface BacktestResult {
   sessionStats: SessionStats[];
   pairStats: PairStats[];
   zoneStats: ZoneCategoryStats[];
+  equityCurve: BacktestResultEquityCurveItem[];
+  monthlyReturns: MonthlyReturn[];
+  yearlyReturns: YearlyReturn[];
+  regimeStats: RegimeStats[];
   createdAt: string;
 }

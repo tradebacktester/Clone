@@ -7,12 +7,14 @@ const YAHOO_SYMBOLS: Record<Pair, string> = {
 };
 
 const YAHOO_INTERVALS: Record<Timeframe, string> = {
+  "15m": "15m",
   "1h": "1h",
   "4h": "4h",
   "1d": "1d",
 };
 
 const YAHOO_RANGES: Record<Timeframe, string> = {
+  "15m": "7d",
   "1h": "60d",
   "4h": "180d",
   "1d": "730d",
@@ -103,9 +105,10 @@ export function generateSyntheticCandles(
 ): Candle[] {
   const basePrice = BASE_PRICES[pair];
   const dailyVol = DAILY_VOLS[pair];
-  const barsPerDay: Record<Timeframe, number> = { "1h": 24, "4h": 6, "1d": 1 };
+  const barsPerDay: Record<Timeframe, number> = { "15m": 96, "1h": 24, "4h": 6, "1d": 1 };
   const barVol = dailyVol / Math.sqrt(barsPerDay[timeframe]);
   const barMs: Record<Timeframe, number> = {
+    "15m": 15 * 60 * 1000,
     "1h": 60 * 60 * 1000,
     "4h": 4 * 60 * 60 * 1000,
     "1d": 24 * 60 * 60 * 1000,
@@ -148,6 +151,7 @@ export function generateSyntheticCandlesForDateRange(
   const start = new Date(startDate).getTime();
   const end = new Date(endDate).getTime();
   const barMs: Record<Timeframe, number> = {
+    "15m": 15 * 60 * 1000,
     "1h": 60 * 60 * 1000,
     "4h": 4 * 60 * 60 * 1000,
     "1d": 24 * 60 * 60 * 1000,
@@ -155,7 +159,7 @@ export function generateSyntheticCandlesForDateRange(
   const numCandles = Math.floor((end - start) / barMs[timeframe]);
   const basePrice = BASE_PRICES[pair];
   const dailyVol = DAILY_VOLS[pair];
-  const barsPerDay: Record<Timeframe, number> = { "1h": 24, "4h": 6, "1d": 1 };
+  const barsPerDay: Record<Timeframe, number> = { "15m": 96, "1h": 24, "4h": 6, "1d": 1 };
   const barVol = dailyVol / Math.sqrt(barsPerDay[timeframe]);
 
   const candles: Candle[] = [];

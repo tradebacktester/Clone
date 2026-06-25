@@ -977,7 +977,185 @@ export const RunBacktestResponse = zod.object({
   "avgScore": zod.number(),
   "contribution": zod.number()
 })),
+  "equityCurve": zod.array(zod.object({
+  "time": zod.string(),
+  "balance": zod.number()
+})),
+  "monthlyReturns": zod.array(zod.object({
+  "year": zod.number(),
+  "month": zod.number(),
+  "label": zod.string(),
+  "trades": zod.number(),
+  "pnl": zod.number(),
+  "returnPct": zod.number(),
+  "winRate": zod.number()
+})),
+  "yearlyReturns": zod.array(zod.object({
+  "year": zod.number(),
+  "trades": zod.number(),
+  "pnl": zod.number(),
+  "returnPct": zod.number(),
+  "winRate": zod.number(),
+  "profitFactor": zod.number(),
+  "maxDrawdown": zod.number(),
+  "sharpeRatio": zod.number()
+})),
+  "regimeStats": zod.array(zod.object({
+  "regime": zod.enum(['trending', 'ranging', 'volatile', 'low_volatility', 'unknown']),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number(),
+  "profitFactor": zod.number(),
+  "expectancy": zod.number(),
+  "avgRR": zod.number()
+})),
   "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Run backtests for all three pairs (EURUSD, GBPUSD, USDJPY) over 5 years
+ */
+export const RunBatchBacktestBody = zod.object({
+  "initialBalance": zod.number(),
+  "riskPerTrade": zod.number(),
+  "startDate": zod.string().optional(),
+  "endDate": zod.string().optional(),
+  "sessions": zod.array(zod.string()).optional()
+})
+
+export const RunBatchBacktestResponse = zod.object({
+  "results": zod.array(zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "startDate": zod.string(),
+  "endDate": zod.string(),
+  "initialBalance": zod.number(),
+  "finalBalance": zod.number(),
+  "totalTrades": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "maxDrawdown": zod.number(),
+  "profitFactor": zod.number(),
+  "sharpeRatio": zod.number(),
+  "expectancy": zod.number(),
+  "avgRR": zod.number(),
+  "avgWin": zod.number(),
+  "avgLoss": zod.number(),
+  "maxConsecWins": zod.number(),
+  "maxConsecLosses": zod.number(),
+  "trades": zod.array(zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "direction": zod.enum(['buy', 'sell']),
+  "entryPrice": zod.number(),
+  "stopLoss": zod.number(),
+  "takeProfit": zod.number(),
+  "currentPrice": zod.number().nullish(),
+  "closedPrice": zod.number().nullish(),
+  "lotSize": zod.number(),
+  "status": zod.enum(['open', 'closed', 'cancelled']),
+  "pnl": zod.number().nullish(),
+  "pnlPercent": zod.number().nullish(),
+  "session": zod.enum(['london', 'newyork', 'asian']),
+  "setupScore": zod.number(),
+  "amdPattern": zod.enum(['accumulation', 'manipulation', 'distribution', 'unknown']),
+  "zoneType": zod.enum(['demand', 'supply']),
+  "zoneStrength": zod.number(),
+  "liquiditySweep": zod.boolean().optional(),
+  "fibLevel": zod.number().nullish(),
+  "riskRewardRatio": zod.number(),
+  "breakEvenMoved": zod.boolean().optional(),
+  "closeReason": zod.string().nullish(),
+  "slippagePips": zod.number().nullish(),
+  "exitSlippagePips": zod.number().nullish(),
+  "openedAt": zod.string(),
+  "closedAt": zod.string().nullish()
+})),
+  "sessionStats": zod.array(zod.object({
+  "session": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number(),
+  "avgRR": zod.number(),
+  "profitFactor": zod.number(),
+  "expectancy": zod.number()
+})),
+  "pairStats": zod.array(zod.object({
+  "pair": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number(),
+  "avgRR": zod.number(),
+  "profitFactor": zod.number(),
+  "expectancy": zod.number()
+})),
+  "zoneStats": zod.array(zod.object({
+  "category": zod.enum(['demand_zone', 'supply_zone', 'liquidity', 'amd', 'confirmation']),
+  "label": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "winRate": zod.number(),
+  "avgPnl": zod.number(),
+  "avgScore": zod.number(),
+  "contribution": zod.number()
+})),
+  "equityCurve": zod.array(zod.object({
+  "time": zod.string(),
+  "balance": zod.number()
+})),
+  "monthlyReturns": zod.array(zod.object({
+  "year": zod.number(),
+  "month": zod.number(),
+  "label": zod.string(),
+  "trades": zod.number(),
+  "pnl": zod.number(),
+  "returnPct": zod.number(),
+  "winRate": zod.number()
+})),
+  "yearlyReturns": zod.array(zod.object({
+  "year": zod.number(),
+  "trades": zod.number(),
+  "pnl": zod.number(),
+  "returnPct": zod.number(),
+  "winRate": zod.number(),
+  "profitFactor": zod.number(),
+  "maxDrawdown": zod.number(),
+  "sharpeRatio": zod.number()
+})),
+  "regimeStats": zod.array(zod.object({
+  "regime": zod.enum(['trending', 'ranging', 'volatile', 'low_volatility', 'unknown']),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number(),
+  "profitFactor": zod.number(),
+  "expectancy": zod.number(),
+  "avgRR": zod.number()
+})),
+  "createdAt": zod.string()
+})),
+  "combinedStats": zod.object({
+  "totalTrades": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "profitFactor": zod.number(),
+  "sharpeRatio": zod.number(),
+  "maxDrawdown": zod.number(),
+  "expectancy": zod.number()
+}),
+  "ranAt": zod.string()
 })
 
 
@@ -1085,6 +1263,41 @@ export const GetBacktestResponse = zod.object({
   "avgPnl": zod.number(),
   "avgScore": zod.number(),
   "contribution": zod.number()
+})),
+  "equityCurve": zod.array(zod.object({
+  "time": zod.string(),
+  "balance": zod.number()
+})),
+  "monthlyReturns": zod.array(zod.object({
+  "year": zod.number(),
+  "month": zod.number(),
+  "label": zod.string(),
+  "trades": zod.number(),
+  "pnl": zod.number(),
+  "returnPct": zod.number(),
+  "winRate": zod.number()
+})),
+  "yearlyReturns": zod.array(zod.object({
+  "year": zod.number(),
+  "trades": zod.number(),
+  "pnl": zod.number(),
+  "returnPct": zod.number(),
+  "winRate": zod.number(),
+  "profitFactor": zod.number(),
+  "maxDrawdown": zod.number(),
+  "sharpeRatio": zod.number()
+})),
+  "regimeStats": zod.array(zod.object({
+  "regime": zod.enum(['trending', 'ranging', 'volatile', 'low_volatility', 'unknown']),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number(),
+  "profitFactor": zod.number(),
+  "expectancy": zod.number(),
+  "avgRR": zod.number()
 })),
   "createdAt": zod.string()
 })

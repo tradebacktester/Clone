@@ -152,6 +152,7 @@ export interface BacktestTrade {
   closeReason: "tp_hit" | "sl_hit";
   openedAt: string;
   closedAt: string;
+  regime?: "trending" | "ranging" | "volatile" | "low_volatility" | "unknown";
 }
 
 export interface BacktestResult {
@@ -175,6 +176,9 @@ export interface BacktestResult {
   sessionStats: import("./backtest/stats.js").SessionStats[];
   pairStats: import("./backtest/stats.js").PairStats[];
   zoneStats: import("./backtest/stats.js").ZoneCategoryStats[];
+  monthlyReturns: import("./backtest/stats.js").MonthlyReturn[];
+  yearlyReturns: import("./backtest/stats.js").YearlyReturn[];
+  regimeStats: import("./backtest/stats.js").RegimeStats[];
 }
 
 export interface PatternScore {
@@ -189,7 +193,7 @@ export interface PatternScore {
 }
 
 export type Pair = "EURUSD" | "GBPUSD" | "USDJPY";
-export type Timeframe = "1h" | "4h" | "1d";
+export type Timeframe = "15m" | "1h" | "4h" | "1d";
 
 export interface AnalysisResult {
   pair: Pair;
