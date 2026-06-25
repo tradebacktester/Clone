@@ -264,6 +264,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/MonteCarloResult"
 
+  /analytics/trade-comparison:
+    get:
+      operationId: getTradeComparison
+      summary: Compare winners vs losers across all strategy dimensions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradeComparisonResponse"
+
+  /analytics/rule-adherence:
+    get:
+      operationId: getRuleAdherence
+      summary: Measure AMD/SMC rule adherence and its impact on win rate
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RuleAdherenceResponse"
+
   /analytics/drawdown:
     get:
       operationId: getDrawdown
@@ -945,6 +969,186 @@ components:
           type: string
         drawdown:
           type: number
+
+    TradeGroupProfile:
+      type: object
+      properties:
+        count:
+          type: integer
+        avgSetupScore:
+          type: number
+        avgZoneStrength:
+          type: number
+        avgRr:
+          type: number
+        avgPnl:
+          type: number
+        avgSlippage:
+          type: number
+        liquiditySweepRate:
+          type: number
+        avgRegimeConfidence:
+          type: number
+        topSession:
+          type: string
+        topAmdPattern:
+          type: string
+
+    TradeBreakdownItem:
+      type: object
+      required: [label, wins, losses, count, winRate, avgPnl]
+      properties:
+        label:
+          type: string
+        wins:
+          type: integer
+        losses:
+          type: integer
+        count:
+          type: integer
+        winRate:
+          type: number
+        avgPnl:
+          type: number
+
+    ScoreBucketItem:
+      type: object
+      required: [label, wins, losses, count, winRate]
+      properties:
+        label:
+          type: string
+        wins:
+          type: integer
+        losses:
+          type: integer
+        count:
+          type: integer
+        winRate:
+          type: number
+
+    TradeComparisonResponse:
+      type: object
+      required: [totalTrades, winRate, byAmdPattern, bySession, byZoneType, byRegime, byLiquiditySweep, setupScoreDistribution, rrDistribution]
+      properties:
+        totalTrades:
+          type: integer
+        winRate:
+          type: number
+        winners:
+          $ref: "#/components/schemas/TradeGroupProfile"
+        losers:
+          $ref: "#/components/schemas/TradeGroupProfile"
+        byAmdPattern:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeBreakdownItem"
+        bySession:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeBreakdownItem"
+        byZoneType:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeBreakdownItem"
+        byRegime:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeBreakdownItem"
+        byLiquiditySweep:
+          type: array
+          items:
+            $ref: "#/components/schemas/TradeBreakdownItem"
+        setupScoreDistribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScoreBucketItem"
+        rrDistribution:
+          type: array
+          items:
+            $ref: "#/components/schemas/ScoreBucketItem"
+
+    RuleStat:
+      type: object
+      required: [id, name, description, adherenceRate, winRateWithRule, winRateWithoutRule, impact, followedCount, brokenCount]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        adherenceRate:
+          type: number
+        winRateWithRule:
+          type: number
+        winRateWithoutRule:
+          type: number
+        impact:
+          type: number
+        followedCount:
+          type: integer
+        brokenCount:
+          type: integer
+
+    PerTradeAdherence:
+      type: object
+      required: [tradeId, pair, direction, pnl, outcome, rulesFollowed, rulesBroken, adherenceScore, brokenRules, openedAt]
+      properties:
+        tradeId:
+          type: integer
+        pair:
+          type: string
+        direction:
+          type: string
+        pnl:
+          type: number
+        outcome:
+          type: string
+          enum: [win, loss, open]
+        rulesFollowed:
+          type: integer
+        rulesBroken:
+          type: integer
+        adherenceScore:
+          type: integer
+        brokenRules:
+          type: array
+          items:
+            type: string
+        openedAt:
+          type: string
+
+    RuleAdherenceSummary:
+      type: object
+      required: [avgAdherenceScore, perfectAdherenceWinRate, lowAdherenceWinRate, topBrokenRule, totalTrades, closedTrades]
+      properties:
+        avgAdherenceScore:
+          type: number
+        perfectAdherenceWinRate:
+          type: number
+        lowAdherenceWinRate:
+          type: number
+        topBrokenRule:
+          type: string
+        totalTrades:
+          type: integer
+        closedTrades:
+          type: integer
+
+    RuleAdherenceResponse:
+      type: object
+      required: [rules, perTrade, summary]
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuleStat"
+        perTrade:
+          type: array
+          items:
+            $ref: "#/components/schemas/PerTradeAdherence"
+        summary:
+          $ref: "#/components/schemas/RuleAdherenceSummary"
 
     MonteCarloRequest:
       type: object

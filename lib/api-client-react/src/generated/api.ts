@@ -52,8 +52,10 @@ import type {
   RegimeWeightEntry,
   RiskSettings,
   RiskSettingsInput,
+  RuleAdherenceResponse,
   SetupScore,
   Trade,
+  TradeComparisonResponse,
   TradeList,
   TradeSignal,
   WinRateBreakdown
@@ -1284,6 +1286,160 @@ export const useRunMonteCarlo = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getRunMonteCarloMutationOptions(options));
     }
+
+export const getGetTradeComparisonUrl = () => {
+
+
+
+
+  return `/api/analytics/trade-comparison`
+}
+
+/**
+ * @summary Compare winners vs losers across all strategy dimensions
+ */
+export const getTradeComparison = async ( options?: RequestInit): Promise<TradeComparisonResponse> => {
+
+  return customFetch<TradeComparisonResponse>(getGetTradeComparisonUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradeComparisonQueryKey = () => {
+    return [
+    `/api/analytics/trade-comparison`
+    ] as const;
+    }
+
+
+export const getGetTradeComparisonQueryOptions = <TData = Awaited<ReturnType<typeof getTradeComparison>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradeComparison>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradeComparisonQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradeComparison>>> = ({ signal }) => getTradeComparison({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradeComparison>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradeComparisonQueryResult = NonNullable<Awaited<ReturnType<typeof getTradeComparison>>>
+export type GetTradeComparisonQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Compare winners vs losers across all strategy dimensions
+ */
+
+export function useGetTradeComparison<TData = Awaited<ReturnType<typeof getTradeComparison>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradeComparison>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradeComparisonQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRuleAdherenceUrl = () => {
+
+
+
+
+  return `/api/analytics/rule-adherence`
+}
+
+/**
+ * @summary Measure AMD/SMC rule adherence and its impact on win rate
+ */
+export const getRuleAdherence = async ( options?: RequestInit): Promise<RuleAdherenceResponse> => {
+
+  return customFetch<RuleAdherenceResponse>(getGetRuleAdherenceUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRuleAdherenceQueryKey = () => {
+    return [
+    `/api/analytics/rule-adherence`
+    ] as const;
+    }
+
+
+export const getGetRuleAdherenceQueryOptions = <TData = Awaited<ReturnType<typeof getRuleAdherence>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRuleAdherence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRuleAdherenceQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRuleAdherence>>> = ({ signal }) => getRuleAdherence({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRuleAdherence>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRuleAdherenceQueryResult = NonNullable<Awaited<ReturnType<typeof getRuleAdherence>>>
+export type GetRuleAdherenceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Measure AMD/SMC rule adherence and its impact on win rate
+ */
+
+export function useGetRuleAdherence<TData = Awaited<ReturnType<typeof getRuleAdherence>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRuleAdherence>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRuleAdherenceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetDrawdownUrl = () => {
 

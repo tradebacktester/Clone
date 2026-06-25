@@ -275,6 +275,99 @@ export interface DrawdownPoint {
   drawdown: number;
 }
 
+export interface TradeGroupProfile {
+  count?: number;
+  avgSetupScore?: number;
+  avgZoneStrength?: number;
+  avgRr?: number;
+  avgPnl?: number;
+  avgSlippage?: number;
+  liquiditySweepRate?: number;
+  avgRegimeConfidence?: number;
+  topSession?: string;
+  topAmdPattern?: string;
+}
+
+export interface TradeBreakdownItem {
+  label: string;
+  wins: number;
+  losses: number;
+  count: number;
+  winRate: number;
+  avgPnl: number;
+}
+
+export interface ScoreBucketItem {
+  label: string;
+  wins: number;
+  losses: number;
+  count: number;
+  winRate: number;
+}
+
+export interface TradeComparisonResponse {
+  totalTrades: number;
+  winRate: number;
+  winners?: TradeGroupProfile;
+  losers?: TradeGroupProfile;
+  byAmdPattern: TradeBreakdownItem[];
+  bySession: TradeBreakdownItem[];
+  byZoneType: TradeBreakdownItem[];
+  byRegime: TradeBreakdownItem[];
+  byLiquiditySweep: TradeBreakdownItem[];
+  setupScoreDistribution: ScoreBucketItem[];
+  rrDistribution: ScoreBucketItem[];
+}
+
+export interface RuleStat {
+  id: string;
+  name: string;
+  description: string;
+  adherenceRate: number;
+  winRateWithRule: number;
+  winRateWithoutRule: number;
+  impact: number;
+  followedCount: number;
+  brokenCount: number;
+}
+
+export type PerTradeAdherenceOutcome = typeof PerTradeAdherenceOutcome[keyof typeof PerTradeAdherenceOutcome];
+
+
+export const PerTradeAdherenceOutcome = {
+  win: 'win',
+  loss: 'loss',
+  open: 'open',
+} as const;
+
+export interface PerTradeAdherence {
+  tradeId: number;
+  pair: string;
+  direction: string;
+  pnl: number;
+  outcome: PerTradeAdherenceOutcome;
+  rulesFollowed: number;
+  rulesBroken: number;
+  adherenceScore: number;
+  brokenRules: string[];
+  openedAt: string;
+}
+
+export interface RuleAdherenceSummary {
+  avgAdherenceScore: number;
+  perfectAdherenceWinRate: number;
+  lowAdherenceWinRate: number;
+  topBrokenRule: string;
+  totalTrades: number;
+  closedTrades: number;
+}
+
+export interface RuleAdherenceResponse {
+  rules: RuleStat[];
+  perTrade: PerTradeAdherence[];
+  summary: RuleAdherenceSummary;
+}
+
 export interface MonteCarloRequest {
   numSimulations?: number;
   numTrades?: number;

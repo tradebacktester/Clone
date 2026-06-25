@@ -11,6 +11,7 @@ import newsRouter from "./news";
 import regimeRouter from "./regime";
 import montecarloRouter from "./montecarlo";
 import paperRouter from "./paper";
+import qualityRouter from "./quality";
 
 const router: IRouter = Router();
 
@@ -26,5 +27,6 @@ router.use(newsRouter);
 router.use(regimeRouter);
 router.use(montecarloRouter);
 router.use(paperRouter);
+router.use(qualityRouter);
 
 export default router;

@@ -429,6 +429,131 @@ export const RunMonteCarloResponse = zod.object({
 
 
 /**
+ * @summary Compare winners vs losers across all strategy dimensions
+ */
+export const GetTradeComparisonResponse = zod.object({
+  "totalTrades": zod.number(),
+  "winRate": zod.number(),
+  "winners": zod.object({
+  "count": zod.number().optional(),
+  "avgSetupScore": zod.number().optional(),
+  "avgZoneStrength": zod.number().optional(),
+  "avgRr": zod.number().optional(),
+  "avgPnl": zod.number().optional(),
+  "avgSlippage": zod.number().optional(),
+  "liquiditySweepRate": zod.number().optional(),
+  "avgRegimeConfidence": zod.number().optional(),
+  "topSession": zod.string().optional(),
+  "topAmdPattern": zod.string().optional()
+}).optional(),
+  "losers": zod.object({
+  "count": zod.number().optional(),
+  "avgSetupScore": zod.number().optional(),
+  "avgZoneStrength": zod.number().optional(),
+  "avgRr": zod.number().optional(),
+  "avgPnl": zod.number().optional(),
+  "avgSlippage": zod.number().optional(),
+  "liquiditySweepRate": zod.number().optional(),
+  "avgRegimeConfidence": zod.number().optional(),
+  "topSession": zod.string().optional(),
+  "topAmdPattern": zod.string().optional()
+}).optional(),
+  "byAmdPattern": zod.array(zod.object({
+  "label": zod.string(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "count": zod.number(),
+  "winRate": zod.number(),
+  "avgPnl": zod.number()
+})),
+  "bySession": zod.array(zod.object({
+  "label": zod.string(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "count": zod.number(),
+  "winRate": zod.number(),
+  "avgPnl": zod.number()
+})),
+  "byZoneType": zod.array(zod.object({
+  "label": zod.string(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "count": zod.number(),
+  "winRate": zod.number(),
+  "avgPnl": zod.number()
+})),
+  "byRegime": zod.array(zod.object({
+  "label": zod.string(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "count": zod.number(),
+  "winRate": zod.number(),
+  "avgPnl": zod.number()
+})),
+  "byLiquiditySweep": zod.array(zod.object({
+  "label": zod.string(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "count": zod.number(),
+  "winRate": zod.number(),
+  "avgPnl": zod.number()
+})),
+  "setupScoreDistribution": zod.array(zod.object({
+  "label": zod.string(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "count": zod.number(),
+  "winRate": zod.number()
+})),
+  "rrDistribution": zod.array(zod.object({
+  "label": zod.string(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "count": zod.number(),
+  "winRate": zod.number()
+}))
+})
+
+
+/**
+ * @summary Measure AMD/SMC rule adherence and its impact on win rate
+ */
+export const GetRuleAdherenceResponse = zod.object({
+  "rules": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "description": zod.string(),
+  "adherenceRate": zod.number(),
+  "winRateWithRule": zod.number(),
+  "winRateWithoutRule": zod.number(),
+  "impact": zod.number(),
+  "followedCount": zod.number(),
+  "brokenCount": zod.number()
+})),
+  "perTrade": zod.array(zod.object({
+  "tradeId": zod.number(),
+  "pair": zod.string(),
+  "direction": zod.string(),
+  "pnl": zod.number(),
+  "outcome": zod.enum(['win', 'loss', 'open']),
+  "rulesFollowed": zod.number(),
+  "rulesBroken": zod.number(),
+  "adherenceScore": zod.number(),
+  "brokenRules": zod.array(zod.string()),
+  "openedAt": zod.string()
+})),
+  "summary": zod.object({
+  "avgAdherenceScore": zod.number(),
+  "perfectAdherenceWinRate": zod.number(),
+  "lowAdherenceWinRate": zod.number(),
+  "topBrokenRule": zod.string(),
+  "totalTrades": zod.number(),
+  "closedTrades": zod.number()
+})
+})
+
+
+/**
  * @summary Drawdown series over time
  */
 export const GetDrawdownResponseItem = zod.object({
