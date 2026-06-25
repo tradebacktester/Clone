@@ -9,6 +9,7 @@ import {
   Settings,
   Activity,
   TrendingUp,
+  Dices,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -20,6 +21,7 @@ export function NavSidebar() {
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/market", label: "Market", icon: Globe2 },
     { href: "/regime", label: "Regimes", icon: TrendingUp },
+    { href: "/monte-carlo", label: "Monte Carlo", icon: Dices },
     { href: "/learning", label: "Learning", icon: BrainCircuit },
     { href: "/backtest", label: "Backtest", icon: History },
     { href: "/settings", label: "Settings", icon: Settings },

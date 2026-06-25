@@ -662,3 +662,64 @@ export interface RegimeCurrentItem {
   rangeCompression: number;
   updatedAt: string;
 }
+
+export interface MonteCarloRequest {
+  numSimulations?: number;
+  numTrades?: number;
+  winRate?: number;
+  avgWin?: number;
+  avgLoss?: number;
+  startingCapital?: number;
+  ruinThreshold?: number;
+  tradesPerMonth?: number;
+  useHistoricalData?: boolean;
+}
+
+export interface HistogramBucket {
+  rangeLabel: string;
+  count: number;
+  frequency: number;
+}
+
+export interface EquityCurves {
+  worst: number[];
+  p10: number[];
+  median: number[];
+  p90: number[];
+  best: number[];
+  labels: number[];
+}
+
+export interface MonteCarloResult {
+  numSimulations: number;
+  numTrades: number;
+  startingCapital: number;
+  winRate: number;
+  avgWin: number;
+  avgLoss: number;
+  ruinThreshold: number;
+  tradesPerMonth: number;
+  probabilityOfRuin: number;
+  worstDrawdown: number;
+  expectedDrawdown: number;
+  medianDrawdown: number;
+  drawdownPercentile90: number;
+  expectedMonthlyReturn: number;
+  medianMonthlyReturn: number;
+  worstLosingStreak: number;
+  expectedLosingStreak: number;
+  medianLosingStreak: number;
+  worstCaseReturn: number;
+  percentile10: number;
+  percentile25: number;
+  medianReturn: number;
+  percentile75: number;
+  percentile90: number;
+  bestCaseReturn: number;
+  expectedReturn: number;
+  worstCaseReturnPct: number;
+  expectedReturnPct: number;
+  bestCaseReturnPct: number;
+  histogram: HistogramBucket[];
+  equityCurves: EquityCurves;
+}

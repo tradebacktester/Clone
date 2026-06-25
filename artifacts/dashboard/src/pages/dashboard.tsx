@@ -136,11 +136,11 @@ export default function Dashboard() {
                   <Skeleton className="h-12 w-full" />
                   <Skeleton className="h-12 w-full" />
                 </div>
-              ) : activeSignals?.length === 0 ? (
+              ) : !Array.isArray(activeSignals) || activeSignals.length === 0 ? (
                 <div className="p-8 text-center text-muted-foreground font-mono text-sm">No active signals</div>
               ) : (
                 <div className="divide-y divide-border">
-                  {activeSignals?.map(signal => (
+                  {activeSignals.map(signal => (
                     <div key={signal.id} className="p-4 hover:bg-muted/20 transition-colors flex items-center justify-between">
                       <div className="flex items-center gap-4">
                         <div className={`w-2 h-10 rounded-full ${signal.direction === 'buy' ? 'bg-success' : 'bg-destructive'}`} />

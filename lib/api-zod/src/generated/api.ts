@@ -826,3 +826,65 @@ export const RegimeCurrentItem = zod.object({
 })
 
 export const GetRegimeCurrentResponse = zod.array(RegimeCurrentItem)
+
+
+export const MonteCarloRequest = zod.object({
+  numSimulations: zod.number().int().min(100).max(50000).optional(),
+  numTrades: zod.number().int().min(10).max(1000).optional(),
+  winRate: zod.number().min(0.01).max(0.99).optional(),
+  avgWin: zod.number().positive().optional(),
+  avgLoss: zod.number().positive().optional(),
+  startingCapital: zod.number().positive().optional(),
+  ruinThreshold: zod.number().min(0.01).max(0.99).optional(),
+  tradesPerMonth: zod.number().int().min(1).optional(),
+  useHistoricalData: zod.boolean().optional(),
+})
+
+export const HistogramBucket = zod.object({
+  rangeLabel: zod.string(),
+  count: zod.number().int(),
+  frequency: zod.number(),
+})
+
+export const EquityCurves = zod.object({
+  worst: zod.array(zod.number()),
+  p10: zod.array(zod.number()),
+  median: zod.array(zod.number()),
+  p90: zod.array(zod.number()),
+  best: zod.array(zod.number()),
+  labels: zod.array(zod.number()),
+})
+
+export const MonteCarloResult = zod.object({
+  numSimulations: zod.number().int(),
+  numTrades: zod.number().int(),
+  startingCapital: zod.number(),
+  winRate: zod.number(),
+  avgWin: zod.number(),
+  avgLoss: zod.number(),
+  ruinThreshold: zod.number(),
+  tradesPerMonth: zod.number().int(),
+  probabilityOfRuin: zod.number(),
+  worstDrawdown: zod.number(),
+  expectedDrawdown: zod.number(),
+  medianDrawdown: zod.number(),
+  drawdownPercentile90: zod.number(),
+  expectedMonthlyReturn: zod.number(),
+  medianMonthlyReturn: zod.number(),
+  worstLosingStreak: zod.number().int(),
+  expectedLosingStreak: zod.number(),
+  medianLosingStreak: zod.number().int(),
+  worstCaseReturn: zod.number(),
+  percentile10: zod.number(),
+  percentile25: zod.number(),
+  medianReturn: zod.number(),
+  percentile75: zod.number(),
+  percentile90: zod.number(),
+  bestCaseReturn: zod.number(),
+  expectedReturn: zod.number(),
+  worstCaseReturnPct: zod.number(),
+  expectedReturnPct: zod.number(),
+  bestCaseReturnPct: zod.number(),
+  histogram: zod.array(HistogramBucket),
+  equityCurves: EquityCurves,
+})

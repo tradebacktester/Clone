@@ -8,6 +8,7 @@ import Trades from "@/pages/trades";
 import Analytics from "@/pages/analytics";
 import Market from "@/pages/market";
 import Regime from "@/pages/regime";
+import MonteCarlo from "@/pages/montecarlo";
 import Learning from "@/pages/learning";
 import Backtest from "@/pages/backtest";
 import Settings from "@/pages/settings";
@@ -30,6 +31,7 @@ function Router() {
         <Route path="/analytics" component={Analytics} />
         <Route path="/market" component={Market} />
         <Route path="/regime" component={Regime} />
+        <Route path="/monte-carlo" component={MonteCarlo} />
         <Route path="/learning" component={Learning} />
         <Route path="/backtest" component={Backtest} />
         <Route path="/settings" component={Settings} />

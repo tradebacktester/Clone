@@ -9,6 +9,7 @@ import backtestRouter from "./backtest";
 import brokerRouter from "./broker";
 import newsRouter from "./news";
 import regimeRouter from "./regime";
+import montecarloRouter from "./montecarlo";
 
 const router: IRouter = Router();
 
@@ -22,5 +23,6 @@ router.use(backtestRouter);
 router.use(brokerRouter);
 router.use(newsRouter);
 router.use(regimeRouter);
+router.use(montecarloRouter);
 
 export default router;

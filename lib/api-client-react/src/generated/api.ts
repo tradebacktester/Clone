@@ -2349,3 +2349,40 @@ export const useGetRegimeCurrent = <TData = Awaited<ReturnType<typeof getRegimeC
   query.queryKey = queryOptions.queryKey;
   return query;
 };
+
+
+export const runMonteCarlo = async (data: MonteCarloRequest, options?: RequestInit): Promise<MonteCarloResult> => {
+  return customFetch<MonteCarloResult>(`/api/analytics/monte-carlo`, {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...(options?.headers ?? {}) },
+    body: JSON.stringify(data),
+  });
+};
+
+export const getRunMonteCarloMutationOptions = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof runMonteCarlo>>, TError, { data: BodyType<MonteCarloRequest> }, TContext>, request?: SecondParameter<typeof customFetch> }
+): UseMutationOptions<Awaited<ReturnType<typeof runMonteCarlo>>, TError, { data: BodyType<MonteCarloRequest> }, TContext> => {
+  const mutationKey = ['runMonteCarlo'];
+  const { mutation: mutationOptions, request: requestOptions } = options ?
+    options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+    options : { ...options, mutation: { ...options.mutation, mutationKey } }
+    : { mutation: { mutationKey }, request: undefined };
+
+  const mutationFn: MutationFunction<Awaited<ReturnType<typeof runMonteCarlo>>, { data: BodyType<MonteCarloRequest> }> = (props) => {
+    const { data } = props ?? {};
+    return runMonteCarlo(data, requestOptions);
+  };
+
+  return { mutationFn, ...mutationOptions };
+};
+
+export type RunMonteCarloMutationResult = NonNullable<Awaited<ReturnType<typeof runMonteCarlo>>>;
+export type RunMonteCarloMutationBody = BodyType<MonteCarloRequest>;
+export type RunMonteCarloMutationError = ErrorType<unknown>;
+
+export const useRunMonteCarlo = <TError = ErrorType<unknown>, TContext = unknown>(
+  options?: { mutation?: UseMutationOptions<Awaited<ReturnType<typeof runMonteCarlo>>, TError, { data: BodyType<MonteCarloRequest> }, TContext>, request?: SecondParameter<typeof customFetch> }
+): UseMutationResult<Awaited<ReturnType<typeof runMonteCarlo>>, TError, { data: BodyType<MonteCarloRequest> }, TContext> => {
+  return useMutation(getRunMonteCarloMutationOptions(options));
+};
