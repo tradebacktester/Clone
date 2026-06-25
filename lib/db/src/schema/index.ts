@@ -7,3 +7,4 @@ export * from "./broker";
 export * from "./candles";
 export * from "./news";
 export * from "./analytics";
+export * from "./memory";

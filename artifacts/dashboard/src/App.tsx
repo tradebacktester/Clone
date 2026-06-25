@@ -13,6 +13,7 @@ import Learning from "@/pages/learning";
 import Backtest from "@/pages/backtest";
 import Settings from "@/pages/settings";
 import Quality from "@/pages/quality";
+import Memory from "@/pages/memory";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -36,6 +37,7 @@ function Router() {
         <Route path="/learning" component={Learning} />
         <Route path="/backtest" component={Backtest} />
         <Route path="/quality" component={Quality} />
+        <Route path="/memory" component={Memory} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

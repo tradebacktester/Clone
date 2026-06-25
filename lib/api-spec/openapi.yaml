@@ -288,6 +288,85 @@ paths:
               schema:
                 $ref: "#/components/schemas/RuleAdherenceResponse"
 
+  # ── Trade Memory & Self-Improvement Engine ────────────────────────────────
+  /analytics/memory/summary:
+    get:
+      operationId: getMemorySummary
+      summary: High-level trade memory statistics
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MemorySummary"
+
+  /analytics/memory/trades:
+    get:
+      operationId: getMemoryTrades
+      summary: Recent trade memory records with component scores
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TradeMemoryRecord"
+
+  /analytics/memory/missed:
+    get:
+      operationId: getMissedOpportunities
+      summary: Signals that were rejected with aftermath tracking
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MissedOpportunity"
+
+  /analytics/memory/confidence-profiles:
+    get:
+      operationId: getConfidenceProfiles
+      summary: Cluster-level confidence profiles with dynamic adjustments
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConfidenceProfile"
+
+  /analytics/memory/top-setups:
+    get:
+      operationId: getTopSetups
+      summary: Best and worst performing setup clusters
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TopSetups"
+
   /analytics/drawdown:
     get:
       operationId: getDrawdown
@@ -595,6 +674,225 @@ paths:
 
 components:
   schemas:
+
+    # ── Trade Memory ──────────────────────────────────────────────────────────
+    MemorySummary:
+      type: object
+      required: [totalRecorded, closedTrades, winRate, totalClusters, avgConfAdjustment, missedOpportunities, missedWouldWin, missedWouldLose]
+      properties:
+        totalRecorded:
+          type: integer
+        closedTrades:
+          type: integer
+        winRate:
+          type: number
+        totalClusters:
+          type: integer
+        avgConfAdjustment:
+          type: number
+        bestClusterKey:
+          type: string
+          nullable: true
+        missedOpportunities:
+          type: integer
+        missedWouldWin:
+          type: integer
+        missedWouldLose:
+          type: integer
+
+    TradeMemoryRecord:
+      type: object
+      required: [id, tradeId, pair, direction, session, zoneScore, liquidityScore, amdScore, confirmationScore, finalScore, confidence, riskRewardPlanned, outcome, openedAt]
+      properties:
+        id:
+          type: integer
+        tradeId:
+          type: integer
+        pair:
+          type: string
+        direction:
+          type: string
+        session:
+          type: string
+        regime:
+          type: string
+          nullable: true
+        regimeConfidence:
+          type: string
+          nullable: true
+        zoneScore:
+          type: string
+        liquidityScore:
+          type: string
+        amdScore:
+          type: string
+        confirmationScore:
+          type: string
+        finalScore:
+          type: string
+        confidence:
+          type: string
+        zoneType:
+          type: string
+          nullable: true
+        amdPattern:
+          type: string
+          nullable: true
+        riskRewardPlanned:
+          type: string
+        riskRewardActual:
+          type: string
+          nullable: true
+        outcome:
+          type: string
+          nullable: true
+        pnl:
+          type: string
+          nullable: true
+        pnlPercent:
+          type: string
+          nullable: true
+        closeReason:
+          type: string
+          nullable: true
+        timeInTradeMins:
+          type: integer
+          nullable: true
+        clusterKey:
+          type: string
+          nullable: true
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    MissedOpportunity:
+      type: object
+      required: [id, pair, direction, session, zoneScore, liquidityScore, amdScore, confirmationScore, finalScore, confidence, rejectionReason, createdAt]
+      properties:
+        id:
+          type: integer
+        pair:
+          type: string
+        direction:
+          type: string
+        session:
+          type: string
+        regime:
+          type: string
+          nullable: true
+        zoneScore:
+          type: string
+        liquidityScore:
+          type: string
+        amdScore:
+          type: string
+        confirmationScore:
+          type: string
+        finalScore:
+          type: string
+        confidence:
+          type: string
+        zoneType:
+          type: string
+          nullable: true
+        amdPattern:
+          type: string
+          nullable: true
+        riskReward:
+          type: string
+          nullable: true
+        entryPrice:
+          type: string
+          nullable: true
+        rejectionReason:
+          type: string
+        priceAt1h:
+          type: string
+          nullable: true
+        priceAt4h:
+          type: string
+          nullable: true
+        priceAt24h:
+          type: string
+          nullable: true
+        estimatedPipsIfTaken:
+          type: string
+          nullable: true
+        outcomeIfTaken:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    ConfidenceProfile:
+      type: object
+      required: [id, clusterKey, zoneScoreBucket, liquidityScoreBucket, amdScoreBucket, confirmationScoreBucket, session, totalTrades, wins, losses, winRate, profitFactor, avgRr, confidenceAdjustment]
+      properties:
+        id:
+          type: integer
+        clusterKey:
+          type: string
+        zoneScoreBucket:
+          type: string
+        liquidityScoreBucket:
+          type: string
+        amdScoreBucket:
+          type: string
+        confirmationScoreBucket:
+          type: string
+        session:
+          type: string
+        totalTrades:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        totalPnl:
+          type: string
+        winRate:
+          type: string
+        profitFactor:
+          type: string
+        avgRr:
+          type: string
+        avgPnl:
+          type: string
+        avgFinalScore:
+          type: string
+        confidenceAdjustment:
+          type: string
+        last10WinRate:
+          type: string
+          nullable: true
+        last10Pnl:
+          type: string
+          nullable: true
+        rank:
+          type: integer
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+
+    TopSetups:
+      type: object
+      required: [top, worst]
+      properties:
+        top:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfidenceProfile"
+        worst:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConfidenceProfile"
+
     HealthStatus:
       type: object
       required: [status]

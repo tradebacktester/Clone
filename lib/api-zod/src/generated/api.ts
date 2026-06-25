@@ -554,6 +554,179 @@ export const GetRuleAdherenceResponse = zod.object({
 
 
 /**
+ * @summary High-level trade memory statistics
+ */
+export const GetMemorySummaryResponse = zod.object({
+  "totalRecorded": zod.number(),
+  "closedTrades": zod.number(),
+  "winRate": zod.number(),
+  "totalClusters": zod.number(),
+  "avgConfAdjustment": zod.number(),
+  "bestClusterKey": zod.string().nullish(),
+  "missedOpportunities": zod.number(),
+  "missedWouldWin": zod.number(),
+  "missedWouldLose": zod.number()
+})
+
+
+/**
+ * @summary Recent trade memory records with component scores
+ */
+export const getMemoryTradesQueryLimitDefault = 50;
+
+export const GetMemoryTradesQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getMemoryTradesQueryLimitDefault)
+})
+
+export const GetMemoryTradesResponseItem = zod.object({
+  "id": zod.number(),
+  "tradeId": zod.number(),
+  "pair": zod.string(),
+  "direction": zod.string(),
+  "session": zod.string(),
+  "regime": zod.string().nullish(),
+  "regimeConfidence": zod.string().nullish(),
+  "zoneScore": zod.string(),
+  "liquidityScore": zod.string(),
+  "amdScore": zod.string(),
+  "confirmationScore": zod.string(),
+  "finalScore": zod.string(),
+  "confidence": zod.string(),
+  "zoneType": zod.string().nullish(),
+  "amdPattern": zod.string().nullish(),
+  "riskRewardPlanned": zod.string(),
+  "riskRewardActual": zod.string().nullish(),
+  "outcome": zod.string().nullable(),
+  "pnl": zod.string().nullish(),
+  "pnlPercent": zod.string().nullish(),
+  "closeReason": zod.string().nullish(),
+  "timeInTradeMins": zod.number().nullish(),
+  "clusterKey": zod.string().nullish(),
+  "openedAt": zod.coerce.date(),
+  "closedAt": zod.coerce.date().nullish()
+})
+export const GetMemoryTradesResponse = zod.array(GetMemoryTradesResponseItem)
+
+
+/**
+ * @summary Signals that were rejected with aftermath tracking
+ */
+export const getMissedOpportunitiesQueryLimitDefault = 50;
+
+export const GetMissedOpportunitiesQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getMissedOpportunitiesQueryLimitDefault)
+})
+
+export const GetMissedOpportunitiesResponseItem = zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "direction": zod.string(),
+  "session": zod.string(),
+  "regime": zod.string().nullish(),
+  "zoneScore": zod.string(),
+  "liquidityScore": zod.string(),
+  "amdScore": zod.string(),
+  "confirmationScore": zod.string(),
+  "finalScore": zod.string(),
+  "confidence": zod.string(),
+  "zoneType": zod.string().nullish(),
+  "amdPattern": zod.string().nullish(),
+  "riskReward": zod.string().nullish(),
+  "entryPrice": zod.string().nullish(),
+  "rejectionReason": zod.string(),
+  "priceAt1h": zod.string().nullish(),
+  "priceAt4h": zod.string().nullish(),
+  "priceAt24h": zod.string().nullish(),
+  "estimatedPipsIfTaken": zod.string().nullish(),
+  "outcomeIfTaken": zod.string().nullish(),
+  "createdAt": zod.coerce.date()
+})
+export const GetMissedOpportunitiesResponse = zod.array(GetMissedOpportunitiesResponseItem)
+
+
+/**
+ * @summary Cluster-level confidence profiles with dynamic adjustments
+ */
+export const GetConfidenceProfilesResponseItem = zod.object({
+  "id": zod.number(),
+  "clusterKey": zod.string(),
+  "zoneScoreBucket": zod.string(),
+  "liquidityScoreBucket": zod.string(),
+  "amdScoreBucket": zod.string(),
+  "confirmationScoreBucket": zod.string(),
+  "session": zod.string(),
+  "totalTrades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "totalPnl": zod.string().optional(),
+  "winRate": zod.string(),
+  "profitFactor": zod.string(),
+  "avgRr": zod.string(),
+  "avgPnl": zod.string().optional(),
+  "avgFinalScore": zod.string().optional(),
+  "confidenceAdjustment": zod.string(),
+  "last10WinRate": zod.string().nullish(),
+  "last10Pnl": zod.string().nullish(),
+  "rank": zod.number().nullish(),
+  "updatedAt": zod.coerce.date().optional()
+})
+export const GetConfidenceProfilesResponse = zod.array(GetConfidenceProfilesResponseItem)
+
+
+/**
+ * @summary Best and worst performing setup clusters
+ */
+export const GetTopSetupsResponse = zod.object({
+  "top": zod.array(zod.object({
+  "id": zod.number(),
+  "clusterKey": zod.string(),
+  "zoneScoreBucket": zod.string(),
+  "liquidityScoreBucket": zod.string(),
+  "amdScoreBucket": zod.string(),
+  "confirmationScoreBucket": zod.string(),
+  "session": zod.string(),
+  "totalTrades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "totalPnl": zod.string().optional(),
+  "winRate": zod.string(),
+  "profitFactor": zod.string(),
+  "avgRr": zod.string(),
+  "avgPnl": zod.string().optional(),
+  "avgFinalScore": zod.string().optional(),
+  "confidenceAdjustment": zod.string(),
+  "last10WinRate": zod.string().nullish(),
+  "last10Pnl": zod.string().nullish(),
+  "rank": zod.number().nullish(),
+  "updatedAt": zod.coerce.date().optional()
+})),
+  "worst": zod.array(zod.object({
+  "id": zod.number(),
+  "clusterKey": zod.string(),
+  "zoneScoreBucket": zod.string(),
+  "liquidityScoreBucket": zod.string(),
+  "amdScoreBucket": zod.string(),
+  "confirmationScoreBucket": zod.string(),
+  "session": zod.string(),
+  "totalTrades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "totalPnl": zod.string().optional(),
+  "winRate": zod.string(),
+  "profitFactor": zod.string(),
+  "avgRr": zod.string(),
+  "avgPnl": zod.string().optional(),
+  "avgFinalScore": zod.string().optional(),
+  "confidenceAdjustment": zod.string(),
+  "last10WinRate": zod.string().nullish(),
+  "last10Pnl": zod.string().nullish(),
+  "rank": zod.number().nullish(),
+  "updatedAt": zod.coerce.date().optional()
+}))
+})
+
+
+/**
  * @summary Drawdown series over time
  */
 export const GetDrawdownResponseItem = zod.object({

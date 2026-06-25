@@ -3,6 +3,12 @@ import { eq, and } from "drizzle-orm";
 import type { TradeSignal, Pair } from "@workspace/market-analysis";
 import { getCurrentPrice } from "./price-feed.js";
 import { logger } from "./logger.js";
+import {
+  recordTradeMemory,
+  closeTradeMemory,
+  recordMissedOpportunity,
+  updateMissedOpportunityAftermath,
+} from "./memory-engine.js";
 
 let monitorInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -156,16 +162,28 @@ export async function executePaperSignals(
     .from(tradesTable)
     .where(eq(tradesTable.status, "open"));
 
-  if (openTrades.length >= MAX_OPEN_TRADES) return;
-
-  const pairAlreadyOpen = openTrades.some(t => t.pair === pair);
-  if (pairAlreadyOpen) return;
-
+  // Select best signal early so we can record missed opportunities at each rejection
   const signal = signals.reduce(
     (best, s) => (s.confidence > best.confidence ? s : best),
     signals[0]!,
   );
-  if (signal.confidence < MIN_SIGNAL_CONFIDENCE) return;
+  const session = calcSession();
+
+  if (openTrades.length >= MAX_OPEN_TRADES) {
+    recordMissedOpportunity(signal, "max_open_trades", session, null).catch(() => {});
+    return;
+  }
+
+  const pairAlreadyOpen = openTrades.some(t => t.pair === pair);
+  if (pairAlreadyOpen) {
+    recordMissedOpportunity(signal, "pair_already_open", session, null).catch(() => {});
+    return;
+  }
+
+  if (signal.confidence < MIN_SIGNAL_CONFIDENCE) {
+    recordMissedOpportunity(signal, "below_confidence", session, null).catch(() => {});
+    return;
+  }
 
   const priceEntry = getCurrentPrice(pair);
   const entryMid = priceEntry?.mid ?? signal.entryPrice;
@@ -179,7 +197,7 @@ export async function executePaperSignals(
 
   const lotSize = calcLotSize(pair, actualEntry, signal.stopLoss, paperBalance, riskPct);
 
-  await db.insert(tradesTable).values({
+  const [inserted] = await db.insert(tradesTable).values({
     pair,
     direction: signal.direction,
     entryPrice: String(actualEntry),
@@ -188,7 +206,7 @@ export async function executePaperSignals(
     currentPrice: String(entryMid),
     lotSize: String(lotSize),
     status: "open",
-    session: calcSession(),
+    session,
     setupScore: String(signal.confidence),
     amdPattern: signal.amdPhase,
     zoneType: signal.zoneType,
@@ -198,7 +216,12 @@ export async function executePaperSignals(
     riskRewardRatio: String(Math.round(signal.riskReward * 100) / 100),
     slippagePips: String(entrySlippagePips),
     regime: null,
-  });
+  }).returning({ id: tradesTable.id });
+
+  // Record full component scores in trade memory
+  if (inserted?.id) {
+    recordTradeMemory(inserted.id, signal, null, null, session).catch(() => {});
+  }
 
   logger.info(
     {
@@ -278,12 +301,27 @@ export async function monitorOpenTrades(): Promise<void> {
         })
         .where(eq(tradesTable.id, trade.id));
 
+      const closeReason = slHit ? "sl_hit" : "tp_hit";
+      const outcome: "win" | "loss" = closedPnl > 0 ? "win" : "loss";
+      const rrActual = Math.abs(closePrice - entryPrice) / Math.abs(entryPrice - stopLoss);
+      closeTradeMemory(
+        trade.id,
+        outcome,
+        Math.round(closedPnl * 100) / 100,
+        Math.round(pnlPercent * 1000) / 1000,
+        closeReason,
+        Math.round(rrActual * 100) / 100,
+        exitSlippagePips,
+        trade.openedAt ?? new Date(),
+        parseFloat(trade.slippagePips ?? "0"),
+      ).catch(() => {});
+
       logger.info(
         {
           id: trade.id,
           pair: trade.pair,
           direction: trade.direction,
-          reason: slHit ? "sl_hit" : "tp_hit",
+          reason: closeReason,
           pnl: closedPnl,
           exitSlippage: exitSlippagePips,
         },

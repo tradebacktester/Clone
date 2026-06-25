@@ -5,6 +5,100 @@
  * Smart Money Trading Bot API
  * OpenAPI spec version: 1.0.0
  */
+export interface MemorySummary {
+  totalRecorded: number;
+  closedTrades: number;
+  winRate: number;
+  totalClusters: number;
+  avgConfAdjustment: number;
+  bestClusterKey?: string | null;
+  missedOpportunities: number;
+  missedWouldWin: number;
+  missedWouldLose: number;
+}
+
+export interface TradeMemoryRecord {
+  id: number;
+  tradeId: number;
+  pair: string;
+  direction: string;
+  session: string;
+  regime?: string | null;
+  regimeConfidence?: string | null;
+  zoneScore: string;
+  liquidityScore: string;
+  amdScore: string;
+  confirmationScore: string;
+  finalScore: string;
+  confidence: string;
+  zoneType?: string | null;
+  amdPattern?: string | null;
+  riskRewardPlanned: string;
+  riskRewardActual?: string | null;
+  outcome: string | null;
+  pnl?: string | null;
+  pnlPercent?: string | null;
+  closeReason?: string | null;
+  timeInTradeMins?: number | null;
+  clusterKey?: string | null;
+  openedAt: string;
+  closedAt?: string | null;
+}
+
+export interface MissedOpportunity {
+  id: number;
+  pair: string;
+  direction: string;
+  session: string;
+  regime?: string | null;
+  zoneScore: string;
+  liquidityScore: string;
+  amdScore: string;
+  confirmationScore: string;
+  finalScore: string;
+  confidence: string;
+  zoneType?: string | null;
+  amdPattern?: string | null;
+  riskReward?: string | null;
+  entryPrice?: string | null;
+  rejectionReason: string;
+  priceAt1h?: string | null;
+  priceAt4h?: string | null;
+  priceAt24h?: string | null;
+  estimatedPipsIfTaken?: string | null;
+  outcomeIfTaken?: string | null;
+  createdAt: string;
+}
+
+export interface ConfidenceProfile {
+  id: number;
+  clusterKey: string;
+  zoneScoreBucket: string;
+  liquidityScoreBucket: string;
+  amdScoreBucket: string;
+  confirmationScoreBucket: string;
+  session: string;
+  totalTrades: number;
+  wins: number;
+  losses: number;
+  totalPnl?: string;
+  winRate: string;
+  profitFactor: string;
+  avgRr: string;
+  avgPnl?: string;
+  avgFinalScore?: string;
+  confidenceAdjustment: string;
+  last10WinRate?: string | null;
+  last10Pnl?: string | null;
+  rank?: number | null;
+  updatedAt?: string;
+}
+
+export interface TopSetups {
+  top: ConfidenceProfile[];
+  worst: ConfidenceProfile[];
+}
+
 export interface HealthStatus {
   status: string;
 }
@@ -893,6 +987,14 @@ export const GetEquityCurvePeriod = {
   '90d': '90d',
   all: 'all',
 } as const;
+
+export type GetMemoryTradesParams = {
+limit?: number;
+};
+
+export type GetMissedOpportunitiesParams = {
+limit?: number;
+};
 
 export type GetMarketZonesParams = {
 pair?: string;

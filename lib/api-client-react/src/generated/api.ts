@@ -30,10 +30,13 @@ import type {
   BotStatus,
   BrokerAccount,
   BrokerAccountInput,
+  ConfidenceProfile,
   DrawdownPoint,
   EquityPoint,
   GetEquityCurveParams,
   GetMarketZonesParams,
+  GetMemoryTradesParams,
+  GetMissedOpportunitiesParams,
   GetNewsCalendarResponse,
   GetNewsEventsParams,
   GetNewsEventsResponse,
@@ -43,6 +46,8 @@ import type {
   ListTradesParams,
   MarketRegime,
   MarketZone,
+  MemorySummary,
+  MissedOpportunity,
   MonteCarloRequest,
   MonteCarloResult,
   MonthlyPnl,
@@ -54,9 +59,11 @@ import type {
   RiskSettingsInput,
   RuleAdherenceResponse,
   SetupScore,
+  TopSetups,
   Trade,
   TradeComparisonResponse,
   TradeList,
+  TradeMemoryRecord,
   TradeSignal,
   WinRateBreakdown
 } from './api.schemas';
@@ -1429,6 +1436,405 @@ export function useGetRuleAdherence<TData = Awaited<ReturnType<typeof getRuleAdh
  ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
 
   const queryOptions = getGetRuleAdherenceQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMemorySummaryUrl = () => {
+
+
+
+
+  return `/api/analytics/memory/summary`
+}
+
+/**
+ * @summary High-level trade memory statistics
+ */
+export const getMemorySummary = async ( options?: RequestInit): Promise<MemorySummary> => {
+
+  return customFetch<MemorySummary>(getGetMemorySummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMemorySummaryQueryKey = () => {
+    return [
+    `/api/analytics/memory/summary`
+    ] as const;
+    }
+
+
+export const getGetMemorySummaryQueryOptions = <TData = Awaited<ReturnType<typeof getMemorySummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemorySummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMemorySummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMemorySummary>>> = ({ signal }) => getMemorySummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMemorySummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMemorySummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getMemorySummary>>>
+export type GetMemorySummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary High-level trade memory statistics
+ */
+
+export function useGetMemorySummary<TData = Awaited<ReturnType<typeof getMemorySummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemorySummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMemorySummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMemoryTradesUrl = (params?: GetMemoryTradesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/analytics/memory/trades?${stringifiedParams}` : `/api/analytics/memory/trades`
+}
+
+/**
+ * @summary Recent trade memory records with component scores
+ */
+export const getMemoryTrades = async (params?: GetMemoryTradesParams, options?: RequestInit): Promise<TradeMemoryRecord[]> => {
+
+  return customFetch<TradeMemoryRecord[]>(getGetMemoryTradesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMemoryTradesQueryKey = (params?: GetMemoryTradesParams,) => {
+    return [
+    `/api/analytics/memory/trades`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMemoryTradesQueryOptions = <TData = Awaited<ReturnType<typeof getMemoryTrades>>, TError = ErrorType<unknown>>(params?: GetMemoryTradesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemoryTrades>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMemoryTradesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMemoryTrades>>> = ({ signal }) => getMemoryTrades(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMemoryTrades>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMemoryTradesQueryResult = NonNullable<Awaited<ReturnType<typeof getMemoryTrades>>>
+export type GetMemoryTradesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Recent trade memory records with component scores
+ */
+
+export function useGetMemoryTrades<TData = Awaited<ReturnType<typeof getMemoryTrades>>, TError = ErrorType<unknown>>(
+ params?: GetMemoryTradesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMemoryTrades>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMemoryTradesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetMissedOpportunitiesUrl = (params?: GetMissedOpportunitiesParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/analytics/memory/missed?${stringifiedParams}` : `/api/analytics/memory/missed`
+}
+
+/**
+ * @summary Signals that were rejected with aftermath tracking
+ */
+export const getMissedOpportunities = async (params?: GetMissedOpportunitiesParams, options?: RequestInit): Promise<MissedOpportunity[]> => {
+
+  return customFetch<MissedOpportunity[]>(getGetMissedOpportunitiesUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMissedOpportunitiesQueryKey = (params?: GetMissedOpportunitiesParams,) => {
+    return [
+    `/api/analytics/memory/missed`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMissedOpportunitiesQueryOptions = <TData = Awaited<ReturnType<typeof getMissedOpportunities>>, TError = ErrorType<unknown>>(params?: GetMissedOpportunitiesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMissedOpportunities>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMissedOpportunitiesQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMissedOpportunities>>> = ({ signal }) => getMissedOpportunities(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMissedOpportunities>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMissedOpportunitiesQueryResult = NonNullable<Awaited<ReturnType<typeof getMissedOpportunities>>>
+export type GetMissedOpportunitiesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Signals that were rejected with aftermath tracking
+ */
+
+export function useGetMissedOpportunities<TData = Awaited<ReturnType<typeof getMissedOpportunities>>, TError = ErrorType<unknown>>(
+ params?: GetMissedOpportunitiesParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMissedOpportunities>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMissedOpportunitiesQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetConfidenceProfilesUrl = () => {
+
+
+
+
+  return `/api/analytics/memory/confidence-profiles`
+}
+
+/**
+ * @summary Cluster-level confidence profiles with dynamic adjustments
+ */
+export const getConfidenceProfiles = async ( options?: RequestInit): Promise<ConfidenceProfile[]> => {
+
+  return customFetch<ConfidenceProfile[]>(getGetConfidenceProfilesUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetConfidenceProfilesQueryKey = () => {
+    return [
+    `/api/analytics/memory/confidence-profiles`
+    ] as const;
+    }
+
+
+export const getGetConfidenceProfilesQueryOptions = <TData = Awaited<ReturnType<typeof getConfidenceProfiles>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getConfidenceProfiles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConfidenceProfilesQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConfidenceProfiles>>> = ({ signal }) => getConfidenceProfiles({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConfidenceProfiles>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetConfidenceProfilesQueryResult = NonNullable<Awaited<ReturnType<typeof getConfidenceProfiles>>>
+export type GetConfidenceProfilesQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Cluster-level confidence profiles with dynamic adjustments
+ */
+
+export function useGetConfidenceProfiles<TData = Awaited<ReturnType<typeof getConfidenceProfiles>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getConfidenceProfiles>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetConfidenceProfilesQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTopSetupsUrl = () => {
+
+
+
+
+  return `/api/analytics/memory/top-setups`
+}
+
+/**
+ * @summary Best and worst performing setup clusters
+ */
+export const getTopSetups = async ( options?: RequestInit): Promise<TopSetups> => {
+
+  return customFetch<TopSetups>(getGetTopSetupsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTopSetupsQueryKey = () => {
+    return [
+    `/api/analytics/memory/top-setups`
+    ] as const;
+    }
+
+
+export const getGetTopSetupsQueryOptions = <TData = Awaited<ReturnType<typeof getTopSetups>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTopSetups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTopSetupsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTopSetups>>> = ({ signal }) => getTopSetups({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTopSetups>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTopSetupsQueryResult = NonNullable<Awaited<ReturnType<typeof getTopSetups>>>
+export type GetTopSetupsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Best and worst performing setup clusters
+ */
+
+export function useGetTopSetups<TData = Awaited<ReturnType<typeof getTopSetups>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTopSetups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTopSetupsQueryOptions(options)
 
   const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
 

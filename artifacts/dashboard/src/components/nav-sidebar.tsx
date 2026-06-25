@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Dices,
   ShieldCheck,
+  Brain,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -24,6 +25,7 @@ export function NavSidebar() {
     { href: "/regime", label: "Regimes", icon: TrendingUp },
     { href: "/monte-carlo", label: "Monte Carlo", icon: Dices },
     { href: "/quality", label: "Quality", icon: ShieldCheck },
+    { href: "/memory", label: "Memory", icon: Brain },
     { href: "/learning", label: "Learning", icon: BrainCircuit },
     { href: "/backtest", label: "Backtest", icon: History },
     { href: "/settings", label: "Settings", icon: Settings },
