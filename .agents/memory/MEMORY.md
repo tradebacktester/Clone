@@ -1,2 +1,3 @@
 - [Market Analysis Engine](market-analysis-engine.md) — lib/market-analysis built with all algorithms; signal confidence thresholds and synthetic data quirks documented.
 - [Analysis Scheduler](analysis-scheduler.md) — bot start/stop controls the 10-minute analysis loop; signals only cleared from DB when new real ones exist.
+- [Market Regime Engine](market-regime-engine.md) — 4 regimes (trending/ranging/volatile/low_volatility) with confidence scores; percentile calc uses midpoint-rank to avoid ties-at-100 bug; tests use tsx --test from pnpm node_modules.

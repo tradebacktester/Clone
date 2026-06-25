@@ -25,6 +25,8 @@ export const tradesTable = pgTable("trades", {
   riskRewardRatio: numeric("risk_reward_ratio", { precision: 6, scale: 2 }).notNull().default("0"),
   breakEvenMoved: boolean("break_even_moved").notNull().default(false),
   closeReason: text("close_reason"),
+  regime: text("regime"),
+  regimeConfidence: numeric("regime_confidence", { precision: 5, scale: 2 }),
   openedAt: timestamp("opened_at", { withTimezone: true }).notNull().defaultNow(),
   closedAt: timestamp("closed_at", { withTimezone: true }),
 });

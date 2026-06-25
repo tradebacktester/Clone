@@ -607,3 +607,58 @@ export type GetNewsEventsParams = {
   hours?: number;
 };
 
+
+
+export interface RegimeWeightsItem {
+  zone: number;
+  liquidity: number;
+  amd: number;
+  confirmation: number;
+}
+
+export interface RegimeAnalyticsItem {
+  regime: string;
+  totalTrades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  profitFactor: number;
+  maxDrawdown: number;
+  avgSetupScore: number;
+  zoneWinRate: number;
+  liquidityWinRate: number;
+  amdWinRate: number;
+  confirmationWinRate: number;
+  bestComponent: string;
+  isBestRegime: boolean;
+  weights: RegimeWeightsItem;
+}
+
+export interface GetRegimeAnalyticsResponse {
+  regimes: RegimeAnalyticsItem[];
+  bestRegime: string | null;
+  currentRegimes: Record<string, string>;
+}
+
+export interface RegimeWeightRow {
+  regime: string;
+  zone: number;
+  liquidity: number;
+  amd: number;
+  confirmation: number;
+  sampleSize: number;
+  updatedAt: string;
+}
+
+export interface RegimeCurrentItem {
+  pair: string;
+  regime: string;
+  trend: string;
+  volatility: string;
+  atr: number;
+  adxEquivalent: number;
+  regimeConfidence: number;
+  volatilityPercentile: number;
+  rangeCompression: number;
+  updatedAt: string;
+}

@@ -23,6 +23,10 @@ export const marketRegimeTable = pgTable("market_regime", {
   trend: text("trend").notNull().default("neutral"),
   volatility: text("volatility").notNull().default("medium"),
   atr: numeric("atr", { precision: 10, scale: 6 }).notNull().default("0"),
+  adxEquivalent: numeric("adx_equivalent", { precision: 6, scale: 2 }).notNull().default("0"),
+  regimeConfidence: numeric("regime_confidence", { precision: 5, scale: 2 }).notNull().default("0"),
+  volatilityPercentile: numeric("volatility_percentile", { precision: 5, scale: 2 }).notNull().default("50"),
+  rangeCompression: numeric("range_compression", { precision: 5, scale: 2 }).notNull().default("0"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 

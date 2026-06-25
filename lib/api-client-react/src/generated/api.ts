@@ -2283,3 +2283,69 @@ export const useUpdateRiskSettings = <TError = ErrorType<unknown>,
       return useMutation(getUpdateRiskSettingsMutationOptions(options));
     }
 
+
+
+export const getRegimeAnalytics = async (options?: RequestInit): Promise<GetRegimeAnalyticsResponse> => {
+  return customFetch<GetRegimeAnalyticsResponse>(`/api/regime/analytics`, { ...options, method: 'GET' });
+};
+
+export const getGetRegimeAnalyticsQueryOptions = <TData = Awaited<ReturnType<typeof getRegimeAnalytics>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? ['getRegimeAnalytics'];
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRegimeAnalytics>>> = () => getRegimeAnalytics(requestOptions);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getRegimeAnalytics>>, TError, TData>;
+};
+
+export type GetRegimeAnalyticsQueryResult = NonNullable<Awaited<ReturnType<typeof getRegimeAnalytics>>>;
+export type GetRegimeAnalyticsQueryError = ErrorType<unknown>;
+
+export const useGetRegimeAnalytics = <TData = Awaited<ReturnType<typeof getRegimeAnalytics>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeAnalytics>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+  const queryOptions = getGetRegimeAnalyticsQueryOptions(options);
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey;
+  return query;
+};
+
+
+export const getRegimeWeights = async (options?: RequestInit): Promise<RegimeWeightRow[]> => {
+  return customFetch<RegimeWeightRow[]>(`/api/regime/weights`, { ...options, method: 'GET' });
+};
+
+export const getGetRegimeWeightsQueryOptions = <TData = Awaited<ReturnType<typeof getRegimeWeights>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeWeights>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? ['getRegimeWeights'];
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRegimeWeights>>> = () => getRegimeWeights(requestOptions);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getRegimeWeights>>, TError, TData>;
+};
+
+export type GetRegimeWeightsQueryResult = NonNullable<Awaited<ReturnType<typeof getRegimeWeights>>>;
+export type GetRegimeWeightsQueryError = ErrorType<unknown>;
+
+export const useGetRegimeWeights = <TData = Awaited<ReturnType<typeof getRegimeWeights>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeWeights>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+  const queryOptions = getGetRegimeWeightsQueryOptions(options);
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey;
+  return query;
+};
+
+
+export const getRegimeCurrent = async (options?: RequestInit): Promise<RegimeCurrentItem[]> => {
+  return customFetch<RegimeCurrentItem[]>(`/api/regime/current`, { ...options, method: 'GET' });
+};
+
+export const getGetRegimeCurrentQueryOptions = <TData = Awaited<ReturnType<typeof getRegimeCurrent>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeCurrent>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? ['getRegimeCurrent'];
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getRegimeCurrent>>> = () => getRegimeCurrent(requestOptions);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getRegimeCurrent>>, TError, TData>;
+};
+
+export type GetRegimeCurrentQueryResult = NonNullable<Awaited<ReturnType<typeof getRegimeCurrent>>>;
+export type GetRegimeCurrentQueryError = ErrorType<unknown>;
+
+export const useGetRegimeCurrent = <TData = Awaited<ReturnType<typeof getRegimeCurrent>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getRegimeCurrent>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+  const queryOptions = getGetRegimeCurrentQueryOptions(options);
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey;
+  return query;
+};

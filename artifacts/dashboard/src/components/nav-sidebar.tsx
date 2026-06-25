@@ -7,7 +7,8 @@ import {
   BrainCircuit, 
   History, 
   Settings,
-  Activity
+  Activity,
+  TrendingUp,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -18,6 +19,7 @@ export function NavSidebar() {
     { href: "/trades", label: "Journal", icon: ListOrdered },
     { href: "/analytics", label: "Analytics", icon: BarChart3 },
     { href: "/market", label: "Market", icon: Globe2 },
+    { href: "/regime", label: "Regimes", icon: TrendingUp },
     { href: "/learning", label: "Learning", icon: BrainCircuit },
     { href: "/backtest", label: "Backtest", icon: History },
     { href: "/settings", label: "Settings", icon: Settings },

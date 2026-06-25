@@ -767,3 +767,62 @@ export const GetNewsCalendarResponse = zod.object({
 })
 
 
+
+
+export const RegimeWeightsItem = zod.object({
+  zone: zod.number(),
+  liquidity: zod.number(),
+  amd: zod.number(),
+  confirmation: zod.number(),
+})
+
+export const RegimeAnalyticsItem = zod.object({
+  regime: zod.string(),
+  totalTrades: zod.number().int(),
+  wins: zod.number().int(),
+  losses: zod.number().int(),
+  winRate: zod.number(),
+  profitFactor: zod.number(),
+  maxDrawdown: zod.number(),
+  avgSetupScore: zod.number(),
+  zoneWinRate: zod.number(),
+  liquidityWinRate: zod.number(),
+  amdWinRate: zod.number(),
+  confirmationWinRate: zod.number(),
+  bestComponent: zod.string(),
+  isBestRegime: zod.boolean(),
+  weights: RegimeWeightsItem,
+})
+
+export const GetRegimeAnalyticsResponse = zod.object({
+  regimes: zod.array(RegimeAnalyticsItem),
+  bestRegime: zod.string().nullable(),
+  currentRegimes: zod.record(zod.string(), zod.string()),
+})
+
+export const RegimeWeightRow = zod.object({
+  regime: zod.string(),
+  zone: zod.number(),
+  liquidity: zod.number(),
+  amd: zod.number(),
+  confirmation: zod.number(),
+  sampleSize: zod.number().int(),
+  updatedAt: zod.string(),
+})
+
+export const GetRegimeWeightsResponse = zod.array(RegimeWeightRow)
+
+export const RegimeCurrentItem = zod.object({
+  pair: zod.string(),
+  regime: zod.string(),
+  trend: zod.string(),
+  volatility: zod.string(),
+  atr: zod.number(),
+  adxEquivalent: zod.number(),
+  regimeConfidence: zod.number(),
+  volatilityPercentile: zod.number(),
+  rangeCompression: zod.number(),
+  updatedAt: zod.string(),
+})
+
+export const GetRegimeCurrentResponse = zod.array(RegimeCurrentItem)

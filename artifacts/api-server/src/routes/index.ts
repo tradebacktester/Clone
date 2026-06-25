@@ -8,6 +8,7 @@ import learningRouter from "./learning";
 import backtestRouter from "./backtest";
 import brokerRouter from "./broker";
 import newsRouter from "./news";
+import regimeRouter from "./regime";
 
 const router: IRouter = Router();
 
@@ -20,5 +21,6 @@ router.use(learningRouter);
 router.use(backtestRouter);
 router.use(brokerRouter);
 router.use(newsRouter);
+router.use(regimeRouter);
 
 export default router;

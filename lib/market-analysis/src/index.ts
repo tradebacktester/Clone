@@ -14,6 +14,9 @@ export * from "./backtest/engine.js";
 export * from "./backtest/stats.js";
 export * from "./learning/scorer.js";
 export * from "./learning/weights.js";
+export * from "./market_regime/volatility_analyzer.js";
+export * from "./market_regime/trend_analyzer.js";
+export * from "./market_regime/adaptive_weights.js";
 
 import type { Pair, Timeframe, AnalysisResult } from "./types.js";
 import { fetchCandles } from "./data/fetcher.js";

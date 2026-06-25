@@ -4,14 +4,23 @@ import {
   type Pair,
   type Timeframe,
   setNewsBlockedPairs,
+  calcRegimePerformance,
+  adaptRegimeWeights,
+  bestPerformingRegime,
+  DEFAULT_REGIME_WEIGHTS,
+  type RegimeTradeRecord,
+  type RegimeWeightProfile,
 } from "@workspace/market-analysis";
 import {
   db,
   marketZonesTable,
   marketRegimeTable,
   tradeSignalsTable,
+  tradesTable,
+  regimePerformanceTable,
+  regimeWeightsTable,
 } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { eq, and, isNull } from "drizzle-orm";
 import { logger } from "./logger.js";
 import { getBlockedPairsSet } from "./news-fetcher.js";
 
@@ -22,10 +31,149 @@ const cache = new Map<string, { result: AnalysisResult; ts: number }>();
 
 let intervalHandle: ReturnType<typeof setInterval> | null = null;
 
+async function loadRegimeWeights(): Promise<Map<string, RegimeWeightProfile>> {
+  const rows = await db
+    .select()
+    .from(regimeWeightsTable)
+    .where(isNull(regimeWeightsTable.pair));
+
+  const map = new Map<string, RegimeWeightProfile>();
+  for (const row of rows) {
+    const regime = row.regime as RegimeWeightProfile["regime"];
+    map.set(regime, {
+      regime,
+      zone: parseFloat(row.zoneWeight),
+      liquidity: parseFloat(row.liquidityWeight),
+      amd: parseFloat(row.amdWeight),
+      confirmation: parseFloat(row.confirmationWeight),
+      sampleSize: row.sampleSize,
+      lastUpdated: row.updatedAt,
+    });
+  }
+  return map;
+}
+
+async function updateRegimeAnalytics(): Promise<void> {
+  try {
+    const trades = await db
+      .select()
+      .from(tradesTable)
+      .where(eq(tradesTable.status, "closed"));
+
+    if (trades.length === 0) return;
+
+    const records: RegimeTradeRecord[] = trades
+      .filter(t => t.regime != null)
+      .map(t => ({
+        regime: (t.regime ?? "ranging") as RegimeTradeRecord["regime"],
+        pnl: parseFloat(t.pnl ?? "0"),
+        setupScore: parseFloat(t.setupScore ?? "0"),
+        zoneType: (t.zoneType ?? "demand") as "demand" | "supply",
+        liquiditySweep: t.liquiditySweep ?? false,
+        amdPattern: t.amdPattern ?? "unknown",
+        fibLevel: parseFloat(t.fibLevel ?? "0"),
+        session: t.session ?? "unknown",
+      }));
+
+    if (records.length === 0) return;
+
+    const stats = calcRegimePerformance(records);
+    const best = bestPerformingRegime(stats);
+
+    for (const stat of stats) {
+      const grossProfit = records
+        .filter(r => r.regime === stat.regime && r.pnl > 0)
+        .reduce((s, r) => s + r.pnl, 0);
+      const grossLoss = Math.abs(
+        records
+          .filter(r => r.regime === stat.regime && r.pnl < 0)
+          .reduce((s, r) => s + r.pnl, 0),
+      );
+      const totalPnl = records
+        .filter(r => r.regime === stat.regime)
+        .reduce((s, r) => s + r.pnl, 0);
+
+      await db
+        .insert(regimePerformanceTable)
+        .values({
+          pair: null,
+          regime: stat.regime,
+          totalTrades: stat.totalTrades,
+          wins: stat.wins,
+          losses: stat.losses,
+          totalPnl: String(Math.round(totalPnl * 100) / 100),
+          grossProfit: String(Math.round(grossProfit * 100) / 100),
+          grossLoss: String(Math.round(grossLoss * 100) / 100),
+          winRate: String(stat.winRate),
+          profitFactor: String(stat.profitFactor),
+          maxDrawdown: String(stat.maxDrawdown),
+          avgSetupScore: String(stat.avgSetupScore),
+          zoneWinRate: String(stat.zoneWinRate),
+          liquidityWinRate: String(stat.liquidityWinRate),
+          amdWinRate: String(stat.amdWinRate),
+          confirmationWinRate: String(stat.confirmationWinRate),
+        })
+        .onConflictDoUpdate({
+          target: [regimePerformanceTable.regime, regimePerformanceTable.pair],
+          set: {
+            totalTrades: stat.totalTrades,
+            wins: stat.wins,
+            losses: stat.losses,
+            totalPnl: String(Math.round(totalPnl * 100) / 100),
+            grossProfit: String(Math.round(grossProfit * 100) / 100),
+            grossLoss: String(Math.round(grossLoss * 100) / 100),
+            winRate: String(stat.winRate),
+            profitFactor: String(stat.profitFactor),
+            maxDrawdown: String(stat.maxDrawdown),
+            avgSetupScore: String(stat.avgSetupScore),
+            zoneWinRate: String(stat.zoneWinRate),
+            liquidityWinRate: String(stat.liquidityWinRate),
+            amdWinRate: String(stat.amdWinRate),
+            confirmationWinRate: String(stat.confirmationWinRate),
+          },
+        });
+
+      const currentWeights =
+        (await loadRegimeWeights()).get(stat.regime) ??
+        DEFAULT_REGIME_WEIGHTS[stat.regime as keyof typeof DEFAULT_REGIME_WEIGHTS] ??
+        DEFAULT_REGIME_WEIGHTS.ranging;
+
+      const adapted = adaptRegimeWeights(records, currentWeights);
+
+      await db
+        .insert(regimeWeightsTable)
+        .values({
+          regime: stat.regime,
+          pair: null,
+          zoneWeight: String(adapted.zone),
+          liquidityWeight: String(adapted.liquidity),
+          amdWeight: String(adapted.amd),
+          confirmationWeight: String(adapted.confirmation),
+          sampleSize: adapted.sampleSize,
+        })
+        .onConflictDoUpdate({
+          target: [regimeWeightsTable.regime, regimeWeightsTable.pair],
+          set: {
+            zoneWeight: String(adapted.zone),
+            liquidityWeight: String(adapted.liquidity),
+            amdWeight: String(adapted.amd),
+            confirmationWeight: String(adapted.confirmation),
+            sampleSize: adapted.sampleSize,
+          },
+        });
+    }
+
+    if (best) {
+      logger.info({ bestRegime: best }, "Best performing regime updated");
+    }
+  } catch (err) {
+    logger.warn({ err }, "Regime analytics update failed");
+  }
+}
+
 export async function analyzeAll(): Promise<void> {
   logger.info("Starting market analysis for all pairs");
 
-  // Refresh news state before analysis so Gate 3 is up-to-date
   try {
     const blocked = await getBlockedPairsSet();
     setNewsBlockedPairs(blocked);
@@ -49,7 +197,7 @@ export async function analyzeAll(): Promise<void> {
         }
 
         logger.info(
-          { pair, tf, zones: result.zones.length, signals: result.signals.length },
+          { pair, tf, zones: result.zones.length, signals: result.signals.length, regime: result.regime.regime, confidence: result.regime.regimeConfidence },
           "Analysis complete",
         );
       } catch (err) {
@@ -57,6 +205,8 @@ export async function analyzeAll(): Promise<void> {
       }
     }
   }
+
+  await updateRegimeAnalytics();
 }
 
 async function persistAnalysis(result: AnalysisResult): Promise<void> {
@@ -88,6 +238,10 @@ async function persistAnalysis(result: AnalysisResult): Promise<void> {
       trend: regime.trend,
       volatility: regime.volatility,
       atr: String(regime.atr),
+      adxEquivalent: String(regime.adxEquivalent),
+      regimeConfidence: String(regime.regimeConfidence),
+      volatilityPercentile: String(regime.volatilityPercentile),
+      rangeCompression: String(regime.rangeCompression),
     })
     .onConflictDoUpdate({
       target: marketRegimeTable.pair,
@@ -96,6 +250,10 @@ async function persistAnalysis(result: AnalysisResult): Promise<void> {
         trend: regime.trend,
         volatility: regime.volatility,
         atr: String(regime.atr),
+        adxEquivalent: String(regime.adxEquivalent),
+        regimeConfidence: String(regime.regimeConfidence),
+        volatilityPercentile: String(regime.volatilityPercentile),
+        rangeCompression: String(regime.rangeCompression),
       },
     });
 

@@ -97,11 +97,14 @@ export interface AMDSequence {
 
 export interface MarketRegimeResult {
   pair: string;
-  regime: "trending" | "ranging" | "volatile" | "unknown";
+  regime: "trending" | "ranging" | "volatile" | "low_volatility" | "unknown";
   trend: "bullish" | "bearish" | "neutral";
   volatility: "low" | "medium" | "high";
   atr: number;
   adxEquivalent: number;
+  regimeConfidence: number;
+  volatilityPercentile: number;
+  rangeCompression: number;
 }
 
 export interface TradeSignal {
