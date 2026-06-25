@@ -34,6 +34,10 @@ import type {
   EquityPoint,
   GetEquityCurveParams,
   GetMarketZonesParams,
+  GetNewsCalendarResponse,
+  GetNewsEventsParams,
+  GetNewsEventsResponse,
+  GetNewsStatusResponse,
   HealthStatus,
   LearningStats,
   ListTradesParams,
@@ -2195,6 +2199,37 @@ export type GetNewsStatusQueryError = ErrorType<unknown>;
  */
 export const useGetNewsStatus = <TData = Awaited<ReturnType<typeof getNewsStatus>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
   const queryOptions = getGetNewsStatusQueryOptions(options);
+  const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
+  query.queryKey = queryOptions.queryKey;
+  return query;
+};
+
+
+
+
+export const getGetNewsCalendarUrl = () => `/news/calendar`;
+
+export const getNewsCalendar = async (options?: RequestInit): Promise<GetNewsCalendarResponse> => {
+  return customFetch<GetNewsCalendarResponse>(getGetNewsCalendarUrl(), { ...options });
+};
+
+export const getGetNewsCalendarQueryKey = () => [`/news/calendar`] as const;
+
+export const getGetNewsCalendarQueryOptions = <TData = Awaited<ReturnType<typeof getNewsCalendar>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsCalendar>>, TError, TData>, request?: SecondParameter<typeof customFetch> }) => {
+  const { query: queryOptions, request: requestOptions } = options ?? {};
+  const queryKey = queryOptions?.queryKey ?? getGetNewsCalendarQueryKey();
+  const queryFn: QueryFunction<Awaited<ReturnType<typeof getNewsCalendar>>> = () => getNewsCalendar(requestOptions);
+  return { queryKey, queryFn, ...queryOptions } as UseQueryOptions<Awaited<ReturnType<typeof getNewsCalendar>>, TError, TData>;
+};
+
+export type GetNewsCalendarQueryResult = NonNullable<Awaited<ReturnType<typeof getNewsCalendar>>>;
+export type GetNewsCalendarQueryError = ErrorType<unknown>;
+
+/**
+ * @summary Get full week economic calendar grouped by day
+ */
+export const useGetNewsCalendar = <TData = Awaited<ReturnType<typeof getNewsCalendar>>, TError = ErrorType<unknown>>(options?: { query?: UseQueryOptions<Awaited<ReturnType<typeof getNewsCalendar>>, TError, TData>, request?: SecondParameter<typeof customFetch> }): UseQueryResult<TData, TError> & { queryKey: QueryKey } => {
+  const queryOptions = getGetNewsCalendarQueryOptions(options);
   const query = useQuery(queryOptions) as UseQueryResult<TData, TError> & { queryKey: QueryKey };
   query.queryKey = queryOptions.queryKey;
   return query;

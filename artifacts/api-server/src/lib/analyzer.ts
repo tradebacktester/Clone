@@ -3,6 +3,7 @@ import {
   type AnalysisResult,
   type Pair,
   type Timeframe,
+  setNewsBlockedPairs,
 } from "@workspace/market-analysis";
 import {
   db,
@@ -12,6 +13,7 @@ import {
 } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { logger } from "./logger.js";
+import { getBlockedPairsSet } from "./news-fetcher.js";
 
 const PAIRS: Pair[] = ["EURUSD", "GBPUSD", "USDJPY"];
 const TIMEFRAMES: Timeframe[] = ["4h", "1d"];
@@ -22,6 +24,18 @@ let intervalHandle: ReturnType<typeof setInterval> | null = null;
 
 export async function analyzeAll(): Promise<void> {
   logger.info("Starting market analysis for all pairs");
+
+  // Refresh news state before analysis so Gate 3 is up-to-date
+  try {
+    const blocked = await getBlockedPairsSet();
+    setNewsBlockedPairs(blocked);
+    if (blocked.size > 0) {
+      logger.info({ blocked: [...blocked] }, "News filter blocking pairs");
+    }
+  } catch (err) {
+    logger.warn({ err }, "Failed to refresh news state — analysis proceeds unblocked");
+    setNewsBlockedPairs(new Set());
+  }
 
   for (const pair of PAIRS) {
     for (const tf of TIMEFRAMES) {

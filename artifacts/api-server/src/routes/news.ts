@@ -1,10 +1,15 @@
 import { Router, type IRouter } from "express";
 import { GetNewsEventsQueryParams } from "@workspace/api-zod";
-import { getUpcomingEvents, getPairStatuses, getCacheMeta } from "../lib/news-fetcher.js";
+import {
+  getUpcomingEvents,
+  getPairStatuses,
+  getCalendarWeek,
+  getCacheMeta,
+} from "../lib/news-fetcher.js";
 
 const router: IRouter = Router();
 
-const TRACKED_PAIRS = ["EURUSD", "GBPUSD", "USDJPY"];
+const TRACKED_PAIRS = ["EURUSD", "GBPUSD", "USDJPY", "AUDUSD", "USDCAD", "USDCHF", "NZDUSD", "GBPJPY", "EURJPY", "EURGBP"];
 
 router.get("/news/events", async (req, res): Promise<void> => {
   const parsed = GetNewsEventsQueryParams.safeParse(req.query);
@@ -36,6 +41,21 @@ router.get("/news/status", async (_req, res): Promise<void> => {
     });
   } catch (err) {
     res.status(500).json({ error: "Failed to get news status" });
+  }
+});
+
+router.get("/news/calendar", async (_req, res): Promise<void> => {
+  try {
+    const days = await getCalendarWeek();
+    const meta = getCacheMeta();
+    res.json({
+      days,
+      windowMinutes: 30,
+      fetchedAt: meta.fetchedAt ?? new Date().toISOString(),
+      source: meta.source,
+    });
+  } catch (err) {
+    res.status(500).json({ error: "Failed to get news calendar" });
   }
 });
 

@@ -2,6 +2,8 @@
 Real Economic Calendar & News Filter
 Fetches high-impact news from ForexFactory public JSON feed.
 Blocks trading 30 minutes before, during, and 30 minutes after events.
+
+Covers: NFP, CPI, FOMC, Interest Rate Decisions, GDP, Central Bank Speeches.
 """
 import urllib.request
 import json
@@ -22,7 +24,26 @@ HIGH_IMPACT_KEYWORDS = [
     "pce", "core pce",
     "retail sales",
     "ism manufacturing", "ism services",
+    "press conference", "powell", "lagarde", "bailey", "ueda",
+    "cash rate", "bank rate", "overnight rate", "deposit facility rate",
 ]
+
+EVENT_CATEGORY_KEYWORDS: dict[str, list[str]] = {
+    "NFP": ["non-farm", "nfp", "nonfarm"],
+    "CPI": ["cpi", "consumer price index", "core cpi", "core inflation"],
+    "FOMC": ["fomc", "federal open market", "federal funds rate"],
+    "INTEREST_RATE": [
+        "interest rate decision", "rate decision",
+        "cash rate", "deposit facility rate", "bank rate", "overnight rate",
+        "monetary policy decision", "base rate",
+    ],
+    "GDP": ["gdp", "gross domestic product"],
+    "CENTRAL_BANK_SPEECH": [
+        "press conference", "powell", "lagarde", "bailey", "ueda",
+        "monetary policy statement", "fed chair", "ecb president",
+        "governor speaks", "central bank governor", "governor speech",
+    ],
+}
 
 PAIR_CURRENCIES: dict[str, list[str]] = {
     "EURUSD": ["EUR", "USD"],
@@ -47,6 +68,15 @@ BLOCK_WINDOW_MINUTES = 30
 CACHE_TTL_SECONDS = 3600
 
 
+def categorize_event(title: str) -> str:
+    """Classify an event title into one of the standard high-impact categories."""
+    title_lower = title.lower()
+    for category, keywords in EVENT_CATEGORY_KEYWORDS.items():
+        if any(kw in title_lower for kw in keywords):
+            return category
+    return "OTHER"
+
+
 class NewsEvent:
     def __init__(
         self,
@@ -65,6 +95,7 @@ class NewsEvent:
         self.forecast = forecast
         self.previous = previous
         self.actual = actual
+        self.category = categorize_event(title)
 
     def is_high_impact(self) -> bool:
         impact_lower = self.impact.lower()
@@ -84,6 +115,20 @@ class NewsEvent:
         window_end = self.event_time + timedelta(minutes=BLOCK_WINDOW_MINUTES)
         return window_start <= now <= window_end
 
+    def blocking_phase(self, now: datetime) -> str:
+        """Return the current blocking phase relative to this event."""
+        if now.tzinfo is None:
+            now = now.replace(tzinfo=timezone.utc)
+        window_start = self.event_time - timedelta(minutes=BLOCK_WINDOW_MINUTES)
+        window_end = self.event_time + timedelta(minutes=BLOCK_WINDOW_MINUTES)
+        if not (window_start <= now <= window_end):
+            return "clear"
+        if now < self.event_time:
+            return "pre_event"
+        if now <= self.event_time + timedelta(seconds=30):
+            return "active"
+        return "post_event"
+
     def minutes_until(self, now: datetime) -> float:
         if now.tzinfo is None:
             now = now.replace(tzinfo=timezone.utc)
@@ -97,11 +142,13 @@ class NewsEvent:
             "currency": self.currency,
             "eventTime": self.event_time.isoformat(),
             "impact": self.impact.lower(),
+            "category": self.category,
             "forecast": self.forecast,
             "previous": self.previous,
             "actual": self.actual,
             "minutesUntil": round(self.minutes_until(now), 1),
             "isBlocking": self.blocks_at(now),
+            "blockingPhase": self.blocking_phase(now),
         }
 
 
@@ -160,7 +207,7 @@ def _fetch_forexfactory(week: str = "thisweek") -> list[NewsEvent]:
 
 
 def _fallback_events() -> list[NewsEvent]:
-    """Hardcoded fallback: first Friday of next month NFP + 3rd Wed FOMC approximations."""
+    """Hardcoded fallback: first Friday of next month NFP + FOMC approximation."""
     now = datetime.now(timezone.utc)
     events: list[NewsEvent] = []
 
@@ -178,6 +225,23 @@ def _fallback_events() -> list[NewsEvent]:
         event_time=first_friday.replace(hour=13, minute=30, second=0, microsecond=0),
         impact="High",
     ))
+
+    third_wed = now.replace(day=1)
+    while third_wed.weekday() != 2:
+        third_wed += timedelta(days=1)
+    third_wed += timedelta(weeks=2)
+    if third_wed.date() <= now.date():
+        third_wed = (now.replace(day=28) + timedelta(days=4)).replace(day=1)
+        while third_wed.weekday() != 2:
+            third_wed += timedelta(days=1)
+        third_wed += timedelta(weeks=2)
+    events.append(NewsEvent(
+        title="FOMC Statement (Fallback)",
+        currency="USD",
+        event_time=third_wed.replace(hour=18, minute=0, second=0, microsecond=0),
+        impact="High",
+    ))
+
     return events
 
 
@@ -262,9 +326,30 @@ class NewsCalendar:
                 "pair": pair,
                 "blocked": bool(blocking),
                 "reason": blocking[0].title if blocking else "",
+                "category": blocking[0].category if blocking else None,
                 "nextEventIn": next_event_in,
             })
         return result
+
+    def calendar_week(self) -> list[dict]:
+        """Return all high-impact events for this week and next, grouped by day."""
+        self._ensure_fresh()
+        now = datetime.now(timezone.utc)
+        with self._lock:
+            events = [e for e in self._events if e.is_high_impact()]
+
+        by_day: dict[str, list[dict]] = {}
+        for e in events:
+            day_key = e.event_time.strftime("%Y-%m-%d")
+            if day_key not in by_day:
+                by_day[day_key] = []
+            entry = e.to_dict()
+            by_day[day_key].append(entry)
+
+        return [
+            {"date": day, "events": evts}
+            for day, evts in sorted(by_day.items())
+        ]
 
     @property
     def source(self) -> str:

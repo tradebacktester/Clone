@@ -534,17 +534,40 @@ export const NewsEventImpact = {
   low: 'low',
 } as const;
 
+export type NewsEventCategory = typeof NewsEventCategory[keyof typeof NewsEventCategory];
+
+export const NewsEventCategory = {
+  NFP: 'NFP',
+  CPI: 'CPI',
+  FOMC: 'FOMC',
+  INTEREST_RATE: 'INTEREST_RATE',
+  GDP: 'GDP',
+  CENTRAL_BANK_SPEECH: 'CENTRAL_BANK_SPEECH',
+  OTHER: 'OTHER',
+} as const;
+
+export type NewsEventBlockingPhase = typeof NewsEventBlockingPhase[keyof typeof NewsEventBlockingPhase];
+
+export const NewsEventBlockingPhase = {
+  clear: 'clear',
+  pre_event: 'pre_event',
+  active: 'active',
+  post_event: 'post_event',
+} as const;
+
 export interface NewsEvent {
   id: string;
   title: string;
   currency: string;
   eventTime: string;
   impact: NewsEventImpact;
+  category: NewsEventCategory;
   forecast: string;
   previous: string;
   actual: string;
   minutesUntil: number;
   isBlocking: boolean;
+  blockingPhase: NewsEventBlockingPhase;
 }
 
 export interface GetNewsEventsResponse {
@@ -557,6 +580,7 @@ export interface NewsStatusItem {
   pair: string;
   blocked: boolean;
   reason: string;
+  category?: string | null;
   nextEventIn: number | null;
 }
 
@@ -564,6 +588,18 @@ export interface GetNewsStatusResponse {
   items: NewsStatusItem[];
   windowMinutes: number;
   fetchedAt: string;
+}
+
+export interface NewsCalendarDay {
+  date: string;
+  events: NewsEvent[];
+}
+
+export interface GetNewsCalendarResponse {
+  days: NewsCalendarDay[];
+  windowMinutes: number;
+  fetchedAt: string;
+  source: string;
 }
 
 export type GetNewsEventsParams = {

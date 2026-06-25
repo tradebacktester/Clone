@@ -49,8 +49,19 @@ export function isAllowedSession(session: string): boolean {
 }
 
 // Gate 3: High-impact news block.
-// Placeholder — always returns false (no news) so all trades pass.
-// Replace with a real economic calendar API integration to activate.
-export function isHighImpactNews(_pair?: string): boolean {
-  return false;
+// Pairs are injected by the API server via setNewsBlockedPairs() before each
+// analysis run. The signal generator reads this state without making HTTP calls.
+let _blockedPairs: Set<string> = new Set();
+
+export function setNewsBlockedPairs(pairs: Set<string>): void {
+  _blockedPairs = new Set([...pairs].map(p => p.toUpperCase()));
+}
+
+export function getNewsBlockedPairs(): Set<string> {
+  return new Set(_blockedPairs);
+}
+
+export function isHighImpactNews(pair?: string): boolean {
+  if (!pair) return false;
+  return _blockedPairs.has(pair.toUpperCase());
 }

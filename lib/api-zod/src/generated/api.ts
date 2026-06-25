@@ -709,17 +709,21 @@ export const GetNewsEventsQueryParams = zod.object({
   "hours": zod.coerce.number().optional()
 })
 
+export const NewsEventCategory = zod.enum(["NFP", "CPI", "FOMC", "INTEREST_RATE", "GDP", "CENTRAL_BANK_SPEECH", "OTHER"])
+
 export const NewsEventItem = zod.object({
   "id": zod.string(),
   "title": zod.string(),
   "currency": zod.string(),
   "eventTime": zod.string(),
   "impact": zod.enum(["high", "medium", "low"]),
+  "category": NewsEventCategory,
   "forecast": zod.string(),
   "previous": zod.string(),
   "actual": zod.string(),
   "minutesUntil": zod.number(),
-  "isBlocking": zod.boolean()
+  "isBlocking": zod.boolean(),
+  "blockingPhase": zod.enum(["clear", "pre_event", "active", "post_event"])
 })
 
 export const GetNewsEventsResponse = zod.object({
@@ -736,6 +740,7 @@ export const NewsStatusItem = zod.object({
   "pair": zod.string(),
   "blocked": zod.boolean(),
   "reason": zod.string(),
+  "category": zod.string().nullable().optional(),
   "nextEventIn": zod.number().nullable()
 })
 
@@ -743,6 +748,22 @@ export const GetNewsStatusResponse = zod.object({
   "items": zod.array(NewsStatusItem),
   "windowMinutes": zod.number(),
   "fetchedAt": zod.string()
+})
+
+
+/**
+ * @summary Get full week economic calendar grouped by day
+ */
+export const NewsCalendarDay = zod.object({
+  "date": zod.string(),
+  "events": zod.array(NewsEventItem)
+})
+
+export const GetNewsCalendarResponse = zod.object({
+  "days": zod.array(NewsCalendarDay),
+  "windowMinutes": zod.number(),
+  "fetchedAt": zod.string(),
+  "source": zod.string()
 })
 
 

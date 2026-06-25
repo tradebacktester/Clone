@@ -425,6 +425,52 @@ paths:
         "204":
           description: Deleted
 
+  # ── News Calendar ──────────────────────────────────────────────────────────
+  /news/events:
+    get:
+      operationId: getNewsEvents
+      summary: Get upcoming high-impact news events
+      parameters:
+        - name: pair
+          in: query
+          schema:
+            type: string
+        - name: hours
+          in: query
+          schema:
+            type: number
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetNewsEventsResponse"
+
+  /news/status:
+    get:
+      operationId: getNewsStatus
+      summary: Get news blocking status for all tracked pairs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetNewsStatusResponse"
+
+  /news/calendar:
+    get:
+      operationId: getNewsCalendar
+      summary: Get full week economic calendar grouped by day
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GetNewsCalendarResponse"
+
   # ── Risk Settings ──────────────────────────────────────────────────────────
   /risk/settings:
     get:
@@ -1066,6 +1112,115 @@ components:
           type: ["string", "null"]
         paperTrading:
           type: boolean
+
+    # ── News ─────────────────────────────────────────────────────────────────
+    NewsEventCategory:
+      type: string
+      enum: [NFP, CPI, FOMC, INTEREST_RATE, GDP, CENTRAL_BANK_SPEECH, OTHER]
+
+    NewsEventImpact:
+      type: string
+      enum: [high, medium, low]
+
+    NewsEventBlockingPhase:
+      type: string
+      enum: [clear, pre_event, active, post_event]
+
+    NewsEvent:
+      type: object
+      required: [id, title, currency, eventTime, impact, category, forecast, previous, actual, minutesUntil, isBlocking, blockingPhase]
+      properties:
+        id:
+          type: string
+        title:
+          type: string
+        currency:
+          type: string
+        eventTime:
+          type: string
+        impact:
+          $ref: "#/components/schemas/NewsEventImpact"
+        category:
+          $ref: "#/components/schemas/NewsEventCategory"
+        forecast:
+          type: string
+        previous:
+          type: string
+        actual:
+          type: string
+        minutesUntil:
+          type: number
+        isBlocking:
+          type: boolean
+        blockingPhase:
+          $ref: "#/components/schemas/NewsEventBlockingPhase"
+
+    GetNewsEventsResponse:
+      type: object
+      required: [events, fetchedAt, source]
+      properties:
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsEvent"
+        fetchedAt:
+          type: string
+        source:
+          type: string
+
+    NewsStatusItem:
+      type: object
+      required: [pair, blocked, reason, nextEventIn]
+      properties:
+        pair:
+          type: string
+        blocked:
+          type: boolean
+        reason:
+          type: string
+        category:
+          type: ["string", "null"]
+        nextEventIn:
+          type: ["number", "null"]
+
+    GetNewsStatusResponse:
+      type: object
+      required: [items, windowMinutes, fetchedAt]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsStatusItem"
+        windowMinutes:
+          type: number
+        fetchedAt:
+          type: string
+
+    NewsCalendarDay:
+      type: object
+      required: [date, events]
+      properties:
+        date:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsEvent"
+
+    GetNewsCalendarResponse:
+      type: object
+      required: [days, windowMinutes, fetchedAt, source]
+      properties:
+        days:
+          type: array
+          items:
+            $ref: "#/components/schemas/NewsCalendarDay"
+        windowMinutes:
+          type: number
+        fetchedAt:
+          type: string
+        source:
+          type: string
 
     # ── Risk ──────────────────────────────────────────────────────────────────
     RiskSettings:
