@@ -73,6 +73,13 @@ function calcStopAndTarget(
   return { entryPrice, stopLoss, takeProfit };
 }
 
+export interface GenerateSignalsOptions {
+  backtestCandleTime?: Date;
+  minScore?: number;
+  skipSessionFilter?: boolean;
+  skipNewsFilter?: boolean;
+}
+
 export function generateSignals(
   pair: Pair,
   candles: Candle[],
@@ -84,19 +91,24 @@ export function generateSignals(
   learnedWeights: WeightProfile = DEFAULT_WEIGHT_PROFILE,
   sweeps: SweepEvent[] = [],
   backtestCandleTime?: Date,
+  options?: GenerateSignalsOptions,
 ): TradeSignal[] {
   if (candles.length < 10) return [];
 
   const atr = calcATR(candles);
   if (atr === 0) return [];
 
+  const candleTime = backtestCandleTime ?? options?.backtestCandleTime;
   const currentPrice = candles[candles.length - 1]!.close;
-  const session = backtestCandleTime
-    ? getSessionForTime(pair, backtestCandleTime)
+  const session = candleTime
+    ? getSessionForTime(pair, candleTime)
     : getBestSessionForPair(pair);
+  const skipSession = options?.skipSessionFilter ?? (candleTime !== undefined);
+  const skipNews = options?.skipNewsFilter ?? (candleTime !== undefined);
+  const minScore = options?.minScore ?? 80;
   const signals: TradeSignal[] = [];
 
-  const activeZones = zones.filter(z => z.active && z.strength >= 70);
+  const activeZones = zones.filter(z => z.active && z.strength >= 55);
 
   for (const zone of activeZones) {
     const inZone = isPriceInZone(currentPrice, zone, atr);
@@ -158,11 +170,11 @@ export function generateSignals(
       else if (amd.phase === "manipulation") factors.push(`AMD manipulation (score ${amd.amdScore})`);
     }
 
-    // Gate 2: London or New York session only.
-    if (!isAllowedSession(session)) continue;
+    // Gate 2: London or New York session only (skipped in backtest mode — candle time used instead).
+    if (!skipSession && !isAllowedSession(session)) continue;
 
-    // Gate 3: No high-impact news.
-    if (isHighImpactNews(pair)) continue;
+    // Gate 3: No high-impact news (skipped in backtest mode — historical news not tracked).
+    if (!skipNews && isHighImpactNews(pair)) continue;
 
     factors.push("London/NY session");
 
@@ -201,13 +213,14 @@ export function generateSignals(
         : 0
       : 0;
 
-    // Gate 1: Final weighted score must be ≥ 80.
+    // Gate 1: Final weighted score must be ≥ minScore (80 live, lower in backtest).
     //   Zone 30% + Liquidity 25% + AMD 25% + Confirmation 20% = 100 max.
     const scored = calcFinalTradeScore(
       zone.strength,
       liquidityScore,
       amd.amdScore,
       confirmation.score,
+      minScore,
     );
     if (!scored.allowed) continue;
 

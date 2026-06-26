@@ -25,6 +25,7 @@ export function calcFinalTradeScore(
   liquidityScore: number,
   amdScore: number,
   confirmationScore: number,
+  minScore = 80,
 ): FinalScoreResult {
   const zoneContrib         = zoneScore        * 0.30;
   const liquidityContrib    = liquidityScore   * 0.25;
@@ -39,7 +40,7 @@ export function calcFinalTradeScore(
     liquidityContrib:    Math.round(liquidityContrib * 10) / 10,
     amdContrib:          Math.round(amdContrib * 10) / 10,
     confirmationContrib: Math.round(confirmationContrib * 10) / 10,
-    allowed: finalScore >= 80,
+    allowed: finalScore >= minScore,
   };
 }
 
