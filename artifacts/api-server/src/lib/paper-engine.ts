@@ -9,6 +9,12 @@ import {
   recordMissedOpportunity,
   updateMissedOpportunityAftermath,
 } from "./memory-engine.js";
+import {
+  logTradeOpened,
+  logTradeClosed,
+  logDailyHalt,
+  logWeeklyHalt,
+} from "./broker-engine.js";
 
 let monitorInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -143,17 +149,15 @@ export async function executePaperSignals(
 
   if (todayPnl <= -(paperBalance * maxDailyLossPct) / 100) {
     logger.warn({ pair, todayPnl, maxDailyLossPct }, "Daily loss limit reached — skipping signal");
-    await db
-      .update(botStateTable)
-      .set({ haltedDueToRisk: true });
+    await db.update(botStateTable).set({ haltedDueToRisk: true });
+    logDailyHalt(pair, todayPnl, "paper").catch(() => {});
     return;
   }
 
   if (weeklyPnl <= -(paperBalance * maxWeeklyLossPct) / 100) {
     logger.warn({ pair, weeklyPnl, maxWeeklyLossPct }, "Weekly loss limit reached — skipping signal");
-    await db
-      .update(botStateTable)
-      .set({ haltedDueToRisk: true });
+    await db.update(botStateTable).set({ haltedDueToRisk: true });
+    logWeeklyHalt(pair, weeklyPnl, "paper").catch(() => {});
     return;
   }
 
@@ -218,9 +222,16 @@ export async function executePaperSignals(
     regime: null,
   }).returning({ id: tradesTable.id });
 
-  // Record full component scores in trade memory
   if (inserted?.id) {
     recordTradeMemory(inserted.id, signal, null, null, session).catch(() => {});
+    logTradeOpened({
+      tradeId: inserted.id,
+      pair,
+      direction: signal.direction,
+      price: actualEntry,
+      slippagePips: entrySlippagePips,
+      mode: "paper",
+    }).catch(() => {});
   }
 
   logger.info(
@@ -315,6 +326,17 @@ export async function monitorOpenTrades(): Promise<void> {
         trade.openedAt ?? new Date(),
         parseFloat(trade.slippagePips ?? "0"),
       ).catch(() => {});
+
+      logTradeClosed({
+        tradeId: trade.id,
+        pair: trade.pair,
+        direction: trade.direction,
+        price: closePrice,
+        slippagePips: exitSlippagePips,
+        pnl: Math.round(closedPnl * 100) / 100,
+        reason: closeReason,
+        mode: "paper",
+      }).catch(() => {});
 
       logger.info(
         {

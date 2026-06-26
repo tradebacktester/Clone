@@ -63,6 +63,30 @@ paths:
               schema:
                 $ref: "#/components/schemas/BotStatus"
 
+  /bot/emergency-stop:
+    post:
+      operationId: emergencyStop
+      summary: Emergency stop — immediately halt bot and close all open positions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EmergencyStopResponse"
+
+  /bot/resume:
+    post:
+      operationId: resumeBot
+      summary: Clear emergency stop or risk halt and resume
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BotStatus"
+
   /bot/config:
     get:
       operationId: getBotConfig
@@ -633,6 +657,51 @@ paths:
         "204":
           description: Deleted
 
+  /broker/live-mode:
+    put:
+      operationId: setLiveMode
+      summary: Enable or disable live trading mode
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LiveModeInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveModeResponse"
+
+  /broker/execution-log:
+    get:
+      operationId: getExecutionLog
+      summary: Get broker execution event log with slippage tracking
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: eventType
+          in: query
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecutionLogResponse"
+
   # ── News Calendar ──────────────────────────────────────────────────────────
   /news/events:
     get:
@@ -960,8 +1029,79 @@ components:
           type: number
         haltedDueToRisk:
           type: boolean
+        emergencyStop:
+          type: boolean
+        liveEnabled:
+          type: boolean
         lastUpdated:
           type: string
+
+    EmergencyStopResponse:
+      type: object
+      required: [stopped, tradesClosed, timestamp]
+      properties:
+        stopped:
+          type: boolean
+        tradesClosed:
+          type: integer
+        timestamp:
+          type: string
+
+    LiveModeInput:
+      type: object
+      required: [enabled]
+      properties:
+        enabled:
+          type: boolean
+
+    LiveModeResponse:
+      type: object
+      required: [liveEnabled, updatedAt]
+      properties:
+        liveEnabled:
+          type: boolean
+        updatedAt:
+          type: string
+
+    ExecutionLogEntry:
+      type: object
+      required: [id, eventType, reason, mode, createdAt]
+      properties:
+        id:
+          type: integer
+        eventType:
+          type: string
+          enum: [trade_opened, trade_closed, emergency_stop, daily_halt, weekly_halt, manual_close, live_enabled, live_disabled, resume, bot_started, bot_stopped]
+        tradeId:
+          type: ["integer", "null"]
+        pair:
+          type: ["string", "null"]
+        direction:
+          type: ["string", "null"]
+        price:
+          type: ["number", "null"]
+        slippagePips:
+          type: ["number", "null"]
+        pnl:
+          type: ["number", "null"]
+        reason:
+          type: string
+        mode:
+          type: string
+          enum: [paper, live]
+        createdAt:
+          type: string
+
+    ExecutionLogResponse:
+      type: object
+      required: [entries, total]
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/ExecutionLogEntry"
+        total:
+          type: integer
 
     BotStartInput:
       type: object

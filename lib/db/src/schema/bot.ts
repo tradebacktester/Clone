@@ -22,6 +22,8 @@ export const botStateTable = pgTable("bot_state", {
   mode: text("mode").notNull().default("paper"),
   activePairs: text("active_pairs").array().notNull().default([]),
   haltedDueToRisk: boolean("halted_due_to_risk").notNull().default(false),
+  emergencyStop: boolean("emergency_stop").notNull().default(false),
+  liveEnabled: boolean("live_enabled").notNull().default(false),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 

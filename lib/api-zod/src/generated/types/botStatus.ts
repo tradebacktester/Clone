@@ -16,5 +16,7 @@ export interface BotStatus {
   dailyLoss: number;
   weeklyLoss: number;
   haltedDueToRisk?: boolean;
+  emergencyStop?: boolean;
+  liveEnabled?: boolean;
   lastUpdated: string;
 }

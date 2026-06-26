@@ -121,7 +121,74 @@ export interface BotStatus {
   dailyLoss: number;
   weeklyLoss: number;
   haltedDueToRisk?: boolean;
+  emergencyStop?: boolean;
+  liveEnabled?: boolean;
   lastUpdated: string;
+}
+
+export interface EmergencyStopResponse {
+  stopped: boolean;
+  tradesClosed: number;
+  timestamp: string;
+}
+
+export interface LiveModeInput {
+  enabled: boolean;
+}
+
+export interface LiveModeResponse {
+  liveEnabled: boolean;
+  updatedAt: string;
+}
+
+export type ExecutionLogEntryEventType = typeof ExecutionLogEntryEventType[keyof typeof ExecutionLogEntryEventType];
+
+
+export const ExecutionLogEntryEventType = {
+  trade_opened: 'trade_opened',
+  trade_closed: 'trade_closed',
+  emergency_stop: 'emergency_stop',
+  daily_halt: 'daily_halt',
+  weekly_halt: 'weekly_halt',
+  manual_close: 'manual_close',
+  live_enabled: 'live_enabled',
+  live_disabled: 'live_disabled',
+  resume: 'resume',
+  bot_started: 'bot_started',
+  bot_stopped: 'bot_stopped',
+} as const;
+
+export type ExecutionLogEntryMode = typeof ExecutionLogEntryMode[keyof typeof ExecutionLogEntryMode];
+
+
+export const ExecutionLogEntryMode = {
+  paper: 'paper',
+  live: 'live',
+} as const;
+
+export interface ExecutionLogEntry {
+  id: number;
+  eventType: ExecutionLogEntryEventType;
+  /** @nullable */
+  tradeId?: number | null;
+  /** @nullable */
+  pair?: string | null;
+  /** @nullable */
+  direction?: string | null;
+  /** @nullable */
+  price?: number | null;
+  /** @nullable */
+  slippagePips?: number | null;
+  /** @nullable */
+  pnl?: number | null;
+  reason: string;
+  mode: ExecutionLogEntryMode;
+  createdAt: string;
+}
+
+export interface ExecutionLogResponse {
+  entries: ExecutionLogEntry[];
+  total: number;
 }
 
 export type BotStartInputMode = typeof BotStartInputMode[keyof typeof BotStartInputMode];
@@ -1186,6 +1253,12 @@ export const GetMarketZonesTimeframe = {
   '4h': '4h',
   '1d': '1d',
 } as const;
+
+export type GetExecutionLogParams = {
+limit?: number;
+offset?: number;
+eventType?: string;
+};
 
 export type GetNewsEventsParams = {
 pair?: string;

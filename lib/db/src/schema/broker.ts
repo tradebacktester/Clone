@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, boolean, integer, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, boolean, integer, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -27,6 +27,21 @@ export const riskSettingsTable = pgTable("risk_settings", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 
+export const executionLogTable = pgTable("execution_log", {
+  id: serial("id").primaryKey(),
+  eventType: text("event_type").notNull(),
+  tradeId: integer("trade_id"),
+  pair: text("pair"),
+  direction: text("direction"),
+  price: numeric("price", { precision: 18, scale: 6 }),
+  slippagePips: numeric("slippage_pips", { precision: 6, scale: 2 }),
+  pnl: numeric("pnl", { precision: 18, scale: 4 }),
+  reason: text("reason").notNull().default(""),
+  mode: text("mode").notNull().default("paper"),
+  meta: jsonb("meta"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
 export const insertBrokerAccountSchema = createInsertSchema(brokerAccountsTable).omit({ id: true, createdAt: true });
 export type InsertBrokerAccount = z.infer<typeof insertBrokerAccountSchema>;
 export type BrokerAccount = typeof brokerAccountsTable.$inferSelect;
@@ -34,3 +49,7 @@ export type BrokerAccount = typeof brokerAccountsTable.$inferSelect;
 export const insertRiskSettingsSchema = createInsertSchema(riskSettingsTable).omit({ id: true, updatedAt: true });
 export type InsertRiskSettings = z.infer<typeof insertRiskSettingsSchema>;
 export type RiskSettings = typeof riskSettingsTable.$inferSelect;
+
+export const insertExecutionLogSchema = createInsertSchema(executionLogTable).omit({ id: true, createdAt: true });
+export type InsertExecutionLog = z.infer<typeof insertExecutionLogSchema>;
+export type ExecutionLogEntry = typeof executionLogTable.$inferSelect;

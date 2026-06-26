@@ -9,21 +9,51 @@ import {
   GetBotConfigResponse,
   UpdateBotConfigBody,
   UpdateBotConfigResponse,
+  EmergencyStopResponse,
+  ResumeBotResponse,
 } from "@workspace/api-zod";
 import { startAnalysisScheduler, stopAnalysisScheduler } from "../lib/analyzer.js";
 import { startPaperMonitor, stopPaperMonitor } from "../lib/paper-engine.js";
+import {
+  triggerEmergencyStop,
+  resumeFromHalt,
+  logBotStart,
+  logBotStop,
+} from "../lib/broker-engine.js";
 
 const router: IRouter = Router();
 
 async function ensureDefaults() {
   const [state] = await db.select().from(botStateTable).limit(1);
   if (!state) {
-    await db.insert(botStateTable).values({ running: false, mode: "paper", activePairs: [] });
+    await db.insert(botStateTable).values({
+      running: false,
+      mode: "paper",
+      activePairs: [],
+      liveEnabled: false,
+      emergencyStop: false,
+    });
   }
   const [config] = await db.select().from(botConfigTable).limit(1);
   if (!config) {
     await db.insert(botConfigTable).values({});
   }
+}
+
+function buildBotStatus(state: typeof botStateTable.$inferSelect, openTradesCount: number, dailyPnl: number, weeklyPnl: number) {
+  return {
+    running: state.running,
+    mode: state.mode as "live" | "paper" | "backtest",
+    activePairs: state.activePairs ?? [],
+    openTrades: openTradesCount,
+    dailyPnl,
+    dailyLoss: Math.min(dailyPnl, 0),
+    weeklyLoss: Math.min(weeklyPnl, 0),
+    haltedDueToRisk: state.haltedDueToRisk ?? false,
+    emergencyStop: state.emergencyStop ?? false,
+    liveEnabled: state.liveEnabled ?? false,
+    lastUpdated: state.updatedAt?.toISOString() ?? new Date().toISOString(),
+  };
 }
 
 router.get("/bot/status", async (req, res): Promise<void> => {
@@ -34,42 +64,26 @@ router.get("/bot/status", async (req, res): Promise<void> => {
     .from(tradesTable)
     .where(eq(tradesTable.status, "open"));
 
-  const closedToday = await db
+  const closedTrades = await db
     .select()
     .from(tradesTable)
     .where(eq(tradesTable.status, "closed"));
 
   const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todayTrades = closedToday.filter(
-    t => t.closedAt && new Date(t.closedAt) >= todayStart,
-  );
-
-  const dailyPnl = todayTrades.reduce((sum, t) => sum + parseFloat(t.pnl ?? "0"), 0);
-  const dailyLoss = Math.min(dailyPnl, 0);
-
+  todayStart.setUTCHours(0, 0, 0, 0);
   const weekStart = new Date();
-  weekStart.setDate(weekStart.getDate() - weekStart.getDay());
-  weekStart.setHours(0, 0, 0, 0);
-  const weekTrades = closedToday.filter(
-    t => t.closedAt && new Date(t.closedAt) >= weekStart,
-  );
-  const weeklyPnl = weekTrades.reduce((sum, t) => sum + parseFloat(t.pnl ?? "0"), 0);
-  const weeklyLoss = Math.min(weeklyPnl, 0);
+  weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay());
+  weekStart.setUTCHours(0, 0, 0, 0);
 
-  const payload = {
-    running: state!.running,
-    mode: state!.mode as "live" | "paper" | "backtest",
-    activePairs: state!.activePairs ?? [],
-    openTrades: openTrades.length,
-    dailyPnl,
-    dailyLoss,
-    weeklyLoss,
-    haltedDueToRisk: state!.haltedDueToRisk ?? false,
-    lastUpdated: state!.updatedAt?.toISOString() ?? new Date().toISOString(),
-  };
+  const dailyPnl = closedTrades
+    .filter(t => t.closedAt && new Date(t.closedAt) >= todayStart)
+    .reduce((sum, t) => sum + parseFloat(t.pnl ?? "0"), 0);
 
-  res.json(GetBotStatusResponse.parse(payload));
+  const weeklyPnl = closedTrades
+    .filter(t => t.closedAt && new Date(t.closedAt) >= weekStart)
+    .reduce((sum, t) => sum + parseFloat(t.pnl ?? "0"), 0);
+
+  res.json(GetBotStatusResponse.parse(buildBotStatus(state!, openTrades.length, dailyPnl, weeklyPnl)));
 });
 
 router.post("/bot/start", async (req, res): Promise<void> => {
@@ -79,47 +93,75 @@ router.post("/bot/start", async (req, res): Promise<void> => {
     return;
   }
   await ensureDefaults();
+
+  const [state] = await db.select().from(botStateTable).limit(1);
+
+  if (parsed.data.mode === "live" && !state?.liveEnabled) {
+    res.status(403).json({ error: "Live trading is not enabled. Enable it in Settings → Broker Controls before starting in live mode." });
+    return;
+  }
+
   await db
     .update(botStateTable)
-    .set({ running: true, mode: parsed.data.mode, activePairs: parsed.data.pairs, haltedDueToRisk: false });
+    .set({
+      running: true,
+      mode: parsed.data.mode,
+      activePairs: parsed.data.pairs,
+      haltedDueToRisk: false,
+      emergencyStop: false,
+    });
+
+  logBotStart(parsed.data.mode as "paper" | "live", parsed.data.pairs).catch(() => {});
 
   startAnalysisScheduler(10);
   if (parsed.data.mode === "paper") {
     startPaperMonitor(30);
   }
 
-  const [state] = await db.select().from(botStateTable).limit(1);
-  const payload = {
-    running: true,
-    mode: state!.mode as "live" | "paper" | "backtest",
-    activePairs: state!.activePairs ?? [],
-    openTrades: 0,
-    dailyPnl: 0,
-    dailyLoss: 0,
-    weeklyLoss: 0,
-    haltedDueToRisk: false,
-    lastUpdated: new Date().toISOString(),
-  };
-  res.json(StartBotResponse.parse(payload));
+  const [updatedState] = await db.select().from(botStateTable).limit(1);
+  res.json(StartBotResponse.parse(buildBotStatus(updatedState!, 0, 0, 0)));
 });
 
 router.post("/bot/stop", async (_req, res): Promise<void> => {
   await ensureDefaults();
+
+  const [state] = await db.select().from(botStateTable).limit(1);
+  const mode = (state?.mode ?? "paper") as "paper" | "live";
+
   await db.update(botStateTable).set({ running: false, activePairs: [] });
+  logBotStop(mode).catch(() => {});
   stopAnalysisScheduler();
   stopPaperMonitor();
-  const payload = {
-    running: false,
-    mode: "paper" as const,
-    activePairs: [],
-    openTrades: 0,
-    dailyPnl: 0,
-    dailyLoss: 0,
-    weeklyLoss: 0,
-    haltedDueToRisk: false,
-    lastUpdated: new Date().toISOString(),
-  };
-  res.json(StopBotResponse.parse(payload));
+
+  const [updatedState] = await db.select().from(botStateTable).limit(1);
+  res.json(StopBotResponse.parse(buildBotStatus(updatedState!, 0, 0, 0)));
+});
+
+router.post("/bot/emergency-stop", async (_req, res): Promise<void> => {
+  await ensureDefaults();
+  stopAnalysisScheduler();
+  stopPaperMonitor();
+
+  const { tradesClosed } = await triggerEmergencyStop();
+
+  res.json(EmergencyStopResponse.parse({
+    stopped: true,
+    tradesClosed,
+    timestamp: new Date().toISOString(),
+  }));
+});
+
+router.post("/bot/resume", async (_req, res): Promise<void> => {
+  await ensureDefaults();
+  await resumeFromHalt();
+
+  const [state] = await db.select().from(botStateTable).limit(1);
+  const openTrades = await db
+    .select()
+    .from(tradesTable)
+    .where(eq(tradesTable.status, "open"));
+
+  res.json(ResumeBotResponse.parse(buildBotStatus(state!, openTrades.length, 0, 0)));
 });
 
 router.get("/bot/config", async (_req, res): Promise<void> => {

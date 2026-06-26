@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
 import { eq, and, desc } from "drizzle-orm";
-import { db, tradesTable } from "@workspace/db";
+import { db, tradesTable, botStateTable } from "@workspace/db";
 import {
   ListTradesQueryParams,
   ListTradesResponse,
@@ -9,8 +9,15 @@ import {
   CloseTradeParams,
   CloseTradeResponse,
 } from "@workspace/api-zod";
+import { getCurrentPrice } from "../lib/price-feed.js";
+import { logManualClose } from "../lib/broker-engine.js";
+import type { Pair } from "@workspace/market-analysis";
 
 const router: IRouter = Router();
+
+function getPipSize(pair: string): number {
+  return pair.includes("JPY") ? 0.01 : 0.0001;
+}
 
 function mapTrade(t: typeof tradesTable.$inferSelect) {
   return {
@@ -107,22 +114,54 @@ router.post("/trades/:id/close", async (req, res): Promise<void> => {
     return;
   }
 
-  const closedPrice = trade.currentPrice ?? trade.entryPrice;
-  const pnlRaw = trade.direction === "buy"
-    ? (parseFloat(closedPrice) - parseFloat(trade.entryPrice)) * parseFloat(trade.lotSize) * 10000
-    : (parseFloat(trade.entryPrice) - parseFloat(closedPrice)) * parseFloat(trade.lotSize) * 10000;
+  const pair = trade.pair as Pair;
+  const priceEntry = getCurrentPrice(pair);
+  const rawClose = priceEntry?.mid
+    ? priceEntry.mid
+    : (trade.currentPrice ? parseFloat(trade.currentPrice) : parseFloat(trade.entryPrice));
+
+  const pipSize = getPipSize(trade.pair);
+  const slippagePips = 0.3 + Math.random() * 0.7;
+  const slippagePrice = slippagePips * pipSize;
+  const closedPrice = trade.direction === "buy"
+    ? rawClose - slippagePrice
+    : rawClose + slippagePrice;
+
+  const entryPrice = parseFloat(trade.entryPrice);
+  const lotSize = parseFloat(trade.lotSize);
+  const priceDiff = trade.direction === "buy"
+    ? closedPrice - entryPrice
+    : entryPrice - closedPrice;
+  const pips = priceDiff / pipSize;
+  const pnlRaw = Math.round(pips * lotSize * 10 * 100) / 100;
+  const pnlPercent = (pnlRaw / 10000) * 100;
 
   const [updated] = await db
     .update(tradesTable)
     .set({
       status: "closed",
-      closedPrice: closedPrice,
-      pnl: String(pnlRaw.toFixed(4)),
+      closedPrice: String(Math.round(closedPrice * 1_000_000) / 1_000_000),
+      currentPrice: String(Math.round(closedPrice * 1_000_000) / 1_000_000),
+      pnl: String(pnlRaw),
+      pnlPercent: String(Math.round(pnlPercent * 1000) / 1000),
       closedAt: new Date(),
       closeReason: "manual",
+      exitSlippagePips: String(Math.round(slippagePips * 10) / 10),
     })
     .where(eq(tradesTable.id, params.data.id))
     .returning();
+
+  const [botState] = await db.select().from(botStateTable).limit(1);
+  const mode = (botState?.mode ?? "paper") as "paper" | "live";
+
+  logManualClose({
+    tradeId: params.data.id,
+    pair: trade.pair,
+    direction: trade.direction,
+    price: Math.round(closedPrice * 1_000_000) / 1_000_000,
+    pnl: pnlRaw,
+    mode,
+  }).catch(() => {});
 
   res.json(CloseTradeResponse.parse(mapTrade(updated!)));
 });

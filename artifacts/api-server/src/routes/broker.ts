@@ -1,6 +1,6 @@
 import { Router, type IRouter } from "express";
-import { eq } from "drizzle-orm";
-import { db, brokerAccountsTable, riskSettingsTable } from "@workspace/db";
+import { eq, desc } from "drizzle-orm";
+import { db, brokerAccountsTable, riskSettingsTable, botStateTable } from "@workspace/db";
 import {
   ListBrokerAccountsResponseItem,
   AddBrokerAccountBody,
@@ -8,7 +8,12 @@ import {
   GetRiskSettingsResponse,
   UpdateRiskSettingsBody,
   UpdateRiskSettingsResponse,
+  SetLiveModeBody,
+  SetLiveModeResponse,
+  GetExecutionLogQueryParams,
+  GetExecutionLogResponse,
 } from "@workspace/api-zod";
+import { setLiveMode, getExecutionLog } from "../lib/broker-engine.js";
 
 const router: IRouter = Router();
 
@@ -68,6 +73,53 @@ router.delete("/broker/accounts/:id", async (req, res): Promise<void> => {
 
   await db.delete(brokerAccountsTable).where(eq(brokerAccountsTable.id, params.data.id));
   res.sendStatus(204);
+});
+
+router.put("/broker/live-mode", async (req, res): Promise<void> => {
+  const parsed = SetLiveModeBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  await setLiveMode(parsed.data.enabled);
+
+  const [state] = await db.select().from(botStateTable).limit(1);
+  res.json(SetLiveModeResponse.parse({
+    liveEnabled: state?.liveEnabled ?? false,
+    updatedAt: state?.updatedAt?.toISOString() ?? new Date().toISOString(),
+  }));
+});
+
+router.get("/broker/execution-log", async (req, res): Promise<void> => {
+  const parsed = GetExecutionLogQueryParams.safeParse(req.query);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const { limit, offset, eventType } = parsed.data;
+  const { entries, total } = await getExecutionLog({
+    limit: limit ?? 50,
+    offset: offset ?? 0,
+    eventType: eventType ?? undefined,
+  });
+
+  const mapped = entries.map(e => ({
+    id: e.id,
+    eventType: e.eventType,
+    tradeId: e.tradeId ?? null,
+    pair: e.pair ?? null,
+    direction: e.direction ?? null,
+    price: e.price != null ? parseFloat(e.price) : null,
+    slippagePips: e.slippagePips != null ? parseFloat(e.slippagePips) : null,
+    pnl: e.pnl != null ? parseFloat(e.pnl) : null,
+    reason: e.reason,
+    mode: e.mode as "paper" | "live",
+    createdAt: e.createdAt.toISOString(),
+  }));
+
+  res.json(GetExecutionLogResponse.parse({ entries: mapped, total }));
 });
 
 router.get("/risk/settings", async (_req, res): Promise<void> => {

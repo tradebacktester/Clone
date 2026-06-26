@@ -28,6 +28,8 @@ export const GetBotStatusResponse = zod.object({
   "dailyLoss": zod.number(),
   "weeklyLoss": zod.number(),
   "haltedDueToRisk": zod.boolean().optional(),
+  "emergencyStop": zod.boolean().optional(),
+  "liveEnabled": zod.boolean().optional(),
   "lastUpdated": zod.string()
 })
 
@@ -50,6 +52,8 @@ export const StartBotResponse = zod.object({
   "dailyLoss": zod.number(),
   "weeklyLoss": zod.number(),
   "haltedDueToRisk": zod.boolean().optional(),
+  "emergencyStop": zod.boolean().optional(),
+  "liveEnabled": zod.boolean().optional(),
   "lastUpdated": zod.string()
 })
 
@@ -66,6 +70,36 @@ export const StopBotResponse = zod.object({
   "dailyLoss": zod.number(),
   "weeklyLoss": zod.number(),
   "haltedDueToRisk": zod.boolean().optional(),
+  "emergencyStop": zod.boolean().optional(),
+  "liveEnabled": zod.boolean().optional(),
+  "lastUpdated": zod.string()
+})
+
+
+/**
+ * @summary Emergency stop — immediately halt bot and close all open positions
+ */
+export const EmergencyStopResponse = zod.object({
+  "stopped": zod.boolean(),
+  "tradesClosed": zod.number(),
+  "timestamp": zod.string()
+})
+
+
+/**
+ * @summary Clear emergency stop or risk halt and resume
+ */
+export const ResumeBotResponse = zod.object({
+  "running": zod.boolean(),
+  "mode": zod.enum(['live', 'paper', 'backtest']),
+  "activePairs": zod.array(zod.string()),
+  "openTrades": zod.number(),
+  "dailyPnl": zod.number(),
+  "dailyLoss": zod.number(),
+  "weeklyLoss": zod.number(),
+  "haltedDueToRisk": zod.boolean().optional(),
+  "emergencyStop": zod.boolean().optional(),
+  "liveEnabled": zod.boolean().optional(),
   "lastUpdated": zod.string()
 })
 
@@ -1425,6 +1459,49 @@ export const AddBrokerAccountBody = zod.object({
  */
 export const DeleteBrokerAccountParams = zod.object({
   "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Enable or disable live trading mode
+ */
+export const SetLiveModeBody = zod.object({
+  "enabled": zod.boolean()
+})
+
+export const SetLiveModeResponse = zod.object({
+  "liveEnabled": zod.boolean(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Get broker execution event log with slippage tracking
+ */
+export const getExecutionLogQueryLimitDefault = 50;
+export const getExecutionLogQueryOffsetDefault = 0;
+
+export const GetExecutionLogQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getExecutionLogQueryLimitDefault),
+  "offset": zod.coerce.number().default(getExecutionLogQueryOffsetDefault),
+  "eventType": zod.coerce.string().optional()
+})
+
+export const GetExecutionLogResponse = zod.object({
+  "entries": zod.array(zod.object({
+  "id": zod.number(),
+  "eventType": zod.enum(['trade_opened', 'trade_closed', 'emergency_stop', 'daily_halt', 'weekly_halt', 'manual_close', 'live_enabled', 'live_disabled', 'resume', 'bot_started', 'bot_stopped']),
+  "tradeId": zod.number().nullish(),
+  "pair": zod.string().nullish(),
+  "direction": zod.string().nullish(),
+  "price": zod.number().nullish(),
+  "slippagePips": zod.number().nullish(),
+  "pnl": zod.number().nullish(),
+  "reason": zod.string(),
+  "mode": zod.enum(['paper', 'live']),
+  "createdAt": zod.string()
+})),
+  "total": zod.number()
 })
 
 

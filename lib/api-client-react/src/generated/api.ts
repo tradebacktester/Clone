@@ -34,8 +34,11 @@ import type {
   BrokerAccountInput,
   ConfidenceProfile,
   DrawdownPoint,
+  EmergencyStopResponse,
   EquityPoint,
+  ExecutionLogResponse,
   GetEquityCurveParams,
+  GetExecutionLogParams,
   GetMarketZonesParams,
   GetMemoryTradesParams,
   GetMissedOpportunitiesParams,
@@ -46,6 +49,8 @@ import type {
   HealthStatus,
   LearningStats,
   ListTradesParams,
+  LiveModeInput,
+  LiveModeResponse,
   MarketRegime,
   MarketZone,
   MemorySummary,
@@ -377,6 +382,146 @@ export const useStopBot = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getStopBotMutationOptions(options));
+    }
+
+export const getEmergencyStopUrl = () => {
+
+
+
+
+  return `/api/bot/emergency-stop`
+}
+
+/**
+ * @summary Emergency stop — immediately halt bot and close all open positions
+ */
+export const emergencyStop = async ( options?: RequestInit): Promise<EmergencyStopResponse> => {
+
+  return customFetch<EmergencyStopResponse>(getEmergencyStopUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getEmergencyStopMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emergencyStop>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof emergencyStop>>, TError,void, TContext> => {
+
+const mutationKey = ['emergencyStop'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof emergencyStop>>, void> = () => {
+
+
+          return  emergencyStop(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EmergencyStopMutationResult = NonNullable<Awaited<ReturnType<typeof emergencyStop>>>
+
+    export type EmergencyStopMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Emergency stop — immediately halt bot and close all open positions
+ */
+export const useEmergencyStop = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof emergencyStop>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof emergencyStop>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getEmergencyStopMutationOptions(options));
+    }
+
+export const getResumeBotUrl = () => {
+
+
+
+
+  return `/api/bot/resume`
+}
+
+/**
+ * @summary Clear emergency stop or risk halt and resume
+ */
+export const resumeBot = async ( options?: RequestInit): Promise<BotStatus> => {
+
+  return customFetch<BotStatus>(getResumeBotUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getResumeBotMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resumeBot>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof resumeBot>>, TError,void, TContext> => {
+
+const mutationKey = ['resumeBot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof resumeBot>>, void> = () => {
+
+
+          return  resumeBot(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ResumeBotMutationResult = NonNullable<Awaited<ReturnType<typeof resumeBot>>>
+
+    export type ResumeBotMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Clear emergency stop or risk halt and resume
+ */
+export const useResumeBot = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof resumeBot>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof resumeBot>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getResumeBotMutationOptions(options));
     }
 
 export const getGetBotConfigUrl = () => {
@@ -3128,6 +3273,161 @@ export const useDeleteBrokerAccount = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getDeleteBrokerAccountMutationOptions(options));
     }
+
+export const getSetLiveModeUrl = () => {
+
+
+
+
+  return `/api/broker/live-mode`
+}
+
+/**
+ * @summary Enable or disable live trading mode
+ */
+export const setLiveMode = async (liveModeInput: LiveModeInput, options?: RequestInit): Promise<LiveModeResponse> => {
+
+  return customFetch<LiveModeResponse>(getSetLiveModeUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      liveModeInput,)
+  }
+);}
+
+
+
+
+export const getSetLiveModeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setLiveMode>>, TError,{data: BodyType<LiveModeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setLiveMode>>, TError,{data: BodyType<LiveModeInput>}, TContext> => {
+
+const mutationKey = ['setLiveMode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setLiveMode>>, {data: BodyType<LiveModeInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setLiveMode(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetLiveModeMutationResult = NonNullable<Awaited<ReturnType<typeof setLiveMode>>>
+    export type SetLiveModeMutationBody = BodyType<LiveModeInput>
+    export type SetLiveModeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Enable or disable live trading mode
+ */
+export const useSetLiveMode = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setLiveMode>>, TError,{data: BodyType<LiveModeInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setLiveMode>>,
+        TError,
+        {data: BodyType<LiveModeInput>},
+        TContext
+      > => {
+      return useMutation(getSetLiveModeMutationOptions(options));
+    }
+
+export const getGetExecutionLogUrl = (params?: GetExecutionLogParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/broker/execution-log?${stringifiedParams}` : `/api/broker/execution-log`
+}
+
+/**
+ * @summary Get broker execution event log with slippage tracking
+ */
+export const getExecutionLog = async (params?: GetExecutionLogParams, options?: RequestInit): Promise<ExecutionLogResponse> => {
+
+  return customFetch<ExecutionLogResponse>(getGetExecutionLogUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecutionLogQueryKey = (params?: GetExecutionLogParams,) => {
+    return [
+    `/api/broker/execution-log`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetExecutionLogQueryOptions = <TData = Awaited<ReturnType<typeof getExecutionLog>>, TError = ErrorType<unknown>>(params?: GetExecutionLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutionLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecutionLogQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecutionLog>>> = ({ signal }) => getExecutionLog(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecutionLog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecutionLogQueryResult = NonNullable<Awaited<ReturnType<typeof getExecutionLog>>>
+export type GetExecutionLogQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get broker execution event log with slippage tracking
+ */
+
+export function useGetExecutionLog<TData = Awaited<ReturnType<typeof getExecutionLog>>, TError = ErrorType<unknown>>(
+ params?: GetExecutionLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecutionLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecutionLogQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetNewsEventsUrl = (params?: GetNewsEventsParams,) => {
   const normalizedParams = new URLSearchParams();
