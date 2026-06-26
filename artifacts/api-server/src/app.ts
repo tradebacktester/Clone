@@ -6,6 +6,7 @@ import { logger } from "./lib/logger.js";
 import { startAnalysisScheduler } from "./lib/analyzer.js";
 import { startPriceFeed } from "./lib/price-feed.js";
 import { startPaperMonitor } from "./lib/paper-engine.js";
+import { startSupervisor } from "./lib/supervisor-engine.js";
 import { db, botStateTable } from "@workspace/db";
 
 const app: Express = express();
@@ -37,6 +38,7 @@ app.use("/api", router);
 
 startPriceFeed(30);
 startAnalysisScheduler(10);
+startSupervisor(60);
 
 db.select()
   .from(botStateTable)

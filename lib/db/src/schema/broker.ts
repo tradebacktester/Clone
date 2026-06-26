@@ -42,6 +42,23 @@ export const executionLogTable = pgTable("execution_log", {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+export const supervisorAlertsTable = pgTable("supervisor_alerts", {
+  id: serial("id").primaryKey(),
+  alertType: text("alert_type").notNull(),
+  severity: text("severity").notNull().default("warning"),
+  message: text("message").notNull(),
+  pair: text("pair"),
+  metric: text("metric"),
+  value: numeric("value", { precision: 18, scale: 4 }),
+  threshold: numeric("threshold", { precision: 18, scale: 4 }),
+  acknowledged: boolean("acknowledged").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+});
+
+export const insertSupervisorAlertSchema = createInsertSchema(supervisorAlertsTable).omit({ id: true, createdAt: true });
+export type InsertSupervisorAlert = z.infer<typeof insertSupervisorAlertSchema>;
+export type SupervisorAlertRow = typeof supervisorAlertsTable.$inferSelect;
+
 export const insertBrokerAccountSchema = createInsertSchema(brokerAccountsTable).omit({ id: true, createdAt: true });
 export type InsertBrokerAccount = z.infer<typeof insertBrokerAccountSchema>;
 export type BrokerAccount = typeof brokerAccountsTable.$inferSelect;

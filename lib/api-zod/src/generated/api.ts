@@ -1506,6 +1506,89 @@ export const GetExecutionLogResponse = zod.object({
 
 
 /**
+ * @summary Get current supervisor health snapshot and all check results
+ */
+export const GetSupervisorStatusResponse = zod.object({
+  "overallHealth": zod.enum(['healthy', 'degraded', 'critical']),
+  "checks": zod.array(zod.object({
+  "name": zod.string(),
+  "status": zod.enum(['ok', 'warning', 'critical']),
+  "message": zod.string(),
+  "value": zod.number().nullish(),
+  "threshold": zod.number().nullish()
+})),
+  "activeAlertCount": zod.number(),
+  "botPaused": zod.boolean(),
+  "lastCheckedAt": zod.string().nullable()
+})
+
+
+/**
+ * @summary Get supervisor alerts list
+ */
+export const getSupervisorAlertsQueryLimitDefault = 50;
+
+export const GetSupervisorAlertsQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getSupervisorAlertsQueryLimitDefault),
+  "unacknowledgedOnly": zod.coerce.boolean().optional(),
+  "severity": zod.coerce.string().optional()
+})
+
+export const GetSupervisorAlertsResponseItem = zod.object({
+  "id": zod.number(),
+  "alertType": zod.string(),
+  "severity": zod.enum(['info', 'warning', 'critical']),
+  "message": zod.string(),
+  "pair": zod.string().nullish(),
+  "metric": zod.string().nullish(),
+  "value": zod.number().nullish(),
+  "threshold": zod.number().nullish(),
+  "acknowledged": zod.boolean(),
+  "createdAt": zod.string()
+})
+export const GetSupervisorAlertsResponse = zod.array(GetSupervisorAlertsResponseItem)
+
+
+/**
+ * @summary Acknowledge a supervisor alert
+ */
+export const AcknowledgeAlertParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AcknowledgeAlertResponse = zod.object({
+  "id": zod.number(),
+  "alertType": zod.string(),
+  "severity": zod.enum(['info', 'warning', 'critical']),
+  "message": zod.string(),
+  "pair": zod.string().nullish(),
+  "metric": zod.string().nullish(),
+  "value": zod.number().nullish(),
+  "threshold": zod.number().nullish(),
+  "acknowledged": zod.boolean(),
+  "createdAt": zod.string()
+})
+
+
+/**
+ * @summary Force run all supervisor health checks immediately
+ */
+export const RunSupervisorChecksResponse = zod.object({
+  "overallHealth": zod.enum(['healthy', 'degraded', 'critical']),
+  "checks": zod.array(zod.object({
+  "name": zod.string(),
+  "status": zod.enum(['ok', 'warning', 'critical']),
+  "message": zod.string(),
+  "value": zod.number().nullish(),
+  "threshold": zod.number().nullish()
+})),
+  "activeAlertCount": zod.number(),
+  "botPaused": zod.boolean(),
+  "lastCheckedAt": zod.string().nullable()
+})
+
+
+/**
  * @summary Get upcoming high-impact news events
  */
 export const GetNewsEventsQueryParams = zod.object({

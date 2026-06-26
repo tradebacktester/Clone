@@ -13,6 +13,7 @@ import montecarloRouter from "./montecarlo";
 import paperRouter from "./paper";
 import qualityRouter from "./quality";
 import memoryRouter from "./memory";
+import supervisorRouter from "./supervisor";
 
 const router: IRouter = Router();
 
@@ -30,5 +31,6 @@ router.use(montecarloRouter);
 router.use(paperRouter);
 router.use(qualityRouter);
 router.use(memoryRouter);
+router.use(supervisorRouter);
 
 export default router;

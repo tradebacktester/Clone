@@ -12,6 +12,7 @@ import {
   Dices,
   ShieldCheck,
   Brain,
+  Radar,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -24,6 +25,7 @@ export function NavSidebar() {
     { href: "/market", label: "Market", icon: Globe2 },
     { href: "/regime", label: "Regimes", icon: TrendingUp },
     { href: "/monte-carlo", label: "Monte Carlo", icon: Dices },
+    { href: "/supervisor", label: "Supervisor", icon: Radar },
     { href: "/quality", label: "Quality", icon: ShieldCheck },
     { href: "/memory", label: "Memory", icon: Brain },
     { href: "/learning", label: "Learning", icon: BrainCircuit },

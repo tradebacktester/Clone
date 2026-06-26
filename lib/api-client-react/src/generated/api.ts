@@ -46,6 +46,7 @@ import type {
   GetNewsEventsParams,
   GetNewsEventsResponse,
   GetNewsStatusResponse,
+  GetSupervisorAlertsParams,
   HealthStatus,
   LearningStats,
   ListTradesParams,
@@ -66,6 +67,8 @@ import type {
   RiskSettingsInput,
   RuleAdherenceResponse,
   SetupScore,
+  SupervisorAlert,
+  SupervisorStatus,
   TopSetups,
   Trade,
   TradeComparisonResponse,
@@ -3428,6 +3431,307 @@ export function useGetExecutionLog<TData = Awaited<ReturnType<typeof getExecutio
 
 
 
+
+export const getGetSupervisorStatusUrl = () => {
+
+
+
+
+  return `/api/supervisor/status`
+}
+
+/**
+ * @summary Get current supervisor health snapshot and all check results
+ */
+export const getSupervisorStatus = async ( options?: RequestInit): Promise<SupervisorStatus> => {
+
+  return customFetch<SupervisorStatus>(getGetSupervisorStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupervisorStatusQueryKey = () => {
+    return [
+    `/api/supervisor/status`
+    ] as const;
+    }
+
+
+export const getGetSupervisorStatusQueryOptions = <TData = Awaited<ReturnType<typeof getSupervisorStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSupervisorStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupervisorStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupervisorStatus>>> = ({ signal }) => getSupervisorStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupervisorStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSupervisorStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getSupervisorStatus>>>
+export type GetSupervisorStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get current supervisor health snapshot and all check results
+ */
+
+export function useGetSupervisorStatus<TData = Awaited<ReturnType<typeof getSupervisorStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSupervisorStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSupervisorStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetSupervisorAlertsUrl = (params?: GetSupervisorAlertsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/supervisor/alerts?${stringifiedParams}` : `/api/supervisor/alerts`
+}
+
+/**
+ * @summary Get supervisor alerts list
+ */
+export const getSupervisorAlerts = async (params?: GetSupervisorAlertsParams, options?: RequestInit): Promise<SupervisorAlert[]> => {
+
+  return customFetch<SupervisorAlert[]>(getGetSupervisorAlertsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSupervisorAlertsQueryKey = (params?: GetSupervisorAlertsParams,) => {
+    return [
+    `/api/supervisor/alerts`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetSupervisorAlertsQueryOptions = <TData = Awaited<ReturnType<typeof getSupervisorAlerts>>, TError = ErrorType<unknown>>(params?: GetSupervisorAlertsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSupervisorAlerts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSupervisorAlertsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSupervisorAlerts>>> = ({ signal }) => getSupervisorAlerts(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSupervisorAlerts>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSupervisorAlertsQueryResult = NonNullable<Awaited<ReturnType<typeof getSupervisorAlerts>>>
+export type GetSupervisorAlertsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get supervisor alerts list
+ */
+
+export function useGetSupervisorAlerts<TData = Awaited<ReturnType<typeof getSupervisorAlerts>>, TError = ErrorType<unknown>>(
+ params?: GetSupervisorAlertsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSupervisorAlerts>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSupervisorAlertsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getAcknowledgeAlertUrl = (id: number,) => {
+
+
+
+
+  return `/api/supervisor/alerts/${id}/acknowledge`
+}
+
+/**
+ * @summary Acknowledge a supervisor alert
+ */
+export const acknowledgeAlert = async (id: number, options?: RequestInit): Promise<SupervisorAlert> => {
+
+  return customFetch<SupervisorAlert>(getAcknowledgeAlertUrl(id),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getAcknowledgeAlertMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acknowledgeAlert>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof acknowledgeAlert>>, TError,{id: number}, TContext> => {
+
+const mutationKey = ['acknowledgeAlert'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof acknowledgeAlert>>, {id: number}> = (props) => {
+          const {id} = props ?? {};
+
+          return  acknowledgeAlert(id,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AcknowledgeAlertMutationResult = NonNullable<Awaited<ReturnType<typeof acknowledgeAlert>>>
+
+    export type AcknowledgeAlertMutationError = ErrorType<void>
+
+    /**
+ * @summary Acknowledge a supervisor alert
+ */
+export const useAcknowledgeAlert = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof acknowledgeAlert>>, TError,{id: number}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof acknowledgeAlert>>,
+        TError,
+        {id: number},
+        TContext
+      > => {
+      return useMutation(getAcknowledgeAlertMutationOptions(options));
+    }
+
+export const getRunSupervisorChecksUrl = () => {
+
+
+
+
+  return `/api/supervisor/checks/run`
+}
+
+/**
+ * @summary Force run all supervisor health checks immediately
+ */
+export const runSupervisorChecks = async ( options?: RequestInit): Promise<SupervisorStatus> => {
+
+  return customFetch<SupervisorStatus>(getRunSupervisorChecksUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getRunSupervisorChecksMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runSupervisorChecks>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runSupervisorChecks>>, TError,void, TContext> => {
+
+const mutationKey = ['runSupervisorChecks'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runSupervisorChecks>>, void> = () => {
+
+
+          return  runSupervisorChecks(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunSupervisorChecksMutationResult = NonNullable<Awaited<ReturnType<typeof runSupervisorChecks>>>
+
+    export type RunSupervisorChecksMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Force run all supervisor health checks immediately
+ */
+export const useRunSupervisorChecks = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runSupervisorChecks>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runSupervisorChecks>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getRunSupervisorChecksMutationOptions(options));
+    }
 
 export const getGetNewsEventsUrl = (params?: GetNewsEventsParams,) => {
   const normalizedParams = new URLSearchParams();

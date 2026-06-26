@@ -14,6 +14,7 @@ import Backtest from "@/pages/backtest";
 import Settings from "@/pages/settings";
 import Quality from "@/pages/quality";
 import Memory from "@/pages/memory";
+import Supervisor from "@/pages/supervisor";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -38,6 +39,7 @@ function Router() {
         <Route path="/backtest" component={Backtest} />
         <Route path="/quality" component={Quality} />
         <Route path="/memory" component={Memory} />
+        <Route path="/supervisor" component={Supervisor} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

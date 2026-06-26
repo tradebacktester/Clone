@@ -1178,6 +1178,62 @@ export interface GetNewsCalendarResponse {
   source: string;
 }
 
+export type SupervisorAlertSeverity = typeof SupervisorAlertSeverity[keyof typeof SupervisorAlertSeverity];
+
+
+export const SupervisorAlertSeverity = {
+  info: 'info',
+  warning: 'warning',
+  critical: 'critical',
+} as const;
+
+export interface SupervisorAlert {
+  id: number;
+  alertType: string;
+  severity: SupervisorAlertSeverity;
+  message: string;
+  pair?: string | null;
+  metric?: string | null;
+  value?: number | null;
+  threshold?: number | null;
+  acknowledged: boolean;
+  createdAt: string;
+}
+
+export type CheckResultStatus = typeof CheckResultStatus[keyof typeof CheckResultStatus];
+
+
+export const CheckResultStatus = {
+  ok: 'ok',
+  warning: 'warning',
+  critical: 'critical',
+} as const;
+
+export interface CheckResult {
+  name: string;
+  status: CheckResultStatus;
+  message: string;
+  value?: number | null;
+  threshold?: number | null;
+}
+
+export type SupervisorStatusOverallHealth = typeof SupervisorStatusOverallHealth[keyof typeof SupervisorStatusOverallHealth];
+
+
+export const SupervisorStatusOverallHealth = {
+  healthy: 'healthy',
+  degraded: 'degraded',
+  critical: 'critical',
+} as const;
+
+export interface SupervisorStatus {
+  overallHealth: SupervisorStatusOverallHealth;
+  checks: CheckResult[];
+  activeAlertCount: number;
+  botPaused: boolean;
+  lastCheckedAt: string | null;
+}
+
 export interface RiskSettings {
   id: number;
   riskPerTrade: number;
@@ -1258,6 +1314,12 @@ export type GetExecutionLogParams = {
 limit?: number;
 offset?: number;
 eventType?: string;
+};
+
+export type GetSupervisorAlertsParams = {
+limit?: number;
+unacknowledgedOnly?: boolean;
+severity?: string;
 };
 
 export type GetNewsEventsParams = {
