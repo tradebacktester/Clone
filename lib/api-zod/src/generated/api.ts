@@ -1160,6 +1160,94 @@ export const RunBatchBacktestResponse = zod.object({
 
 
 /**
+ * @summary Walk-forward analysis across all three pairs with parameter optimization
+ */
+export const RunWalkForwardBody = zod.object({
+  "initialBalance": zod.number(),
+  "trainWindowYears": zod.number().optional(),
+  "testWindowYears": zod.number().optional(),
+  "overallStartDate": zod.string().optional(),
+  "overallEndDate": zod.string().optional()
+})
+
+export const RunWalkForwardResponse = zod.object({
+  "pairs": zod.array(zod.object({
+  "pair": zod.string(),
+  "windows": zod.array(zod.object({
+  "windowId": zod.number(),
+  "trainStart": zod.string(),
+  "trainEnd": zod.string(),
+  "testStart": zod.string(),
+  "testEnd": zod.string(),
+  "bestParams": zod.object({
+  "riskPerTrade": zod.number(),
+  "trainScore": zod.number()
+}),
+  "trainStats": zod.object({
+  "trades": zod.number(),
+  "winRate": zod.number(),
+  "profitFactor": zod.number(),
+  "sharpeRatio": zod.number(),
+  "maxDrawdown": zod.number(),
+  "totalPnl": zod.number(),
+  "expectancy": zod.number(),
+  "finalBalance": zod.number()
+}),
+  "testStats": zod.object({
+  "trades": zod.number(),
+  "winRate": zod.number(),
+  "profitFactor": zod.number(),
+  "sharpeRatio": zod.number(),
+  "maxDrawdown": zod.number(),
+  "totalPnl": zod.number(),
+  "expectancy": zod.number(),
+  "finalBalance": zod.number()
+}),
+  "efficiencyRatio": zod.number(),
+  "overfit": zod.boolean(),
+  "regimeSensitivity": zod.array(zod.object({
+  "regime": zod.string(),
+  "trainWinRate": zod.number(),
+  "testWinRate": zod.number(),
+  "trainProfitFactor": zod.number(),
+  "testProfitFactor": zod.number(),
+  "sensitivity": zod.number()
+}))
+})),
+  "overallEfficiencyRatio": zod.number(),
+  "overfitScore": zod.number(),
+  "parameterStability": zod.array(zod.object({
+  "parameter": zod.string(),
+  "values": zod.array(zod.number()),
+  "mean": zod.number(),
+  "stdDev": zod.number(),
+  "variationCoeff": zod.number(),
+  "stable": zod.boolean()
+})),
+  "combinedTestStats": zod.object({
+  "trades": zod.number(),
+  "winRate": zod.number(),
+  "profitFactor": zod.number(),
+  "sharpeRatio": zod.number(),
+  "maxDrawdown": zod.number(),
+  "totalPnl": zod.number(),
+  "expectancy": zod.number(),
+  "finalBalance": zod.number()
+}),
+  "recommendation": zod.enum(['Pass', 'Marginal', 'Overfit'])
+})),
+  "summary": zod.object({
+  "avgEfficiencyRatio": zod.number(),
+  "avgOverfitScore": zod.number(),
+  "stableParams": zod.boolean(),
+  "regimeSensitive": zod.boolean(),
+  "recommendation": zod.enum(['Pass', 'Marginal', 'Overfit'])
+}),
+  "ranAt": zod.string()
+})
+
+
+/**
  * @summary List past backtest runs
  */
 export const ListBacktestsResponseItem = zod.object({

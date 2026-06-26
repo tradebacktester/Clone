@@ -781,6 +781,104 @@ export interface RegimeStats {
   avgRR: number;
 }
 
+export interface WalkForwardInput {
+  initialBalance: number;
+  trainWindowYears?: number;
+  testWindowYears?: number;
+  overallStartDate?: string;
+  overallEndDate?: string;
+}
+
+export interface WFWindowStats {
+  trades: number;
+  winRate: number;
+  profitFactor: number;
+  sharpeRatio: number;
+  maxDrawdown: number;
+  totalPnl: number;
+  expectancy: number;
+  finalBalance: number;
+}
+
+export interface WFOptimalParams {
+  riskPerTrade: number;
+  trainScore: number;
+}
+
+export interface WFRegimeSensitivity {
+  regime: string;
+  trainWinRate: number;
+  testWinRate: number;
+  trainProfitFactor: number;
+  testProfitFactor: number;
+  sensitivity: number;
+}
+
+export interface WFWindow {
+  windowId: number;
+  trainStart: string;
+  trainEnd: string;
+  testStart: string;
+  testEnd: string;
+  bestParams: WFOptimalParams;
+  trainStats: WFWindowStats;
+  testStats: WFWindowStats;
+  efficiencyRatio: number;
+  overfit: boolean;
+  regimeSensitivity: WFRegimeSensitivity[];
+}
+
+export interface WFParameterStability {
+  parameter: string;
+  values: number[];
+  mean: number;
+  stdDev: number;
+  variationCoeff: number;
+  stable: boolean;
+}
+
+export type WFPairResultRecommendation = typeof WFPairResultRecommendation[keyof typeof WFPairResultRecommendation];
+
+
+export const WFPairResultRecommendation = {
+  Pass: 'Pass',
+  Marginal: 'Marginal',
+  Overfit: 'Overfit',
+} as const;
+
+export interface WFPairResult {
+  pair: string;
+  windows: WFWindow[];
+  overallEfficiencyRatio: number;
+  overfitScore: number;
+  parameterStability: WFParameterStability[];
+  combinedTestStats: WFWindowStats;
+  recommendation: WFPairResultRecommendation;
+}
+
+export type WalkForwardResultSummaryRecommendation = typeof WalkForwardResultSummaryRecommendation[keyof typeof WalkForwardResultSummaryRecommendation];
+
+
+export const WalkForwardResultSummaryRecommendation = {
+  Pass: 'Pass',
+  Marginal: 'Marginal',
+  Overfit: 'Overfit',
+} as const;
+
+export type WalkForwardResultSummary = {
+  avgEfficiencyRatio: number;
+  avgOverfitScore: number;
+  stableParams: boolean;
+  regimeSensitive: boolean;
+  recommendation: WalkForwardResultSummaryRecommendation;
+};
+
+export interface WalkForwardResult {
+  pairs: WFPairResult[];
+  summary: WalkForwardResultSummary;
+  ranAt: string;
+}
+
 export type BatchBacktestResultCombinedStats = {
   totalTrades: number;
   winRate: number;

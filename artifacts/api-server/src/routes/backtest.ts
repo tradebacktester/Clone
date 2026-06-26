@@ -9,8 +9,9 @@ import {
   GetBacktestResponse,
   RunBatchBacktestBody,
   RunBatchBacktestResponse,
+  RunWalkForwardBody,
 } from "@workspace/api-zod";
-import { runBacktest, scorePatterns, updateRLAgent } from "@workspace/market-analysis";
+import { runBacktest, scorePatterns, updateRLAgent, runWalkForward } from "@workspace/market-analysis";
 import type { Pair } from "@workspace/market-analysis";
 import { rlAgentTable, setupScoresTable } from "@workspace/db";
 
@@ -223,6 +224,26 @@ router.post("/backtest/batch", async (req, res): Promise<void> => {
     combinedStats: { totalTrades, winRate, totalPnl, profitFactor, sharpeRatio, maxDrawdown: maxDD, expectancy },
     ranAt: new Date().toISOString(),
   });
+});
+
+router.post("/backtest/walkforward", async (req, res): Promise<void> => {
+  const parsed = RunWalkForwardBody.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: parsed.error.message });
+    return;
+  }
+
+  const { initialBalance, trainWindowYears, testWindowYears, overallStartDate, overallEndDate } = parsed.data;
+
+  const result = await runWalkForward({
+    initialBalance,
+    trainWindowYears: trainWindowYears ?? 2,
+    testWindowYears: testWindowYears ?? 1,
+    overallStartDate: overallStartDate ?? "2018-01-01",
+    overallEndDate: overallEndDate ?? "2023-12-31",
+  });
+
+  res.json(result);
 });
 
 router.get("/backtest/history", async (_req, res): Promise<void> => {

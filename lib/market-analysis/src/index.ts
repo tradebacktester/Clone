@@ -18,6 +18,7 @@ export * from "./market_regime/volatility_analyzer.js";
 export * from "./market_regime/trend_analyzer.js";
 export * from "./market_regime/adaptive_weights.js";
 export * from "./backtest/montecarlo.js";
+export * from "./backtest/walkforward.js";
 
 import type { Pair, Timeframe, AnalysisResult } from "./types.js";
 import { fetchCandles } from "./data/fetcher.js";

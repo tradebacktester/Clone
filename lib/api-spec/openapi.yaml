@@ -536,6 +536,24 @@ paths:
               schema:
                 $ref: "#/components/schemas/BatchBacktestResult"
 
+  /backtest/walkforward:
+    post:
+      operationId: runWalkForward
+      summary: Walk-forward analysis across all three pairs with parameter optimization
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WalkForwardInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WalkForwardResult"
+
   /backtest/history:
     get:
       operationId: listBacktests
@@ -1905,6 +1923,166 @@ components:
           type: number
         avgRR:
           type: number
+
+    WalkForwardInput:
+      type: object
+      required: [initialBalance]
+      properties:
+        initialBalance:
+          type: number
+        trainWindowYears:
+          type: integer
+        testWindowYears:
+          type: integer
+        overallStartDate:
+          type: string
+        overallEndDate:
+          type: string
+
+    WFWindowStats:
+      type: object
+      required: [trades, winRate, profitFactor, sharpeRatio, maxDrawdown, totalPnl, expectancy, finalBalance]
+      properties:
+        trades:
+          type: integer
+        winRate:
+          type: number
+        profitFactor:
+          type: number
+        sharpeRatio:
+          type: number
+        maxDrawdown:
+          type: number
+        totalPnl:
+          type: number
+        expectancy:
+          type: number
+        finalBalance:
+          type: number
+
+    WFOptimalParams:
+      type: object
+      required: [riskPerTrade, trainScore]
+      properties:
+        riskPerTrade:
+          type: number
+        trainScore:
+          type: number
+
+    WFRegimeSensitivity:
+      type: object
+      required: [regime, trainWinRate, testWinRate, trainProfitFactor, testProfitFactor, sensitivity]
+      properties:
+        regime:
+          type: string
+        trainWinRate:
+          type: number
+        testWinRate:
+          type: number
+        trainProfitFactor:
+          type: number
+        testProfitFactor:
+          type: number
+        sensitivity:
+          type: number
+
+    WFWindow:
+      type: object
+      required: [windowId, trainStart, trainEnd, testStart, testEnd, bestParams, trainStats, testStats, efficiencyRatio, overfit, regimeSensitivity]
+      properties:
+        windowId:
+          type: integer
+        trainStart:
+          type: string
+        trainEnd:
+          type: string
+        testStart:
+          type: string
+        testEnd:
+          type: string
+        bestParams:
+          $ref: "#/components/schemas/WFOptimalParams"
+        trainStats:
+          $ref: "#/components/schemas/WFWindowStats"
+        testStats:
+          $ref: "#/components/schemas/WFWindowStats"
+        efficiencyRatio:
+          type: number
+        overfit:
+          type: boolean
+        regimeSensitivity:
+          type: array
+          items:
+            $ref: "#/components/schemas/WFRegimeSensitivity"
+
+    WFParameterStability:
+      type: object
+      required: [parameter, values, mean, stdDev, variationCoeff, stable]
+      properties:
+        parameter:
+          type: string
+        values:
+          type: array
+          items:
+            type: number
+        mean:
+          type: number
+        stdDev:
+          type: number
+        variationCoeff:
+          type: number
+        stable:
+          type: boolean
+
+    WFPairResult:
+      type: object
+      required: [pair, windows, overallEfficiencyRatio, overfitScore, parameterStability, combinedTestStats, recommendation]
+      properties:
+        pair:
+          type: string
+        windows:
+          type: array
+          items:
+            $ref: "#/components/schemas/WFWindow"
+        overallEfficiencyRatio:
+          type: number
+        overfitScore:
+          type: number
+        parameterStability:
+          type: array
+          items:
+            $ref: "#/components/schemas/WFParameterStability"
+        combinedTestStats:
+          $ref: "#/components/schemas/WFWindowStats"
+        recommendation:
+          type: string
+          enum: [Pass, Marginal, Overfit]
+
+    WalkForwardResult:
+      type: object
+      required: [pairs, summary, ranAt]
+      properties:
+        pairs:
+          type: array
+          items:
+            $ref: "#/components/schemas/WFPairResult"
+        summary:
+          type: object
+          required: [avgEfficiencyRatio, avgOverfitScore, stableParams, regimeSensitive, recommendation]
+          properties:
+            avgEfficiencyRatio:
+              type: number
+            avgOverfitScore:
+              type: number
+            stableParams:
+              type: boolean
+            regimeSensitive:
+              type: boolean
+            recommendation:
+              type: string
+              enum: [Pass, Marginal, Overfit]
+        ranAt:
+          type: string
 
     BatchBacktestResult:
       type: object

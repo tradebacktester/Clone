@@ -67,6 +67,8 @@ import type {
   TradeList,
   TradeMemoryRecord,
   TradeSignal,
+  WalkForwardInput,
+  WalkForwardResult,
   WinRateBreakdown
 } from './api.schemas';
 
@@ -2682,6 +2684,77 @@ export const useRunBatchBacktest = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getRunBatchBacktestMutationOptions(options));
+    }
+
+export const getRunWalkForwardUrl = () => {
+
+
+
+
+  return `/api/backtest/walkforward`
+}
+
+/**
+ * @summary Walk-forward analysis across all three pairs with parameter optimization
+ */
+export const runWalkForward = async (walkForwardInput: WalkForwardInput, options?: RequestInit): Promise<WalkForwardResult> => {
+
+  return customFetch<WalkForwardResult>(getRunWalkForwardUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      walkForwardInput,)
+  }
+);}
+
+
+
+
+export const getRunWalkForwardMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runWalkForward>>, TError,{data: BodyType<WalkForwardInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runWalkForward>>, TError,{data: BodyType<WalkForwardInput>}, TContext> => {
+
+const mutationKey = ['runWalkForward'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runWalkForward>>, {data: BodyType<WalkForwardInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runWalkForward(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunWalkForwardMutationResult = NonNullable<Awaited<ReturnType<typeof runWalkForward>>>
+    export type RunWalkForwardMutationBody = BodyType<WalkForwardInput>
+    export type RunWalkForwardMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Walk-forward analysis across all three pairs with parameter optimization
+ */
+export const useRunWalkForward = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runWalkForward>>, TError,{data: BodyType<WalkForwardInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runWalkForward>>,
+        TError,
+        {data: BodyType<WalkForwardInput>},
+        TContext
+      > => {
+      return useMutation(getRunWalkForwardMutationOptions(options));
     }
 
 export const getListBacktestsUrl = () => {
