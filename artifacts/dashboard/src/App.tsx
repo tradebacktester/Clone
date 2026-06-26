@@ -15,6 +15,9 @@ import Settings from "@/pages/settings";
 import Quality from "@/pages/quality";
 import Memory from "@/pages/memory";
 import Supervisor from "@/pages/supervisor";
+import Insights from "@/pages/insights";
+import Reports from "@/pages/reports";
+import TimePerformance from "@/pages/time-performance";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -40,6 +43,9 @@ function Router() {
         <Route path="/quality" component={Quality} />
         <Route path="/memory" component={Memory} />
         <Route path="/supervisor" component={Supervisor} />
+        <Route path="/insights" component={Insights} />
+        <Route path="/reports" component={Reports} />
+        <Route path="/time-performance" component={TimePerformance} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

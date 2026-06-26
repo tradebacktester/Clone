@@ -1589,6 +1589,209 @@ export const RunSupervisorChecksResponse = zod.object({
 
 
 /**
+ * @summary Get multi-timeframe alignment snapshot for a pair
+ */
+export const GetMtfAlignmentParams = zod.object({
+  "pair": zod.coerce.string()
+})
+
+export const GetMtfAlignmentQueryParams = zod.object({
+  "direction": zod.enum(['buy', 'sell']).optional()
+})
+
+export const GetMtfAlignmentResponse = zod.object({
+  "pair": zod.string(),
+  "aligned": zod.boolean(),
+  "direction": zod.string().nullish(),
+  "score": zod.number(),
+  "timeframes": zod.array(zod.object({
+  "timeframe": zod.string(),
+  "role": zod.string(),
+  "available": zod.boolean(),
+  "trend": zod.string().nullish(),
+  "regime": zod.string().nullish(),
+  "regimeConfidence": zod.number().nullish(),
+  "structure": zod.string().nullish(),
+  "bullishBias": zod.boolean(),
+  "bearishBias": zod.boolean()
+})),
+  "alignedCount": zod.number(),
+  "totalCount": zod.number()
+})
+
+
+/**
+ * @summary Get TQI scores for current live signals on a pair
+ */
+export const GetTqiScoresParams = zod.object({
+  "pair": zod.coerce.string()
+})
+
+export const GetTqiScoresResponseItem = zod.object({
+  "pair": zod.string(),
+  "tqi": zod.number(),
+  "grade": zod.string(),
+  "tradeable": zod.boolean(),
+  "threshold": zod.number(),
+  "components": zod.array(zod.object({
+  "name": zod.string(),
+  "score": zod.number(),
+  "maxScore": zod.number(),
+  "description": zod.string()
+}))
+})
+export const GetTqiScoresResponse = zod.array(GetTqiScoresResponseItem)
+
+
+/**
+ * @summary Get pair correlation matrix and current exposure
+ */
+export const GetCorrelationMatrixResponse = zod.object({
+  "matrix": zod.array(zod.object({
+  "pair1": zod.string(),
+  "pair2": zod.string(),
+  "correlation": zod.number()
+})),
+  "openExposure": zod.array(zod.object({
+  "pair": zod.string(),
+  "direction": zod.string()
+}))
+})
+
+
+/**
+ * @summary Win rate and P&L broken down by time dimension
+ */
+export const GetTimePerformanceQueryParams = zod.object({
+  "dimension": zod.enum(['weekday', 'hour', 'session', 'pair', 'regime', 'setup', 'volatility'])
+})
+
+export const GetTimePerformanceResponse = zod.object({
+  "dimension": zod.string(),
+  "rows": zod.array(zod.object({
+  "label": zod.string(),
+  "trades": zod.number(),
+  "wins": zod.number(),
+  "losses": zod.number(),
+  "winRate": zod.number(),
+  "totalPnl": zod.number(),
+  "avgPnl": zod.number()
+})),
+  "totalTrades": zod.number()
+})
+
+
+/**
+ * @summary Get the AI-generated explanation for a specific trade
+ */
+export const GetTradeExplanationParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetTradeExplanationResponse = zod.object({
+  "summary": zod.string(),
+  "whyTaken": zod.array(zod.string()),
+  "rulesPassed": zod.array(zod.object({
+  "rule": zod.string(),
+  "passed": zod.boolean(),
+  "score": zod.number(),
+  "threshold": zod.number(),
+  "weight": zod.string()
+})),
+  "rulesNearlyFailed": zod.array(zod.object({
+  "rule": zod.string(),
+  "passed": zod.boolean(),
+  "score": zod.number(),
+  "threshold": zod.number(),
+  "weight": zod.string()
+})),
+  "confidenceBreakdown": zod.array(zod.object({
+  "factor": zod.string().optional(),
+  "contribution": zod.number().optional()
+})),
+  "riskAssessment": zod.object({
+  "lotSize": zod.number().optional(),
+  "riskPct": zod.number().optional(),
+  "riskAmount": zod.number().optional(),
+  "stopLossPips": zod.number().optional(),
+  "rr": zod.number().optional()
+}),
+  "mtfAlignment": zod.array(zod.object({
+  "timeframe": zod.string().optional(),
+  "role": zod.string().optional(),
+  "direction": zod.string().nullish(),
+  "status": zod.string().optional()
+})),
+  "tqiBreakdown": zod.array(zod.object({
+  "component": zod.string().optional(),
+  "score": zod.number().optional(),
+  "maxScore": zod.number().optional(),
+  "description": zod.string().optional()
+})),
+  "tqi": zod.number(),
+  "tqiGrade": zod.string(),
+  "generatedAt": zod.string()
+})
+
+
+/**
+ * @summary List generated reports
+ */
+export const listReportsQueryLimitDefault = 20;
+
+export const ListReportsQueryParams = zod.object({
+  "type": zod.enum(['daily', 'weekly', 'monthly']).optional(),
+  "limit": zod.coerce.number().default(listReportsQueryLimitDefault)
+})
+
+export const ListReportsResponseItem = zod.object({
+  "id": zod.number(),
+  "type": zod.string(),
+  "periodStart": zod.string(),
+  "periodEnd": zod.string(),
+  "summary": zod.string().nullish(),
+  "generatedAt": zod.string()
+})
+export const ListReportsResponse = zod.array(ListReportsResponseItem)
+
+
+/**
+ * @summary Generate a new daily, weekly, or monthly report
+ */
+export const GenerateReportBody = zod.object({
+  "type": zod.enum(['daily', 'weekly', 'monthly'])
+})
+
+export const GenerateReportResponse = zod.object({
+  "id": zod.number(),
+  "type": zod.string(),
+  "periodStart": zod.string(),
+  "periodEnd": zod.string(),
+  "summary": zod.string().nullish(),
+  "generatedAt": zod.string()
+})
+
+
+/**
+ * @summary Get the full content of a report
+ */
+export const GetReportParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetReportResponse = zod.object({
+  "id": zod.number(),
+  "type": zod.string(),
+  "periodStart": zod.string(),
+  "periodEnd": zod.string(),
+  "content": zod.object({
+
+}).passthrough(),
+  "generatedAt": zod.string()
+})
+
+
+/**
  * @summary Get upcoming high-impact news events
  */
 export const GetNewsEventsQueryParams = zod.object({

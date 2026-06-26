@@ -1,6 +1,6 @@
 import { db, tradesTable, botConfigTable, botStateTable } from "@workspace/db";
 import { eq, and } from "drizzle-orm";
-import type { TradeSignal, Pair } from "@workspace/market-analysis";
+import type { TradeSignal, Pair, AnalysisResult } from "@workspace/market-analysis";
 import { getCurrentPrice } from "./price-feed.js";
 import { logger } from "./logger.js";
 import {
@@ -15,6 +15,11 @@ import {
   logDailyHalt,
   logWeeklyHalt,
 } from "./broker-engine.js";
+import { getMtfAlignment } from "./mtf-engine.js";
+import { computeTqi } from "./tqi-engine.js";
+import { calcDynamicSize } from "./dynamic-sizing.js";
+import { checkCorrelation } from "./correlation-engine.js";
+import { generateExplanation } from "./explanation-engine.js";
 
 let monitorInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -114,6 +119,7 @@ async function getPaperBalance(): Promise<number> {
 export async function executePaperSignals(
   signals: TradeSignal[],
   pair: Pair,
+  analysisResult?: AnalysisResult,
 ): Promise<void> {
   if (signals.length === 0) return;
 
@@ -189,6 +195,38 @@ export async function executePaperSignals(
     return;
   }
 
+  // ── V2 Gate 1: Multi-Timeframe Alignment ──────────────────────────────────
+  const mtfAlignment = getMtfAlignment(pair, signal.direction);
+  if (mtfAlignment.alignedCount < 2) {
+    logger.info({ pair, mtfScore: mtfAlignment.score, alignedCount: mtfAlignment.alignedCount }, "V2 MTF gate: insufficient alignment — skipping signal");
+    recordMissedOpportunity(signal, "below_confidence", session, null).catch(() => {});
+    return;
+  }
+
+  // ── V2 Gate 2: Trade Quality Index ────────────────────────────────────────
+  const analysis = analysisResult;
+  let tqiResult = null;
+  if (analysis) {
+    tqiResult = computeTqi(signal, analysis, mtfAlignment.score);
+    if (!tqiResult.tradeable) {
+      logger.info({ pair, tqi: tqiResult.tqi, grade: tqiResult.grade }, "V2 TQI gate: quality below threshold — skipping signal");
+      recordMissedOpportunity(signal, "below_confidence", session, null).catch(() => {});
+      return;
+    }
+  }
+
+  // ── V2 Gate 3: Correlation Check ──────────────────────────────────────────
+  const corrCheck = checkCorrelation(
+    pair,
+    signal.direction,
+    openTrades.map(t => ({ pair: t.pair, direction: t.direction as "buy" | "sell" })),
+  );
+  if (!corrCheck.allowed) {
+    logger.info({ pair, reason: corrCheck.reason }, "V2 correlation gate: overexposure — skipping signal");
+    recordMissedOpportunity(signal, "pair_already_open", session, null).catch(() => {});
+    return;
+  }
+
   const priceEntry = getCurrentPrice(pair);
   const entryMid = priceEntry?.mid ?? signal.entryPrice;
 
@@ -199,7 +237,42 @@ export async function executePaperSignals(
     true,
   );
 
-  const lotSize = calcLotSize(pair, actualEntry, signal.stopLoss, paperBalance, riskPct);
+  // ── V2: Dynamic Position Sizing ───────────────────────────────────────────
+  const closedForDD = closedTrades;
+  const peakBalance = closedForDD.reduce((max, t) => {
+    const bal = INITIAL_PAPER_BALANCE + closedForDD
+      .filter(x => x.closedAt != null && x.closedAt <= t.closedAt!)
+      .reduce((s, x) => s + parseFloat(x.pnl ?? "0"), 0);
+    return Math.max(max, bal);
+  }, INITIAL_PAPER_BALANCE);
+  const currentDrawdownPct = peakBalance > 0 ? Math.max(0, ((peakBalance - paperBalance) / peakBalance) * 100) : 0;
+
+  const sizingResult = analysis
+    ? calcDynamicSize({
+        signal,
+        analysis,
+        balance: paperBalance,
+        baseRiskPct: riskPct,
+        maxRiskPct: riskPct * 2,
+        currentDrawdownPct,
+      })
+    : null;
+
+  const lotSize = sizingResult
+    ? sizingResult.lotSize
+    : calcLotSize(pair, actualEntry, signal.stopLoss, paperBalance, riskPct);
+
+  const dynamicRiskPct = sizingResult?.adjustedRiskPct ?? riskPct;
+
+  // ── Generate trade explanation ─────────────────────────────────────────────
+  let explanation = null;
+  if (analysis && tqiResult && sizingResult) {
+    try {
+      explanation = generateExplanation(signal, analysis, mtfAlignment, tqiResult, sizingResult);
+    } catch (err) {
+      logger.warn({ err }, "Failed to generate trade explanation");
+    }
+  }
 
   const [inserted] = await db.insert(tradesTable).values({
     pair,
@@ -219,7 +292,13 @@ export async function executePaperSignals(
     fibLevel: String(signal.fibLevel),
     riskRewardRatio: String(Math.round(signal.riskReward * 100) / 100),
     slippagePips: String(entrySlippagePips),
-    regime: null,
+    regime: analysis?.regime.regime ?? null,
+    tqi: tqiResult ? String(tqiResult.tqi) : null,
+    tqiGrade: tqiResult?.grade ?? null,
+    mtfAligned: mtfAlignment.aligned,
+    mtfScore: String(mtfAlignment.score),
+    dynamicRiskPct: String(dynamicRiskPct),
+    explanation: explanation ?? null,
   }).returning({ id: tradesTable.id });
 
   if (inserted?.id) {

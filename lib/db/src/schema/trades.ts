@@ -1,4 +1,4 @@
-import { pgTable, serial, text, numeric, boolean, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, serial, text, numeric, boolean, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod/v4";
 
@@ -29,6 +29,12 @@ export const tradesTable = pgTable("trades", {
   regimeConfidence: numeric("regime_confidence", { precision: 5, scale: 2 }),
   slippagePips: numeric("slippage_pips", { precision: 6, scale: 2 }),
   exitSlippagePips: numeric("exit_slippage_pips", { precision: 6, scale: 2 }),
+  tqi: numeric("tqi", { precision: 5, scale: 2 }),
+  tqiGrade: text("tqi_grade"),
+  mtfAligned: boolean("mtf_aligned"),
+  mtfScore: numeric("mtf_score", { precision: 5, scale: 2 }),
+  dynamicRiskPct: numeric("dynamic_risk_pct", { precision: 6, scale: 4 }),
+  explanation: jsonb("explanation"),
   openedAt: timestamp("opened_at", { withTimezone: true }).notNull().defaultNow(),
   closedAt: timestamp("closed_at", { withTimezone: true }),
 });

@@ -14,6 +14,8 @@ import paperRouter from "./paper";
 import qualityRouter from "./quality";
 import memoryRouter from "./memory";
 import supervisorRouter from "./supervisor";
+import v2Router from "./v2";
+import reportsRouter from "./reports";
 
 const router: IRouter = Router();
 
@@ -32,5 +34,7 @@ router.use(paperRouter);
 router.use(qualityRouter);
 router.use(memoryRouter);
 router.use(supervisorRouter);
+router.use(v2Router);
+router.use(reportsRouter);
 
 export default router;

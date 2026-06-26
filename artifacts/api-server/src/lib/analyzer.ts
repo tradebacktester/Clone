@@ -26,7 +26,7 @@ import { getBlockedPairsSet } from "./news-fetcher.js";
 import { executePaperSignals } from "./paper-engine.js";
 
 const PAIRS: Pair[] = ["EURUSD", "GBPUSD", "USDJPY"];
-const TIMEFRAMES: Timeframe[] = ["4h", "1d"];
+const TIMEFRAMES: Timeframe[] = ["15m", "1h", "4h", "1d"];
 
 const cache = new Map<string, { result: AnalysisResult; ts: number }>();
 
@@ -196,7 +196,7 @@ export async function analyzeAll(): Promise<void> {
         if (tf === "4h") {
           await persistAnalysis(result);
           if (result.signals.length > 0) {
-            await executePaperSignals(result.signals, pair).catch(err =>
+            await executePaperSignals(result.signals, pair, result).catch(err =>
               logger.warn({ pair, err }, "Paper signal execution failed"),
             );
           }

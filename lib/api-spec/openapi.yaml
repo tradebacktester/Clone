@@ -775,6 +775,167 @@ paths:
               schema:
                 $ref: "#/components/schemas/SupervisorStatus"
 
+  # ── V2 — Multi-Timeframe & TQI ────────────────────────────────────────────
+  /v2/mtf/{pair}:
+    get:
+      operationId: getMtfAlignment
+      summary: Get multi-timeframe alignment snapshot for a pair
+      parameters:
+        - name: pair
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: direction
+          in: query
+          schema:
+            type: string
+            enum: [buy, sell]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MtfAlignment"
+
+  /v2/tqi/{pair}:
+    get:
+      operationId: getTqiScores
+      summary: Get TQI scores for current live signals on a pair
+      parameters:
+        - name: pair
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TqiResult"
+
+  /v2/correlation:
+    get:
+      operationId: getCorrelationMatrix
+      summary: Get pair correlation matrix and current exposure
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CorrelationStatus"
+
+  # ── Analytics — Time Performance ──────────────────────────────────────────
+  /analytics/time-performance:
+    get:
+      operationId: getTimePerformance
+      summary: Win rate and P&L broken down by time dimension
+      parameters:
+        - name: dimension
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [weekday, hour, session, pair, regime, setup, volatility]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TimePerformanceResponse"
+
+  # ── Trades — Explanation ──────────────────────────────────────────────────
+  /trades/{id}/explanation:
+    get:
+      operationId: getTradeExplanation
+      summary: Get the AI-generated explanation for a specific trade
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TradeExplanation"
+        "404":
+          description: Trade not found or no explanation available
+
+  # ── Reports ───────────────────────────────────────────────────────────────
+  /reports:
+    get:
+      operationId: listReports
+      summary: List generated reports
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [daily, weekly, monthly]
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReportSummary"
+
+  /reports/generate:
+    post:
+      operationId: generateReport
+      summary: Generate a new daily, weekly, or monthly report
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GenerateReportInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportSummary"
+
+  /reports/{id}:
+    get:
+      operationId: getReport
+      summary: Get the full content of a report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReportDetail"
+        "404":
+          description: Not found
+
   # ── News Calendar ──────────────────────────────────────────────────────────
   /news/events:
     get:
@@ -2651,6 +2812,282 @@ components:
           type: string
         source:
           type: string
+
+    # ── V2 ────────────────────────────────────────────────────────────────────
+    MtfTimeframeResult:
+      type: object
+      required: [timeframe, role, available, bullishBias, bearishBias]
+      properties:
+        timeframe:
+          type: string
+        role:
+          type: string
+        available:
+          type: boolean
+        trend:
+          type: string
+          nullable: true
+        regime:
+          type: string
+          nullable: true
+        regimeConfidence:
+          type: number
+          nullable: true
+        structure:
+          type: string
+          nullable: true
+        bullishBias:
+          type: boolean
+        bearishBias:
+          type: boolean
+
+    MtfAlignment:
+      type: object
+      required: [pair, aligned, score, timeframes, alignedCount, totalCount]
+      properties:
+        pair:
+          type: string
+        aligned:
+          type: boolean
+        direction:
+          type: string
+          nullable: true
+        score:
+          type: number
+        timeframes:
+          type: array
+          items:
+            $ref: "#/components/schemas/MtfTimeframeResult"
+        alignedCount:
+          type: integer
+        totalCount:
+          type: integer
+
+    TqiComponent:
+      type: object
+      required: [name, score, maxScore, description]
+      properties:
+        name:
+          type: string
+        score:
+          type: number
+        maxScore:
+          type: number
+        description:
+          type: string
+
+    TqiResult:
+      type: object
+      required: [pair, tqi, grade, tradeable, threshold, components]
+      properties:
+        pair:
+          type: string
+        tqi:
+          type: number
+        grade:
+          type: string
+        tradeable:
+          type: boolean
+        threshold:
+          type: number
+        components:
+          type: array
+          items:
+            $ref: "#/components/schemas/TqiComponent"
+
+    CorrelationPair:
+      type: object
+      required: [pair1, pair2, correlation]
+      properties:
+        pair1:
+          type: string
+        pair2:
+          type: string
+        correlation:
+          type: number
+
+    CorrelationStatus:
+      type: object
+      required: [matrix, openExposure]
+      properties:
+        matrix:
+          type: array
+          items:
+            $ref: "#/components/schemas/CorrelationPair"
+        openExposure:
+          type: array
+          items:
+            type: object
+            required: [pair, direction]
+            properties:
+              pair:
+                type: string
+              direction:
+                type: string
+
+    TimePerformanceRow:
+      type: object
+      required: [label, trades, wins, losses, winRate, totalPnl, avgPnl]
+      properties:
+        label:
+          type: string
+        trades:
+          type: integer
+        wins:
+          type: integer
+        losses:
+          type: integer
+        winRate:
+          type: number
+        totalPnl:
+          type: number
+        avgPnl:
+          type: number
+
+    TimePerformanceResponse:
+      type: object
+      required: [dimension, rows, totalTrades]
+      properties:
+        dimension:
+          type: string
+        rows:
+          type: array
+          items:
+            $ref: "#/components/schemas/TimePerformanceRow"
+        totalTrades:
+          type: integer
+
+    RuleResult:
+      type: object
+      required: [rule, passed, score, threshold, weight]
+      properties:
+        rule:
+          type: string
+        passed:
+          type: boolean
+        score:
+          type: number
+        threshold:
+          type: number
+        weight:
+          type: string
+
+    TradeExplanation:
+      type: object
+      required: [summary, whyTaken, rulesPassed, rulesNearlyFailed, confidenceBreakdown, riskAssessment, mtfAlignment, tqiBreakdown, tqi, tqiGrade, generatedAt]
+      properties:
+        summary:
+          type: string
+        whyTaken:
+          type: array
+          items:
+            type: string
+        rulesPassed:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuleResult"
+        rulesNearlyFailed:
+          type: array
+          items:
+            $ref: "#/components/schemas/RuleResult"
+        confidenceBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              factor:
+                type: string
+              contribution:
+                type: number
+        riskAssessment:
+          type: object
+          properties:
+            lotSize:
+              type: number
+            riskPct:
+              type: number
+            riskAmount:
+              type: number
+            stopLossPips:
+              type: number
+            rr:
+              type: number
+        mtfAlignment:
+          type: array
+          items:
+            type: object
+            properties:
+              timeframe:
+                type: string
+              role:
+                type: string
+              direction:
+                type: string
+                nullable: true
+              status:
+                type: string
+        tqiBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              component:
+                type: string
+              score:
+                type: number
+              maxScore:
+                type: number
+              description:
+                type: string
+        tqi:
+          type: number
+        tqiGrade:
+          type: string
+        generatedAt:
+          type: string
+
+    ReportSummary:
+      type: object
+      required: [id, type, periodStart, periodEnd, generatedAt]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        periodStart:
+          type: string
+        periodEnd:
+          type: string
+        summary:
+          type: string
+          nullable: true
+        generatedAt:
+          type: string
+
+    ReportDetail:
+      type: object
+      required: [id, type, periodStart, periodEnd, content, generatedAt]
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        periodStart:
+          type: string
+        periodEnd:
+          type: string
+        content:
+          type: object
+        generatedAt:
+          type: string
+
+    GenerateReportInput:
+      type: object
+      required: [type]
+      properties:
+        type:
+          type: string
+          enum: [daily, weekly, monthly]
 
     # ── Supervisor ────────────────────────────────────────────────────────────
     SupervisorAlert:

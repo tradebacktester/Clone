@@ -1178,6 +1178,158 @@ export interface GetNewsCalendarResponse {
   source: string;
 }
 
+export interface MtfTimeframeResult {
+  timeframe: string;
+  role: string;
+  available: boolean;
+  trend?: string | null;
+  regime?: string | null;
+  regimeConfidence?: number | null;
+  structure?: string | null;
+  bullishBias: boolean;
+  bearishBias: boolean;
+}
+
+export interface MtfAlignment {
+  pair: string;
+  aligned: boolean;
+  direction?: string | null;
+  score: number;
+  timeframes: MtfTimeframeResult[];
+  alignedCount: number;
+  totalCount: number;
+}
+
+export interface TqiComponent {
+  name: string;
+  score: number;
+  maxScore: number;
+  description: string;
+}
+
+export interface TqiResult {
+  pair: string;
+  tqi: number;
+  grade: string;
+  tradeable: boolean;
+  threshold: number;
+  components: TqiComponent[];
+}
+
+export interface CorrelationPair {
+  pair1: string;
+  pair2: string;
+  correlation: number;
+}
+
+export type CorrelationStatusOpenExposureItem = {
+  pair: string;
+  direction: string;
+};
+
+export interface CorrelationStatus {
+  matrix: CorrelationPair[];
+  openExposure: CorrelationStatusOpenExposureItem[];
+}
+
+export interface TimePerformanceRow {
+  label: string;
+  trades: number;
+  wins: number;
+  losses: number;
+  winRate: number;
+  totalPnl: number;
+  avgPnl: number;
+}
+
+export interface TimePerformanceResponse {
+  dimension: string;
+  rows: TimePerformanceRow[];
+  totalTrades: number;
+}
+
+export interface RuleResult {
+  rule: string;
+  passed: boolean;
+  score: number;
+  threshold: number;
+  weight: string;
+}
+
+export type TradeExplanationConfidenceBreakdownItem = {
+  factor?: string;
+  contribution?: number;
+};
+
+export type TradeExplanationRiskAssessment = {
+  lotSize?: number;
+  riskPct?: number;
+  riskAmount?: number;
+  stopLossPips?: number;
+  rr?: number;
+};
+
+export type TradeExplanationMtfAlignmentItem = {
+  timeframe?: string;
+  role?: string;
+  direction?: string | null;
+  status?: string;
+};
+
+export type TradeExplanationTqiBreakdownItem = {
+  component?: string;
+  score?: number;
+  maxScore?: number;
+  description?: string;
+};
+
+export interface TradeExplanation {
+  summary: string;
+  whyTaken: string[];
+  rulesPassed: RuleResult[];
+  rulesNearlyFailed: RuleResult[];
+  confidenceBreakdown: TradeExplanationConfidenceBreakdownItem[];
+  riskAssessment: TradeExplanationRiskAssessment;
+  mtfAlignment: TradeExplanationMtfAlignmentItem[];
+  tqiBreakdown: TradeExplanationTqiBreakdownItem[];
+  tqi: number;
+  tqiGrade: string;
+  generatedAt: string;
+}
+
+export interface ReportSummary {
+  id: number;
+  type: string;
+  periodStart: string;
+  periodEnd: string;
+  summary?: string | null;
+  generatedAt: string;
+}
+
+export type ReportDetailContent = { [key: string]: unknown };
+
+export interface ReportDetail {
+  id: number;
+  type: string;
+  periodStart: string;
+  periodEnd: string;
+  content: ReportDetailContent;
+  generatedAt: string;
+}
+
+export type GenerateReportInputType = typeof GenerateReportInputType[keyof typeof GenerateReportInputType];
+
+
+export const GenerateReportInputType = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+} as const;
+
+export interface GenerateReportInput {
+  type: GenerateReportInputType;
+}
+
 export type SupervisorAlertSeverity = typeof SupervisorAlertSeverity[keyof typeof SupervisorAlertSeverity];
 
 
@@ -1321,6 +1473,49 @@ limit?: number;
 unacknowledgedOnly?: boolean;
 severity?: string;
 };
+
+export type GetMtfAlignmentParams = {
+direction?: GetMtfAlignmentDirection;
+};
+
+export type GetMtfAlignmentDirection = typeof GetMtfAlignmentDirection[keyof typeof GetMtfAlignmentDirection];
+
+
+export const GetMtfAlignmentDirection = {
+  buy: 'buy',
+  sell: 'sell',
+} as const;
+
+export type GetTimePerformanceParams = {
+dimension: GetTimePerformanceDimension;
+};
+
+export type GetTimePerformanceDimension = typeof GetTimePerformanceDimension[keyof typeof GetTimePerformanceDimension];
+
+
+export const GetTimePerformanceDimension = {
+  weekday: 'weekday',
+  hour: 'hour',
+  session: 'session',
+  pair: 'pair',
+  regime: 'regime',
+  setup: 'setup',
+  volatility: 'volatility',
+} as const;
+
+export type ListReportsParams = {
+type?: ListReportsType;
+limit?: number;
+};
+
+export type ListReportsType = typeof ListReportsType[keyof typeof ListReportsType];
+
+
+export const ListReportsType = {
+  daily: 'daily',
+  weekly: 'weekly',
+  monthly: 'monthly',
+} as const;
 
 export type GetNewsEventsParams = {
 pair?: string;

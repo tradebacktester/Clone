@@ -33,22 +33,27 @@ import type {
   BrokerAccount,
   BrokerAccountInput,
   ConfidenceProfile,
+  CorrelationStatus,
   DrawdownPoint,
   EmergencyStopResponse,
   EquityPoint,
   ExecutionLogResponse,
+  GenerateReportInput,
   GetEquityCurveParams,
   GetExecutionLogParams,
   GetMarketZonesParams,
   GetMemoryTradesParams,
   GetMissedOpportunitiesParams,
+  GetMtfAlignmentParams,
   GetNewsCalendarResponse,
   GetNewsEventsParams,
   GetNewsEventsResponse,
   GetNewsStatusResponse,
   GetSupervisorAlertsParams,
+  GetTimePerformanceParams,
   HealthStatus,
   LearningStats,
+  ListReportsParams,
   ListTradesParams,
   LiveModeInput,
   LiveModeResponse,
@@ -59,19 +64,25 @@ import type {
   MonteCarloRequest,
   MonteCarloResult,
   MonthlyPnl,
+  MtfAlignment,
   PaperPerformance,
   PaperPositions,
   RegimeAnalyticsResponse,
   RegimeWeightEntry,
+  ReportDetail,
+  ReportSummary,
   RiskSettings,
   RiskSettingsInput,
   RuleAdherenceResponse,
   SetupScore,
   SupervisorAlert,
   SupervisorStatus,
+  TimePerformanceResponse,
   TopSetups,
+  TqiResult,
   Trade,
   TradeComparisonResponse,
+  TradeExplanation,
   TradeList,
   TradeMemoryRecord,
   TradeSignal,
@@ -3732,6 +3743,642 @@ export const useRunSupervisorChecks = <TError = ErrorType<unknown>,
       > => {
       return useMutation(getRunSupervisorChecksMutationOptions(options));
     }
+
+export const getGetMtfAlignmentUrl = (pair: string,
+    params?: GetMtfAlignmentParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/v2/mtf/${pair}?${stringifiedParams}` : `/api/v2/mtf/${pair}`
+}
+
+/**
+ * @summary Get multi-timeframe alignment snapshot for a pair
+ */
+export const getMtfAlignment = async (pair: string,
+    params?: GetMtfAlignmentParams, options?: RequestInit): Promise<MtfAlignment> => {
+
+  return customFetch<MtfAlignment>(getGetMtfAlignmentUrl(pair,params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetMtfAlignmentQueryKey = (pair: string,
+    params?: GetMtfAlignmentParams,) => {
+    return [
+    `/api/v2/mtf/${pair}`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetMtfAlignmentQueryOptions = <TData = Awaited<ReturnType<typeof getMtfAlignment>>, TError = ErrorType<unknown>>(pair: string,
+    params?: GetMtfAlignmentParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMtfAlignment>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetMtfAlignmentQueryKey(pair,params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getMtfAlignment>>> = ({ signal }) => getMtfAlignment(pair,params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(pair), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getMtfAlignment>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetMtfAlignmentQueryResult = NonNullable<Awaited<ReturnType<typeof getMtfAlignment>>>
+export type GetMtfAlignmentQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get multi-timeframe alignment snapshot for a pair
+ */
+
+export function useGetMtfAlignment<TData = Awaited<ReturnType<typeof getMtfAlignment>>, TError = ErrorType<unknown>>(
+ pair: string,
+    params?: GetMtfAlignmentParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getMtfAlignment>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetMtfAlignmentQueryOptions(pair,params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTqiScoresUrl = (pair: string,) => {
+
+
+
+
+  return `/api/v2/tqi/${pair}`
+}
+
+/**
+ * @summary Get TQI scores for current live signals on a pair
+ */
+export const getTqiScores = async (pair: string, options?: RequestInit): Promise<TqiResult[]> => {
+
+  return customFetch<TqiResult[]>(getGetTqiScoresUrl(pair),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTqiScoresQueryKey = (pair: string,) => {
+    return [
+    `/api/v2/tqi/${pair}`
+    ] as const;
+    }
+
+
+export const getGetTqiScoresQueryOptions = <TData = Awaited<ReturnType<typeof getTqiScores>>, TError = ErrorType<unknown>>(pair: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTqiScores>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTqiScoresQueryKey(pair);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTqiScores>>> = ({ signal }) => getTqiScores(pair, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(pair), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTqiScores>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTqiScoresQueryResult = NonNullable<Awaited<ReturnType<typeof getTqiScores>>>
+export type GetTqiScoresQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get TQI scores for current live signals on a pair
+ */
+
+export function useGetTqiScores<TData = Awaited<ReturnType<typeof getTqiScores>>, TError = ErrorType<unknown>>(
+ pair: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTqiScores>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTqiScoresQueryOptions(pair,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetCorrelationMatrixUrl = () => {
+
+
+
+
+  return `/api/v2/correlation`
+}
+
+/**
+ * @summary Get pair correlation matrix and current exposure
+ */
+export const getCorrelationMatrix = async ( options?: RequestInit): Promise<CorrelationStatus> => {
+
+  return customFetch<CorrelationStatus>(getGetCorrelationMatrixUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetCorrelationMatrixQueryKey = () => {
+    return [
+    `/api/v2/correlation`
+    ] as const;
+    }
+
+
+export const getGetCorrelationMatrixQueryOptions = <TData = Awaited<ReturnType<typeof getCorrelationMatrix>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCorrelationMatrix>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetCorrelationMatrixQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getCorrelationMatrix>>> = ({ signal }) => getCorrelationMatrix({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getCorrelationMatrix>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetCorrelationMatrixQueryResult = NonNullable<Awaited<ReturnType<typeof getCorrelationMatrix>>>
+export type GetCorrelationMatrixQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get pair correlation matrix and current exposure
+ */
+
+export function useGetCorrelationMatrix<TData = Awaited<ReturnType<typeof getCorrelationMatrix>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getCorrelationMatrix>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetCorrelationMatrixQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTimePerformanceUrl = (params: GetTimePerformanceParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/analytics/time-performance?${stringifiedParams}` : `/api/analytics/time-performance`
+}
+
+/**
+ * @summary Win rate and P&L broken down by time dimension
+ */
+export const getTimePerformance = async (params: GetTimePerformanceParams, options?: RequestInit): Promise<TimePerformanceResponse> => {
+
+  return customFetch<TimePerformanceResponse>(getGetTimePerformanceUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTimePerformanceQueryKey = (params?: GetTimePerformanceParams,) => {
+    return [
+    `/api/analytics/time-performance`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTimePerformanceQueryOptions = <TData = Awaited<ReturnType<typeof getTimePerformance>>, TError = ErrorType<unknown>>(params: GetTimePerformanceParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTimePerformance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTimePerformanceQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTimePerformance>>> = ({ signal }) => getTimePerformance(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTimePerformance>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTimePerformanceQueryResult = NonNullable<Awaited<ReturnType<typeof getTimePerformance>>>
+export type GetTimePerformanceQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Win rate and P&L broken down by time dimension
+ */
+
+export function useGetTimePerformance<TData = Awaited<ReturnType<typeof getTimePerformance>>, TError = ErrorType<unknown>>(
+ params: GetTimePerformanceParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTimePerformance>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTimePerformanceQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTradeExplanationUrl = (id: number,) => {
+
+
+
+
+  return `/api/trades/${id}/explanation`
+}
+
+/**
+ * @summary Get the AI-generated explanation for a specific trade
+ */
+export const getTradeExplanation = async (id: number, options?: RequestInit): Promise<TradeExplanation> => {
+
+  return customFetch<TradeExplanation>(getGetTradeExplanationUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTradeExplanationQueryKey = (id: number,) => {
+    return [
+    `/api/trades/${id}/explanation`
+    ] as const;
+    }
+
+
+export const getGetTradeExplanationQueryOptions = <TData = Awaited<ReturnType<typeof getTradeExplanation>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradeExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTradeExplanationQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTradeExplanation>>> = ({ signal }) => getTradeExplanation(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTradeExplanation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTradeExplanationQueryResult = NonNullable<Awaited<ReturnType<typeof getTradeExplanation>>>
+export type GetTradeExplanationQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the AI-generated explanation for a specific trade
+ */
+
+export function useGetTradeExplanation<TData = Awaited<ReturnType<typeof getTradeExplanation>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTradeExplanation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTradeExplanationQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListReportsUrl = (params?: ListReportsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/reports?${stringifiedParams}` : `/api/reports`
+}
+
+/**
+ * @summary List generated reports
+ */
+export const listReports = async (params?: ListReportsParams, options?: RequestInit): Promise<ReportSummary[]> => {
+
+  return customFetch<ReportSummary[]>(getListReportsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListReportsQueryKey = (params?: ListReportsParams,) => {
+    return [
+    `/api/reports`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListReportsQueryOptions = <TData = Awaited<ReturnType<typeof listReports>>, TError = ErrorType<unknown>>(params?: ListReportsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListReportsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listReports>>> = ({ signal }) => listReports(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listReports>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListReportsQueryResult = NonNullable<Awaited<ReturnType<typeof listReports>>>
+export type ListReportsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List generated reports
+ */
+
+export function useListReports<TData = Awaited<ReturnType<typeof listReports>>, TError = ErrorType<unknown>>(
+ params?: ListReportsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listReports>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListReportsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGenerateReportUrl = () => {
+
+
+
+
+  return `/api/reports/generate`
+}
+
+/**
+ * @summary Generate a new daily, weekly, or monthly report
+ */
+export const generateReport = async (generateReportInput: GenerateReportInput, options?: RequestInit): Promise<ReportSummary> => {
+
+  return customFetch<ReportSummary>(getGenerateReportUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      generateReportInput,)
+  }
+);}
+
+
+
+
+export const getGenerateReportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateReport>>, TError,{data: BodyType<GenerateReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateReport>>, TError,{data: BodyType<GenerateReportInput>}, TContext> => {
+
+const mutationKey = ['generateReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateReport>>, {data: BodyType<GenerateReportInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  generateReport(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateReportMutationResult = NonNullable<Awaited<ReturnType<typeof generateReport>>>
+    export type GenerateReportMutationBody = BodyType<GenerateReportInput>
+    export type GenerateReportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate a new daily, weekly, or monthly report
+ */
+export const useGenerateReport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateReport>>, TError,{data: BodyType<GenerateReportInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateReport>>,
+        TError,
+        {data: BodyType<GenerateReportInput>},
+        TContext
+      > => {
+      return useMutation(getGenerateReportMutationOptions(options));
+    }
+
+export const getGetReportUrl = (id: number,) => {
+
+
+
+
+  return `/api/reports/${id}`
+}
+
+/**
+ * @summary Get the full content of a report
+ */
+export const getReport = async (id: number, options?: RequestInit): Promise<ReportDetail> => {
+
+  return customFetch<ReportDetail>(getGetReportUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetReportQueryKey = (id: number,) => {
+    return [
+    `/api/reports/${id}`
+    ] as const;
+    }
+
+
+export const getGetReportQueryOptions = <TData = Awaited<ReturnType<typeof getReport>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetReportQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getReport>>> = ({ signal }) => getReport(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getReport>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetReportQueryResult = NonNullable<Awaited<ReturnType<typeof getReport>>>
+export type GetReportQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the full content of a report
+ */
+
+export function useGetReport<TData = Awaited<ReturnType<typeof getReport>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getReport>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetReportQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
 
 export const getGetNewsEventsUrl = (params?: GetNewsEventsParams,) => {
   const normalizedParams = new URLSearchParams();

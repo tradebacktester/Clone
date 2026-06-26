@@ -13,6 +13,9 @@ import {
   ShieldCheck,
   Brain,
   Radar,
+  Layers,
+  FileText,
+  Clock,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -25,6 +28,9 @@ export function NavSidebar() {
     { href: "/market", label: "Market", icon: Globe2 },
     { href: "/regime", label: "Regimes", icon: TrendingUp },
     { href: "/monte-carlo", label: "Monte Carlo", icon: Dices },
+    { href: "/insights", label: "V2 Insights", icon: Layers },
+    { href: "/reports", label: "Reports", icon: FileText },
+    { href: "/time-performance", label: "Time Perf.", icon: Clock },
     { href: "/supervisor", label: "Supervisor", icon: Radar },
     { href: "/quality", label: "Quality", icon: ShieldCheck },
     { href: "/memory", label: "Memory", icon: Brain },
