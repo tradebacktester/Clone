@@ -16,6 +16,7 @@ import {
   Layers,
   FileText,
   Clock,
+  Rewind,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -35,6 +36,7 @@ export function NavSidebar() {
     { href: "/quality", label: "Quality", icon: ShieldCheck },
     { href: "/memory", label: "Memory", icon: Brain },
     { href: "/learning", label: "Learning", icon: BrainCircuit },
+    { href: "/replay", label: "Replay", icon: Rewind },
     { href: "/backtest", label: "Backtest", icon: History },
     { href: "/settings", label: "Settings", icon: Settings },
   ];

@@ -9,3 +9,4 @@ export * from "./news";
 export * from "./analytics";
 export * from "./memory";
 export * from "./reports";
+export * from "./replay";

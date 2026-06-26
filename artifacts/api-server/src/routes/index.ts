@@ -16,6 +16,7 @@ import memoryRouter from "./memory";
 import supervisorRouter from "./supervisor";
 import v2Router from "./v2";
 import reportsRouter from "./reports";
+import replayRouter from "./replay";
 
 const router: IRouter = Router();
 
@@ -36,5 +37,6 @@ router.use(memoryRouter);
 router.use(supervisorRouter);
 router.use(v2Router);
 router.use(reportsRouter);
+router.use(replayRouter);
 
 export default router;

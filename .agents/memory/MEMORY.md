@@ -5,3 +5,4 @@
 - [Trade Memory Engine](trade-memory-engine.md) — cluster key format, confidence adjustment formula, ranking composite, DB tables, hook points in paper-engine.
 - [Backtest Engine](backtest-engine.md) — zone-based engine bypasses full SMC pipeline (0 trades on synthetic data); stats.ts powers monthly/yearly/regime analytics.
 - [V2 Engine Suite](v2-engines.md) — MTF/TQI/dynamic-sizing/correlation/explanation/report engines; tsx test runner path; paper-engine V2 gate order; 68 tests pass.
+- [Replay Engine](replay-engine.md) — strategy validation & replay framework; zone detection gotcha, phase-based candle generator, test paths, bias detection.
