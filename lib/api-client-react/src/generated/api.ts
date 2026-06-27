@@ -45,6 +45,7 @@ import type {
   ExecutionLogResponse,
   GenerateReportInput,
   GenerateRobustnessReport200,
+  GenerateTiReport200,
   GetChecklistHistoryParams,
   GetEquityCurveParams,
   GetExecutionLogParams,
@@ -60,10 +61,13 @@ import type {
   GetRecoveryLogParams,
   GetStrategyHealthSnapshotsParams,
   GetSupervisorAlertsParams,
+  GetTiRecommendationParams,
+  GetTiSimilarSetupsParams,
   GetTimePerformanceParams,
   HealthStatus,
   LearningStats,
   ListReportsParams,
+  ListTiDecisionsParams,
   ListTradesParams,
   LiveJournalList,
   LiveModeInput,
@@ -102,6 +106,17 @@ import type {
   SupervisorAlert,
   SupervisorStatus,
   SwitchDeploymentModeBody,
+  TiComparison,
+  TiDecision,
+  TiDecisionDetail,
+  TiDecisionInput,
+  TiDecisionList,
+  TiDecisionPatch,
+  TiPsychology,
+  TiRecommendation,
+  TiScreenshot,
+  TiScreenshotInput,
+  TiSimilarList,
   TimePerformanceResponse,
   TopSetups,
   TqiResult,
@@ -6457,5 +6472,773 @@ export const useGenerateRobustnessReport = <TError = ErrorType<void>,
         TContext
       > => {
       return useMutation(getGenerateRobustnessReportMutationOptions(options));
+    }
+
+export const getListTiDecisionsUrl = (params?: ListTiDecisionsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/ti/decisions?${stringifiedParams}` : `/api/ti/decisions`
+}
+
+/**
+ * @summary List trader decisions
+ */
+export const listTiDecisions = async (params?: ListTiDecisionsParams, options?: RequestInit): Promise<TiDecisionList> => {
+
+  return customFetch<TiDecisionList>(getListTiDecisionsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListTiDecisionsQueryKey = (params?: ListTiDecisionsParams,) => {
+    return [
+    `/api/ti/decisions`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListTiDecisionsQueryOptions = <TData = Awaited<ReturnType<typeof listTiDecisions>>, TError = ErrorType<unknown>>(params?: ListTiDecisionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTiDecisions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListTiDecisionsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listTiDecisions>>> = ({ signal }) => listTiDecisions(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listTiDecisions>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListTiDecisionsQueryResult = NonNullable<Awaited<ReturnType<typeof listTiDecisions>>>
+export type ListTiDecisionsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List trader decisions
+ */
+
+export function useListTiDecisions<TData = Awaited<ReturnType<typeof listTiDecisions>>, TError = ErrorType<unknown>>(
+ params?: ListTiDecisionsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listTiDecisions>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListTiDecisionsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateTiDecisionUrl = () => {
+
+
+
+
+  return `/api/ti/decisions`
+}
+
+/**
+ * @summary Log a new trader decision for a setup
+ */
+export const createTiDecision = async (tiDecisionInput: TiDecisionInput, options?: RequestInit): Promise<TiDecision> => {
+
+  return customFetch<TiDecision>(getCreateTiDecisionUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tiDecisionInput,)
+  }
+);}
+
+
+
+
+export const getCreateTiDecisionMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTiDecision>>, TError,{data: BodyType<TiDecisionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createTiDecision>>, TError,{data: BodyType<TiDecisionInput>}, TContext> => {
+
+const mutationKey = ['createTiDecision'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createTiDecision>>, {data: BodyType<TiDecisionInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createTiDecision(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateTiDecisionMutationResult = NonNullable<Awaited<ReturnType<typeof createTiDecision>>>
+    export type CreateTiDecisionMutationBody = BodyType<TiDecisionInput>
+    export type CreateTiDecisionMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Log a new trader decision for a setup
+ */
+export const useCreateTiDecision = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createTiDecision>>, TError,{data: BodyType<TiDecisionInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createTiDecision>>,
+        TError,
+        {data: BodyType<TiDecisionInput>},
+        TContext
+      > => {
+      return useMutation(getCreateTiDecisionMutationOptions(options));
+    }
+
+export const getGetTiDecisionUrl = (id: number,) => {
+
+
+
+
+  return `/api/ti/decisions/${id}`
+}
+
+/**
+ * @summary Get a single trader decision
+ */
+export const getTiDecision = async (id: number, options?: RequestInit): Promise<TiDecisionDetail> => {
+
+  return customFetch<TiDecisionDetail>(getGetTiDecisionUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTiDecisionQueryKey = (id: number,) => {
+    return [
+    `/api/ti/decisions/${id}`
+    ] as const;
+    }
+
+
+export const getGetTiDecisionQueryOptions = <TData = Awaited<ReturnType<typeof getTiDecision>>, TError = ErrorType<void>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiDecision>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTiDecisionQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTiDecision>>> = ({ signal }) => getTiDecision(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTiDecision>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTiDecisionQueryResult = NonNullable<Awaited<ReturnType<typeof getTiDecision>>>
+export type GetTiDecisionQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get a single trader decision
+ */
+
+export function useGetTiDecision<TData = Awaited<ReturnType<typeof getTiDecision>>, TError = ErrorType<void>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiDecision>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTiDecisionQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateTiDecisionUrl = (id: number,) => {
+
+
+
+
+  return `/api/ti/decisions/${id}`
+}
+
+/**
+ * @summary Update outcome, notes, or confidence after setup resolves
+ */
+export const updateTiDecision = async (id: number,
+    tiDecisionPatch: TiDecisionPatch, options?: RequestInit): Promise<TiDecision> => {
+
+  return customFetch<TiDecision>(getUpdateTiDecisionUrl(id),
+  {
+    ...options,
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tiDecisionPatch,)
+  }
+);}
+
+
+
+
+export const getUpdateTiDecisionMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTiDecision>>, TError,{id: number;data: BodyType<TiDecisionPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateTiDecision>>, TError,{id: number;data: BodyType<TiDecisionPatch>}, TContext> => {
+
+const mutationKey = ['updateTiDecision'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateTiDecision>>, {id: number;data: BodyType<TiDecisionPatch>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateTiDecision(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateTiDecisionMutationResult = NonNullable<Awaited<ReturnType<typeof updateTiDecision>>>
+    export type UpdateTiDecisionMutationBody = BodyType<TiDecisionPatch>
+    export type UpdateTiDecisionMutationError = ErrorType<void>
+
+    /**
+ * @summary Update outcome, notes, or confidence after setup resolves
+ */
+export const useUpdateTiDecision = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateTiDecision>>, TError,{id: number;data: BodyType<TiDecisionPatch>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateTiDecision>>,
+        TError,
+        {id: number;data: BodyType<TiDecisionPatch>},
+        TContext
+      > => {
+      return useMutation(getUpdateTiDecisionMutationOptions(options));
+    }
+
+export const getAddTiScreenshotUrl = (id: number,) => {
+
+
+
+
+  return `/api/ti/decisions/${id}/screenshots`
+}
+
+/**
+ * @summary Attach a screenshot to a decision
+ */
+export const addTiScreenshot = async (id: number,
+    tiScreenshotInput: TiScreenshotInput, options?: RequestInit): Promise<TiScreenshot> => {
+
+  return customFetch<TiScreenshot>(getAddTiScreenshotUrl(id),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      tiScreenshotInput,)
+  }
+);}
+
+
+
+
+export const getAddTiScreenshotMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addTiScreenshot>>, TError,{id: number;data: BodyType<TiScreenshotInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof addTiScreenshot>>, TError,{id: number;data: BodyType<TiScreenshotInput>}, TContext> => {
+
+const mutationKey = ['addTiScreenshot'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof addTiScreenshot>>, {id: number;data: BodyType<TiScreenshotInput>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  addTiScreenshot(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type AddTiScreenshotMutationResult = NonNullable<Awaited<ReturnType<typeof addTiScreenshot>>>
+    export type AddTiScreenshotMutationBody = BodyType<TiScreenshotInput>
+    export type AddTiScreenshotMutationError = ErrorType<void>
+
+    /**
+ * @summary Attach a screenshot to a decision
+ */
+export const useAddTiScreenshot = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof addTiScreenshot>>, TError,{id: number;data: BodyType<TiScreenshotInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof addTiScreenshot>>,
+        TError,
+        {id: number;data: BodyType<TiScreenshotInput>},
+        TContext
+      > => {
+      return useMutation(getAddTiScreenshotMutationOptions(options));
+    }
+
+export const getGetTiSimilarSetupsUrl = (params: GetTiSimilarSetupsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/ti/similar?${stringifiedParams}` : `/api/ti/similar`
+}
+
+/**
+ * @summary Find the 10 most similar historical decisions by score vector
+ */
+export const getTiSimilarSetups = async (params: GetTiSimilarSetupsParams, options?: RequestInit): Promise<TiSimilarList> => {
+
+  return customFetch<TiSimilarList>(getGetTiSimilarSetupsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTiSimilarSetupsQueryKey = (params?: GetTiSimilarSetupsParams,) => {
+    return [
+    `/api/ti/similar`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTiSimilarSetupsQueryOptions = <TData = Awaited<ReturnType<typeof getTiSimilarSetups>>, TError = ErrorType<unknown>>(params: GetTiSimilarSetupsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiSimilarSetups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTiSimilarSetupsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTiSimilarSetups>>> = ({ signal }) => getTiSimilarSetups(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTiSimilarSetups>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTiSimilarSetupsQueryResult = NonNullable<Awaited<ReturnType<typeof getTiSimilarSetups>>>
+export type GetTiSimilarSetupsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Find the 10 most similar historical decisions by score vector
+ */
+
+export function useGetTiSimilarSetups<TData = Awaited<ReturnType<typeof getTiSimilarSetups>>, TError = ErrorType<unknown>>(
+ params: GetTiSimilarSetupsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiSimilarSetups>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTiSimilarSetupsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTiRecommendationUrl = (params: GetTiRecommendationParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/ti/recommendation?${stringifiedParams}` : `/api/ti/recommendation`
+}
+
+/**
+ * @summary Get recommendation panel stats for a given setup
+ */
+export const getTiRecommendation = async (params: GetTiRecommendationParams, options?: RequestInit): Promise<TiRecommendation> => {
+
+  return customFetch<TiRecommendation>(getGetTiRecommendationUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTiRecommendationQueryKey = (params?: GetTiRecommendationParams,) => {
+    return [
+    `/api/ti/recommendation`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetTiRecommendationQueryOptions = <TData = Awaited<ReturnType<typeof getTiRecommendation>>, TError = ErrorType<unknown>>(params: GetTiRecommendationParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiRecommendation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTiRecommendationQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTiRecommendation>>> = ({ signal }) => getTiRecommendation(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTiRecommendation>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTiRecommendationQueryResult = NonNullable<Awaited<ReturnType<typeof getTiRecommendation>>>
+export type GetTiRecommendationQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get recommendation panel stats for a given setup
+ */
+
+export function useGetTiRecommendation<TData = Awaited<ReturnType<typeof getTiRecommendation>>, TError = ErrorType<unknown>>(
+ params: GetTiRecommendationParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiRecommendation>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTiRecommendationQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTiPsychologyUrl = () => {
+
+
+
+
+  return `/api/ti/psychology`
+}
+
+/**
+ * @summary Confidence analytics over time and by dimension
+ */
+export const getTiPsychology = async ( options?: RequestInit): Promise<TiPsychology> => {
+
+  return customFetch<TiPsychology>(getGetTiPsychologyUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTiPsychologyQueryKey = () => {
+    return [
+    `/api/ti/psychology`
+    ] as const;
+    }
+
+
+export const getGetTiPsychologyQueryOptions = <TData = Awaited<ReturnType<typeof getTiPsychology>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiPsychology>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTiPsychologyQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTiPsychology>>> = ({ signal }) => getTiPsychology({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTiPsychology>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTiPsychologyQueryResult = NonNullable<Awaited<ReturnType<typeof getTiPsychology>>>
+export type GetTiPsychologyQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Confidence analytics over time and by dimension
+ */
+
+export function useGetTiPsychology<TData = Awaited<ReturnType<typeof getTiPsychology>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiPsychology>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTiPsychologyQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetTiComparisonUrl = () => {
+
+
+
+
+  return `/api/ti/comparison`
+}
+
+/**
+ * @summary Engine vs trader decision agreement analysis
+ */
+export const getTiComparison = async ( options?: RequestInit): Promise<TiComparison> => {
+
+  return customFetch<TiComparison>(getGetTiComparisonUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetTiComparisonQueryKey = () => {
+    return [
+    `/api/ti/comparison`
+    ] as const;
+    }
+
+
+export const getGetTiComparisonQueryOptions = <TData = Awaited<ReturnType<typeof getTiComparison>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiComparison>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetTiComparisonQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getTiComparison>>> = ({ signal }) => getTiComparison({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getTiComparison>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetTiComparisonQueryResult = NonNullable<Awaited<ReturnType<typeof getTiComparison>>>
+export type GetTiComparisonQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Engine vs trader decision agreement analysis
+ */
+
+export function useGetTiComparison<TData = Awaited<ReturnType<typeof getTiComparison>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getTiComparison>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetTiComparisonQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGenerateTiReportUrl = () => {
+
+
+
+
+  return `/api/ti/report`
+}
+
+/**
+ * @summary Generate TRADER_INTELLIGENCE_REPORT.md
+ */
+export const generateTiReport = async ( options?: RequestInit): Promise<GenerateTiReport200> => {
+
+  return customFetch<GenerateTiReport200>(getGenerateTiReportUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGenerateTiReportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateTiReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateTiReport>>, TError,void, TContext> => {
+
+const mutationKey = ['generateTiReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateTiReport>>, void> = () => {
+
+
+          return  generateTiReport(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateTiReportMutationResult = NonNullable<Awaited<ReturnType<typeof generateTiReport>>>
+
+    export type GenerateTiReportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate TRADER_INTELLIGENCE_REPORT.md
+ */
+export const useGenerateTiReport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateTiReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateTiReport>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getGenerateTiReportMutationOptions(options));
     }
 

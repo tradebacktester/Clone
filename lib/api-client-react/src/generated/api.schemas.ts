@@ -1733,6 +1733,151 @@ export interface RobustnessPipelineResult {
   confidenceStability?: RobustnessPipelineResultConfidenceStability;
 }
 
+export interface TiDecision {
+  id: number;
+  pair: string;
+  timeframes?: string;
+  session?: string | null;
+  regime?: string | null;
+  htfStructure?: string | null;
+  premiumDiscount?: string | null;
+  zoneScore?: number | null;
+  liquidityScore?: number | null;
+  amdScore?: number | null;
+  confirmScore?: number | null;
+  tqi?: number | null;
+  expectedRr?: number | null;
+  riskPct?: number | null;
+  traderDecision: string;
+  traderConfidence?: number | null;
+  traderNotes?: string | null;
+  contextTags?: string;
+  tradeId?: number | null;
+  outcome?: string | null;
+  engineDecision?: string | null;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+export interface TiScreenshot {
+  id: number;
+  decisionId: number;
+  url: string;
+  label?: string | null;
+  notes?: string | null;
+  createdAt: string;
+}
+
+export type TiDecisionDetail = TiDecision & {
+  screenshots?: TiScreenshot[];
+};
+
+export interface TiDecisionList {
+  decisions: TiDecision[];
+  total: number;
+}
+
+export interface TiDecisionInput {
+  pair: string;
+  timeframes?: string;
+  session?: string;
+  regime?: string;
+  htfStructure?: string;
+  premiumDiscount?: string;
+  zoneScore?: number;
+  liquidityScore?: number;
+  amdScore?: number;
+  confirmScore?: number;
+  tqi?: number;
+  expectedRr?: number;
+  riskPct?: number;
+  traderDecision: string;
+  traderConfidence?: number;
+  traderNotes?: string;
+  contextTags?: string;
+  tradeId?: number;
+  engineDecision?: string;
+}
+
+export interface TiDecisionPatch {
+  outcome?: string;
+  traderNotes?: string;
+  traderConfidence?: number;
+  contextTags?: string;
+}
+
+export interface TiScreenshotInput {
+  url: string;
+  label?: string;
+  notes?: string;
+}
+
+export interface TiSimilarItem {
+  decision: TiDecision;
+  similarityScore: number;
+}
+
+export type TiSimilarListQueryVector = { [key: string]: unknown };
+
+export interface TiSimilarList {
+  items: TiSimilarItem[];
+  queryVector?: TiSimilarListQueryVector;
+}
+
+export type TiRecommendationTopOutcomes = { [key: string]: unknown };
+
+export interface TiRecommendation {
+  totalMatches: number;
+  winRate?: number | null;
+  profitFactor?: number | null;
+  avgRr?: number | null;
+  avgConfidence?: number | null;
+  avgHoldTimeMins?: number | null;
+  recentComments?: string[];
+  topOutcomes?: TiRecommendationTopOutcomes;
+}
+
+export interface TiPsychologyPoint {
+  date: string;
+  avgConfidence: number;
+  count: number;
+}
+
+export type TiPsychologyByPairItem = { [key: string]: unknown };
+
+export type TiPsychologyBySessionItem = { [key: string]: unknown };
+
+export type TiPsychologyByRegimeItem = { [key: string]: unknown };
+
+export type TiPsychologyByDecisionItem = { [key: string]: unknown };
+
+export type TiPsychologyStreakEffect = { [key: string]: unknown };
+
+export interface TiPsychology {
+  overTime: TiPsychologyPoint[];
+  byPair: TiPsychologyByPairItem[];
+  bySession: TiPsychologyBySessionItem[];
+  byRegime: TiPsychologyByRegimeItem[];
+  byDecision: TiPsychologyByDecisionItem[];
+  streakEffect: TiPsychologyStreakEffect;
+}
+
+export interface TiComparisonCategory {
+  count: number;
+  winRate: number | null;
+  avgRr: number | null;
+  examples?: TiDecision[];
+}
+
+export interface TiComparison {
+  totalDecisions: number;
+  agreementRate: number;
+  bothAccepted: TiComparisonCategory;
+  botAcceptedTraderRejected: TiComparisonCategory;
+  traderAcceptedBotRejected: TiComparisonCategory;
+  bothRejected: TiComparisonCategory;
+}
+
 export type ListTradesParams = {
 status?: ListTradesStatus;
 pair?: string;
@@ -1927,6 +2072,38 @@ export type RunRobustnessPipeline200 = {
 };
 
 export type GenerateRobustnessReport200 = {
+  path: string;
+  content: string;
+  generatedAt: string;
+};
+
+export type ListTiDecisionsParams = {
+pair?: string;
+decision?: string;
+outcome?: string;
+limit?: number;
+offset?: number;
+};
+
+export type GetTiSimilarSetupsParams = {
+zoneScore: number;
+liquidityScore: number;
+amdScore: number;
+confirmScore: number;
+tqi: number;
+pair?: string;
+};
+
+export type GetTiRecommendationParams = {
+zoneScore: number;
+liquidityScore: number;
+amdScore: number;
+confirmScore: number;
+tqi: number;
+pair?: string;
+};
+
+export type GenerateTiReport200 = {
   path: string;
   content: string;
   generatedAt: string;

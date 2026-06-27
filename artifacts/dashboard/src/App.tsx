@@ -27,6 +27,7 @@ const DeploymentManager = lazy(() => import("@/pages/deployment"));
 const LiveJournal = lazy(() => import("@/pages/live-journal"));
 const ReadinessChecklist = lazy(() => import("@/pages/readiness-checklist"));
 const Robustness = lazy(() => import("@/pages/robustness"));
+const TraderIntelligence = lazy(() => import("@/pages/trader-intelligence"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -71,6 +72,7 @@ function Router() {
           <Route path="/live-journal" component={LiveJournal} />
           <Route path="/readiness-checklist" component={ReadinessChecklist} />
           <Route path="/robustness" component={Robustness} />
+          <Route path="/trader-intelligence" component={TraderIntelligence} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

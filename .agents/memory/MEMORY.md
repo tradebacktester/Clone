@@ -10,3 +10,4 @@
 - [Live Trading Readiness Framework](live-readiness-framework.md) — 8-component safety layer; paper→demo→live gate logic, broker safety config, readiness checklist thresholds, recovery engine startup flow.
 - [Robustness Framework](robustness-framework.md) — 7-engine stress-testing suite; route path prefix gotcha, execution-stress seed fix, report generator export path.
 - [5-Part Audit](audit-findings.md) — code/security/performance/explainability/production-readiness audit; key fixes applied; critical blockers documented.
+- [Trader Intelligence Layer](trader-intelligence-layer.md) — Vasu Decision Model; advisory only; score-vector similarity; DB tables ti_decisions+ti_screenshots; 46 tests pass.

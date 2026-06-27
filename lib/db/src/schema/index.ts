@@ -13,3 +13,4 @@ export * from "./replay";
 export * from "./historical";
 export * from "./readiness";
 export * from "./robustness";
+export * from "./trader-intelligence";

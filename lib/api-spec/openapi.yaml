@@ -1417,6 +1417,256 @@ paths:
         "404":
           description: No robustness result available
 
+  # ── Trader Intelligence (Vasu Decision Model) ─────────────────────────────
+  /ti/decisions:
+    get:
+      operationId: listTiDecisions
+      summary: List trader decisions
+      parameters:
+        - in: query
+          name: pair
+          schema:
+            type: string
+        - in: query
+          name: decision
+          schema:
+            type: string
+        - in: query
+          name: outcome
+          schema:
+            type: string
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiDecisionList"
+    post:
+      operationId: createTiDecision
+      summary: Log a new trader decision for a setup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TiDecisionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiDecision"
+
+  /ti/decisions/{id}:
+    get:
+      operationId: getTiDecision
+      summary: Get a single trader decision
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiDecisionDetail"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateTiDecision
+      summary: Update outcome, notes, or confidence after setup resolves
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TiDecisionPatch"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiDecision"
+        "404":
+          description: Not found
+
+  /ti/decisions/{id}/screenshots:
+    post:
+      operationId: addTiScreenshot
+      summary: Attach a screenshot to a decision
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TiScreenshotInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiScreenshot"
+        "404":
+          description: Decision not found
+
+  /ti/similar:
+    get:
+      operationId: getTiSimilarSetups
+      summary: Find the 10 most similar historical decisions by score vector
+      parameters:
+        - in: query
+          name: zoneScore
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: liquidityScore
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: amdScore
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: confirmScore
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: tqi
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: pair
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiSimilarList"
+
+  /ti/recommendation:
+    get:
+      operationId: getTiRecommendation
+      summary: Get recommendation panel stats for a given setup
+      parameters:
+        - in: query
+          name: zoneScore
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: liquidityScore
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: amdScore
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: confirmScore
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: tqi
+          required: true
+          schema:
+            type: number
+        - in: query
+          name: pair
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiRecommendation"
+
+  /ti/psychology:
+    get:
+      operationId: getTiPsychology
+      summary: Confidence analytics over time and by dimension
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiPsychology"
+
+  /ti/comparison:
+    get:
+      operationId: getTiComparison
+      summary: Engine vs trader decision agreement analysis
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TiComparison"
+
+  /ti/report:
+    post:
+      operationId: generateTiReport
+      summary: Generate TRADER_INTELLIGENCE_REPORT.md
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [path, content, generatedAt]
+                properties:
+                  path:
+                    type: string
+                  content:
+                    type: string
+                  generatedAt:
+                    type: string
+
 components:
   schemas:
 
@@ -4090,3 +4340,298 @@ components:
         confidenceStability:
           type: object
           description: ConfidenceStabilityResult
+
+    # ── Trader Intelligence Schemas ───────────────────────────────────────────
+
+    TiDecision:
+      type: object
+      required: [id, pair, traderDecision, createdAt]
+      properties:
+        id:
+          type: integer
+        pair:
+          type: string
+        timeframes:
+          type: string
+        session:
+          type: string
+          nullable: true
+        regime:
+          type: string
+          nullable: true
+        htfStructure:
+          type: string
+          nullable: true
+        premiumDiscount:
+          type: string
+          nullable: true
+        zoneScore:
+          type: number
+          nullable: true
+        liquidityScore:
+          type: number
+          nullable: true
+        amdScore:
+          type: number
+          nullable: true
+        confirmScore:
+          type: number
+          nullable: true
+        tqi:
+          type: number
+          nullable: true
+        expectedRr:
+          type: number
+          nullable: true
+        riskPct:
+          type: number
+          nullable: true
+        traderDecision:
+          type: string
+        traderConfidence:
+          type: integer
+          nullable: true
+        traderNotes:
+          type: string
+          nullable: true
+        contextTags:
+          type: string
+        tradeId:
+          type: integer
+          nullable: true
+        outcome:
+          type: string
+          nullable: true
+        engineDecision:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    TiDecisionDetail:
+      allOf:
+        - $ref: "#/components/schemas/TiDecision"
+        - type: object
+          properties:
+            screenshots:
+              type: array
+              items:
+                $ref: "#/components/schemas/TiScreenshot"
+
+    TiDecisionList:
+      type: object
+      required: [decisions, total]
+      properties:
+        decisions:
+          type: array
+          items:
+            $ref: "#/components/schemas/TiDecision"
+        total:
+          type: integer
+
+    TiDecisionInput:
+      type: object
+      required: [pair, traderDecision]
+      properties:
+        pair:
+          type: string
+        timeframes:
+          type: string
+        session:
+          type: string
+        regime:
+          type: string
+        htfStructure:
+          type: string
+        premiumDiscount:
+          type: string
+        zoneScore:
+          type: number
+        liquidityScore:
+          type: number
+        amdScore:
+          type: number
+        confirmScore:
+          type: number
+        tqi:
+          type: number
+        expectedRr:
+          type: number
+        riskPct:
+          type: number
+        traderDecision:
+          type: string
+        traderConfidence:
+          type: integer
+        traderNotes:
+          type: string
+        contextTags:
+          type: string
+        tradeId:
+          type: integer
+        engineDecision:
+          type: string
+
+    TiDecisionPatch:
+      type: object
+      properties:
+        outcome:
+          type: string
+        traderNotes:
+          type: string
+        traderConfidence:
+          type: integer
+        contextTags:
+          type: string
+
+    TiScreenshot:
+      type: object
+      required: [id, decisionId, url, createdAt]
+      properties:
+        id:
+          type: integer
+        decisionId:
+          type: integer
+        url:
+          type: string
+        label:
+          type: string
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+
+    TiScreenshotInput:
+      type: object
+      required: [url]
+      properties:
+        url:
+          type: string
+        label:
+          type: string
+        notes:
+          type: string
+
+    TiSimilarItem:
+      type: object
+      required: [decision, similarityScore]
+      properties:
+        decision:
+          $ref: "#/components/schemas/TiDecision"
+        similarityScore:
+          type: number
+
+    TiSimilarList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/TiSimilarItem"
+        queryVector:
+          type: object
+
+    TiRecommendation:
+      type: object
+      required: [totalMatches]
+      properties:
+        totalMatches:
+          type: integer
+        winRate:
+          type: number
+          nullable: true
+        profitFactor:
+          type: number
+          nullable: true
+        avgRr:
+          type: number
+          nullable: true
+        avgConfidence:
+          type: number
+          nullable: true
+        avgHoldTimeMins:
+          type: number
+          nullable: true
+        recentComments:
+          type: array
+          items:
+            type: string
+        topOutcomes:
+          type: object
+
+    TiPsychologyPoint:
+      type: object
+      required: [date, avgConfidence, count]
+      properties:
+        date:
+          type: string
+        avgConfidence:
+          type: number
+        count:
+          type: integer
+
+    TiPsychology:
+      type: object
+      required: [overTime, byPair, bySession, byRegime, byDecision, streakEffect]
+      properties:
+        overTime:
+          type: array
+          items:
+            $ref: "#/components/schemas/TiPsychologyPoint"
+        byPair:
+          type: array
+          items:
+            type: object
+        bySession:
+          type: array
+          items:
+            type: object
+        byRegime:
+          type: array
+          items:
+            type: object
+        byDecision:
+          type: array
+          items:
+            type: object
+        streakEffect:
+          type: object
+
+    TiComparisonCategory:
+      type: object
+      required: [count, winRate, avgRr]
+      properties:
+        count:
+          type: integer
+        winRate:
+          type: number
+          nullable: true
+        avgRr:
+          type: number
+          nullable: true
+        examples:
+          type: array
+          items:
+            $ref: "#/components/schemas/TiDecision"
+
+    TiComparison:
+      type: object
+      required: [totalDecisions, agreementRate, bothAccepted, botAcceptedTraderRejected, traderAcceptedBotRejected, bothRejected]
+      properties:
+        totalDecisions:
+          type: integer
+        agreementRate:
+          type: number
+        bothAccepted:
+          $ref: "#/components/schemas/TiComparisonCategory"
+        botAcceptedTraderRejected:
+          $ref: "#/components/schemas/TiComparisonCategory"
+        traderAcceptedBotRejected:
+          $ref: "#/components/schemas/TiComparisonCategory"
+        bothRejected:
+          $ref: "#/components/schemas/TiComparisonCategory"

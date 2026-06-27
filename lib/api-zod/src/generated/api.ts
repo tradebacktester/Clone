@@ -2345,3 +2345,410 @@ export const GenerateRobustnessReportResponse = zod.object({
 })
 
 
+/**
+ * @summary List trader decisions
+ */
+export const listTiDecisionsQueryLimitDefault = 50;
+export const listTiDecisionsQueryOffsetDefault = 0;
+
+export const ListTiDecisionsQueryParams = zod.object({
+  "pair": zod.coerce.string().optional(),
+  "decision": zod.coerce.string().optional(),
+  "outcome": zod.coerce.string().optional(),
+  "limit": zod.coerce.number().default(listTiDecisionsQueryLimitDefault),
+  "offset": zod.coerce.number().default(listTiDecisionsQueryOffsetDefault)
+})
+
+export const ListTiDecisionsResponse = zod.object({
+  "decisions": zod.array(zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "timeframes": zod.string().optional(),
+  "session": zod.string().nullish(),
+  "regime": zod.string().nullish(),
+  "htfStructure": zod.string().nullish(),
+  "premiumDiscount": zod.string().nullish(),
+  "zoneScore": zod.number().nullish(),
+  "liquidityScore": zod.number().nullish(),
+  "amdScore": zod.number().nullish(),
+  "confirmScore": zod.number().nullish(),
+  "tqi": zod.number().nullish(),
+  "expectedRr": zod.number().nullish(),
+  "riskPct": zod.number().nullish(),
+  "traderDecision": zod.string(),
+  "traderConfidence": zod.number().nullish(),
+  "traderNotes": zod.string().nullish(),
+  "contextTags": zod.string().optional(),
+  "tradeId": zod.number().nullish(),
+  "outcome": zod.string().nullish(),
+  "engineDecision": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Log a new trader decision for a setup
+ */
+export const CreateTiDecisionBody = zod.object({
+  "pair": zod.string(),
+  "timeframes": zod.string().optional(),
+  "session": zod.string().optional(),
+  "regime": zod.string().optional(),
+  "htfStructure": zod.string().optional(),
+  "premiumDiscount": zod.string().optional(),
+  "zoneScore": zod.number().optional(),
+  "liquidityScore": zod.number().optional(),
+  "amdScore": zod.number().optional(),
+  "confirmScore": zod.number().optional(),
+  "tqi": zod.number().optional(),
+  "expectedRr": zod.number().optional(),
+  "riskPct": zod.number().optional(),
+  "traderDecision": zod.string(),
+  "traderConfidence": zod.number().optional(),
+  "traderNotes": zod.string().optional(),
+  "contextTags": zod.string().optional(),
+  "tradeId": zod.number().optional(),
+  "engineDecision": zod.string().optional()
+})
+
+
+/**
+ * @summary Get a single trader decision
+ */
+export const GetTiDecisionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const GetTiDecisionResponse = zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "timeframes": zod.string().optional(),
+  "session": zod.string().nullish(),
+  "regime": zod.string().nullish(),
+  "htfStructure": zod.string().nullish(),
+  "premiumDiscount": zod.string().nullish(),
+  "zoneScore": zod.number().nullish(),
+  "liquidityScore": zod.number().nullish(),
+  "amdScore": zod.number().nullish(),
+  "confirmScore": zod.number().nullish(),
+  "tqi": zod.number().nullish(),
+  "expectedRr": zod.number().nullish(),
+  "riskPct": zod.number().nullish(),
+  "traderDecision": zod.string(),
+  "traderConfidence": zod.number().nullish(),
+  "traderNotes": zod.string().nullish(),
+  "contextTags": zod.string().optional(),
+  "tradeId": zod.number().nullish(),
+  "outcome": zod.string().nullish(),
+  "engineDecision": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+}).and(zod.object({
+  "screenshots": zod.array(zod.object({
+  "id": zod.number(),
+  "decisionId": zod.number(),
+  "url": zod.string(),
+  "label": zod.string().nullish(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})).optional()
+}))
+
+
+/**
+ * @summary Update outcome, notes, or confidence after setup resolves
+ */
+export const UpdateTiDecisionParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateTiDecisionBody = zod.object({
+  "outcome": zod.string().optional(),
+  "traderNotes": zod.string().optional(),
+  "traderConfidence": zod.number().optional(),
+  "contextTags": zod.string().optional()
+})
+
+export const UpdateTiDecisionResponse = zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "timeframes": zod.string().optional(),
+  "session": zod.string().nullish(),
+  "regime": zod.string().nullish(),
+  "htfStructure": zod.string().nullish(),
+  "premiumDiscount": zod.string().nullish(),
+  "zoneScore": zod.number().nullish(),
+  "liquidityScore": zod.number().nullish(),
+  "amdScore": zod.number().nullish(),
+  "confirmScore": zod.number().nullish(),
+  "tqi": zod.number().nullish(),
+  "expectedRr": zod.number().nullish(),
+  "riskPct": zod.number().nullish(),
+  "traderDecision": zod.string(),
+  "traderConfidence": zod.number().nullish(),
+  "traderNotes": zod.string().nullish(),
+  "contextTags": zod.string().optional(),
+  "tradeId": zod.number().nullish(),
+  "outcome": zod.string().nullish(),
+  "engineDecision": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Attach a screenshot to a decision
+ */
+export const AddTiScreenshotParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const AddTiScreenshotBody = zod.object({
+  "url": zod.string(),
+  "label": zod.string().optional(),
+  "notes": zod.string().optional()
+})
+
+
+/**
+ * @summary Find the 10 most similar historical decisions by score vector
+ */
+export const GetTiSimilarSetupsQueryParams = zod.object({
+  "zoneScore": zod.coerce.number(),
+  "liquidityScore": zod.coerce.number(),
+  "amdScore": zod.coerce.number(),
+  "confirmScore": zod.coerce.number(),
+  "tqi": zod.coerce.number(),
+  "pair": zod.coerce.string().optional()
+})
+
+export const GetTiSimilarSetupsResponse = zod.object({
+  "items": zod.array(zod.object({
+  "decision": zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "timeframes": zod.string().optional(),
+  "session": zod.string().nullish(),
+  "regime": zod.string().nullish(),
+  "htfStructure": zod.string().nullish(),
+  "premiumDiscount": zod.string().nullish(),
+  "zoneScore": zod.number().nullish(),
+  "liquidityScore": zod.number().nullish(),
+  "amdScore": zod.number().nullish(),
+  "confirmScore": zod.number().nullish(),
+  "tqi": zod.number().nullish(),
+  "expectedRr": zod.number().nullish(),
+  "riskPct": zod.number().nullish(),
+  "traderDecision": zod.string(),
+  "traderConfidence": zod.number().nullish(),
+  "traderNotes": zod.string().nullish(),
+  "contextTags": zod.string().optional(),
+  "tradeId": zod.number().nullish(),
+  "outcome": zod.string().nullish(),
+  "engineDecision": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+}),
+  "similarityScore": zod.number()
+})),
+  "queryVector": zod.object({
+
+}).passthrough().optional()
+})
+
+
+/**
+ * @summary Get recommendation panel stats for a given setup
+ */
+export const GetTiRecommendationQueryParams = zod.object({
+  "zoneScore": zod.coerce.number(),
+  "liquidityScore": zod.coerce.number(),
+  "amdScore": zod.coerce.number(),
+  "confirmScore": zod.coerce.number(),
+  "tqi": zod.coerce.number(),
+  "pair": zod.coerce.string().optional()
+})
+
+export const GetTiRecommendationResponse = zod.object({
+  "totalMatches": zod.number(),
+  "winRate": zod.number().nullish(),
+  "profitFactor": zod.number().nullish(),
+  "avgRr": zod.number().nullish(),
+  "avgConfidence": zod.number().nullish(),
+  "avgHoldTimeMins": zod.number().nullish(),
+  "recentComments": zod.array(zod.string()).optional(),
+  "topOutcomes": zod.object({
+
+}).passthrough().optional()
+})
+
+
+/**
+ * @summary Confidence analytics over time and by dimension
+ */
+export const GetTiPsychologyResponse = zod.object({
+  "overTime": zod.array(zod.object({
+  "date": zod.string(),
+  "avgConfidence": zod.number(),
+  "count": zod.number()
+})),
+  "byPair": zod.array(zod.object({
+
+}).passthrough()),
+  "bySession": zod.array(zod.object({
+
+}).passthrough()),
+  "byRegime": zod.array(zod.object({
+
+}).passthrough()),
+  "byDecision": zod.array(zod.object({
+
+}).passthrough()),
+  "streakEffect": zod.object({
+
+}).passthrough()
+})
+
+
+/**
+ * @summary Engine vs trader decision agreement analysis
+ */
+export const GetTiComparisonResponse = zod.object({
+  "totalDecisions": zod.number(),
+  "agreementRate": zod.number(),
+  "bothAccepted": zod.object({
+  "count": zod.number(),
+  "winRate": zod.number().nullable(),
+  "avgRr": zod.number().nullable(),
+  "examples": zod.array(zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "timeframes": zod.string().optional(),
+  "session": zod.string().nullish(),
+  "regime": zod.string().nullish(),
+  "htfStructure": zod.string().nullish(),
+  "premiumDiscount": zod.string().nullish(),
+  "zoneScore": zod.number().nullish(),
+  "liquidityScore": zod.number().nullish(),
+  "amdScore": zod.number().nullish(),
+  "confirmScore": zod.number().nullish(),
+  "tqi": zod.number().nullish(),
+  "expectedRr": zod.number().nullish(),
+  "riskPct": zod.number().nullish(),
+  "traderDecision": zod.string(),
+  "traderConfidence": zod.number().nullish(),
+  "traderNotes": zod.string().nullish(),
+  "contextTags": zod.string().optional(),
+  "tradeId": zod.number().nullish(),
+  "outcome": zod.string().nullish(),
+  "engineDecision": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})).optional()
+}),
+  "botAcceptedTraderRejected": zod.object({
+  "count": zod.number(),
+  "winRate": zod.number().nullable(),
+  "avgRr": zod.number().nullable(),
+  "examples": zod.array(zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "timeframes": zod.string().optional(),
+  "session": zod.string().nullish(),
+  "regime": zod.string().nullish(),
+  "htfStructure": zod.string().nullish(),
+  "premiumDiscount": zod.string().nullish(),
+  "zoneScore": zod.number().nullish(),
+  "liquidityScore": zod.number().nullish(),
+  "amdScore": zod.number().nullish(),
+  "confirmScore": zod.number().nullish(),
+  "tqi": zod.number().nullish(),
+  "expectedRr": zod.number().nullish(),
+  "riskPct": zod.number().nullish(),
+  "traderDecision": zod.string(),
+  "traderConfidence": zod.number().nullish(),
+  "traderNotes": zod.string().nullish(),
+  "contextTags": zod.string().optional(),
+  "tradeId": zod.number().nullish(),
+  "outcome": zod.string().nullish(),
+  "engineDecision": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})).optional()
+}),
+  "traderAcceptedBotRejected": zod.object({
+  "count": zod.number(),
+  "winRate": zod.number().nullable(),
+  "avgRr": zod.number().nullable(),
+  "examples": zod.array(zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "timeframes": zod.string().optional(),
+  "session": zod.string().nullish(),
+  "regime": zod.string().nullish(),
+  "htfStructure": zod.string().nullish(),
+  "premiumDiscount": zod.string().nullish(),
+  "zoneScore": zod.number().nullish(),
+  "liquidityScore": zod.number().nullish(),
+  "amdScore": zod.number().nullish(),
+  "confirmScore": zod.number().nullish(),
+  "tqi": zod.number().nullish(),
+  "expectedRr": zod.number().nullish(),
+  "riskPct": zod.number().nullish(),
+  "traderDecision": zod.string(),
+  "traderConfidence": zod.number().nullish(),
+  "traderNotes": zod.string().nullish(),
+  "contextTags": zod.string().optional(),
+  "tradeId": zod.number().nullish(),
+  "outcome": zod.string().nullish(),
+  "engineDecision": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})).optional()
+}),
+  "bothRejected": zod.object({
+  "count": zod.number(),
+  "winRate": zod.number().nullable(),
+  "avgRr": zod.number().nullable(),
+  "examples": zod.array(zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "timeframes": zod.string().optional(),
+  "session": zod.string().nullish(),
+  "regime": zod.string().nullish(),
+  "htfStructure": zod.string().nullish(),
+  "premiumDiscount": zod.string().nullish(),
+  "zoneScore": zod.number().nullish(),
+  "liquidityScore": zod.number().nullish(),
+  "amdScore": zod.number().nullish(),
+  "confirmScore": zod.number().nullish(),
+  "tqi": zod.number().nullish(),
+  "expectedRr": zod.number().nullish(),
+  "riskPct": zod.number().nullish(),
+  "traderDecision": zod.string(),
+  "traderConfidence": zod.number().nullish(),
+  "traderNotes": zod.string().nullish(),
+  "contextTags": zod.string().optional(),
+  "tradeId": zod.number().nullish(),
+  "outcome": zod.string().nullish(),
+  "engineDecision": zod.string().nullish(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string().optional()
+})).optional()
+})
+})
+
+
+/**
+ * @summary Generate TRADER_INTELLIGENCE_REPORT.md
+ */
+export const GenerateTiReportResponse = zod.object({
+  "path": zod.string(),
+  "content": zod.string(),
+  "generatedAt": zod.string()
+})
+
+

@@ -23,6 +23,7 @@ import deploymentRouter from "./deployment";
 import readinessChecklistRouter from "./readiness-checklist";
 import liveJournalRouter from "./live-journal";
 import robustnessRouter from "./robustness";
+import traderIntelligenceRouter from "./trader-intelligence";
 
 const router: IRouter = Router();
 
@@ -50,5 +51,6 @@ router.use(deploymentRouter);
 router.use(readinessChecklistRouter);
 router.use(liveJournalRouter);
 router.use(robustnessRouter);
+router.use(traderIntelligenceRouter);
 
 export default router;

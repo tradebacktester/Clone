@@ -23,6 +23,7 @@ import {
   BookOpen,
   ClipboardCheck,
   FlaskConical,
+  Lightbulb,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -45,6 +46,7 @@ export function NavSidebar() {
     { href: "/replay", label: "Replay", icon: Rewind },
     { href: "/historical", label: "Historical", icon: Database },
     { href: "/robustness", label: "Robustness", icon: FlaskConical },
+    { href: "/trader-intelligence", label: "Trader Intel.", icon: Lightbulb },
     { href: "/production-readiness", label: "Prod. Readiness", icon: ShieldAlert },
     { href: "/deployment", label: "Deployment", icon: Server },
     { href: "/readiness-checklist", label: "Live Readiness", icon: ClipboardCheck },
