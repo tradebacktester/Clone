@@ -575,12 +575,12 @@ export default function PaperTrading() {
   }));
 
   return (
-    <div className="flex-1 overflow-auto bg-background p-6 space-y-6">
+    <div className="flex-1 overflow-auto bg-background p-3 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold font-mono uppercase tracking-tight flex items-center gap-2">
-            <Activity className="w-6 h-6 text-primary" />
+          <h1 className="text-xl sm:text-2xl font-bold font-mono uppercase tracking-tight flex items-center gap-2">
+            <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             Paper Trading Workspace
           </h1>
           <p className="text-muted-foreground text-sm mt-1 font-mono">Live simulation — no real trades executed</p>
@@ -612,7 +612,7 @@ export default function PaperTrading() {
       </div>
 
       {/* Signal Stats Row */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="border-border bg-card">
           <CardContent className="p-3 flex items-center gap-3">
             <Radio className="w-4 h-4 text-primary" />

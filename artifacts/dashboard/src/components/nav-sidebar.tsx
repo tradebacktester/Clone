@@ -29,10 +29,15 @@ import {
   Shield,
   Zap,
   HelpCircle,
+  X,
 } from "lucide-react";
 import { GuideModal } from "./guide-modal";
 
-export function NavSidebar() {
+interface NavSidebarProps {
+  onClose?: () => void;
+}
+
+export function NavSidebar({ onClose }: NavSidebarProps = {}) {
   const [location] = useLocation();
   const [guideOpen, setGuideOpen] = useState(false);
 
@@ -70,17 +75,26 @@ export function NavSidebar() {
 
   return (
     <>
-      <aside className="w-64 border-r border-border bg-sidebar flex-shrink-0 flex flex-col h-full">
-        {/* Logo */}
-        <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+      <aside className="w-64 border-r border-border bg-sidebar flex flex-col h-full">
+        {/* Logo row — with close button when used as mobile drawer */}
+        <div className="px-4 py-3 border-b border-border flex items-center gap-3 flex-shrink-0">
           <img
             src="/krytos-logo.png"
             alt="Krytos"
             className="w-8 h-8 rounded object-cover flex-shrink-0"
           />
-          <span className="font-bold text-lg tracking-widest uppercase">
+          <span className="font-bold text-lg tracking-widest uppercase flex-1">
             KRY<span className="text-red-500">T</span>OS
           </span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="p-1.5 rounded hover:bg-sidebar-accent transition-colors flex-shrink-0"
+              aria-label="Close menu"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </div>
 
         {/* Nav items */}
@@ -96,16 +110,17 @@ export function NavSidebar() {
             const Icon = item.icon;
             const isActive = location === item.href || (item.href !== "/" && item.href !== "#" && location.startsWith(item.href));
             return (
-              <Link 
-                key={item.href} 
+              <Link
+                key={item.href}
                 href={item.href}
+                onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  isActive 
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
                     : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                 }`}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-4 h-4 flex-shrink-0" />
                 {item.label}
               </Link>
             );
@@ -118,7 +133,7 @@ export function NavSidebar() {
             onClick={() => setGuideOpen(true)}
             className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
           >
-            <HelpCircle className="w-4 h-4" />
+            <HelpCircle className="w-4 h-4 flex-shrink-0" />
             How to Use Krytos
           </button>
         </div>

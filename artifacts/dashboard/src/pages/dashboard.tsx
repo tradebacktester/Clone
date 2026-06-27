@@ -47,21 +47,21 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex-1 overflow-auto bg-background p-6 space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="flex-1 overflow-auto bg-background p-3 sm:p-6 space-y-4 sm:space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold font-mono uppercase tracking-tight flex items-center gap-2">
-            <Activity className="w-6 h-6 text-primary" />
+          <h1 className="text-xl sm:text-2xl font-bold font-mono uppercase tracking-tight flex items-center gap-2">
+            <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-primary" />
             Terminal Overview
           </h1>
           <p className="text-muted-foreground text-sm mt-1">Live market data and bot performance.</p>
         </div>
         
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 flex-wrap">
           {isLoadingStatus ? (
             <Skeleton className="w-32 h-10" />
           ) : (
-            <div className="flex items-center gap-3 bg-muted px-4 py-2 rounded-md border border-border">
+            <div className="flex items-center gap-2 sm:gap-3 bg-muted px-3 sm:px-4 py-2 rounded-md border border-border flex-wrap">
               <div className="flex items-center gap-2">
                 <span className="relative flex h-3 w-3">
                   {botStatus?.running && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-success opacity-75"></span>}
@@ -71,14 +71,14 @@ export default function Dashboard() {
                   {botStatus?.running ? "Online" : "Offline"}
                 </span>
               </div>
-              <div className="h-4 w-[1px] bg-border mx-1" />
+              <div className="h-4 w-[1px] bg-border mx-1 hidden sm:block" />
               <Badge variant="outline" className="font-mono bg-background">
                 {botStatus?.mode}
               </Badge>
               <Button 
                 size="sm" 
                 variant={botStatus?.running ? "destructive" : "default"}
-                className="ml-2 h-7 font-mono uppercase text-xs"
+                className="h-7 font-mono uppercase text-xs"
                 onClick={handleToggleBot}
                 disabled={startBot.isPending || stopBot.isPending}
               >
