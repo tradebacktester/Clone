@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { 
   LayoutDashboard, 
@@ -27,10 +28,13 @@ import {
   Scale,
   Shield,
   Zap,
+  HelpCircle,
 } from "lucide-react";
+import { GuideModal } from "./guide-modal";
 
 export function NavSidebar() {
   const [location] = useLocation();
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const navItems = [
     { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -65,38 +69,56 @@ export function NavSidebar() {
   ];
 
   return (
-    <aside className="w-64 border-r border-border bg-sidebar flex-shrink-0 flex flex-col h-full">
-      <div className="p-4 border-b border-border flex items-center gap-2">
-        <Activity className="w-6 h-6 text-primary" />
-        <span className="font-bold text-lg tracking-tight uppercase">TradeClone AI</span>
-      </div>
-      <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item, idx) => {
-          if ((item as Record<string, unknown>).divider) {
+    <>
+      <aside className="w-64 border-r border-border bg-sidebar flex-shrink-0 flex flex-col h-full">
+        {/* Logo */}
+        <div className="p-4 border-b border-border flex items-center gap-2">
+          <Activity className="w-6 h-6 text-primary" />
+          <span className="font-bold text-lg tracking-tight uppercase">Krytos</span>
+        </div>
+
+        {/* Nav items */}
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          {navItems.map((item, idx) => {
+            if ((item as Record<string, unknown>).divider) {
+              return (
+                <div key={idx} className="pt-3 pb-1 px-3">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground/60">{item.label}</span>
+                </div>
+              );
+            }
+            const Icon = item.icon;
+            const isActive = location === item.href || (item.href !== "/" && item.href !== "#" && location.startsWith(item.href));
             return (
-              <div key={idx} className="pt-3 pb-1 px-3">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground/60">{item.label}</span>
-              </div>
+              <Link 
+                key={item.href} 
+                href={item.href}
+                className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  isActive 
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground" 
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {item.label}
+              </Link>
             );
-          }
-          const Icon = item.icon;
-          const isActive = location === item.href || (item.href !== "/" && item.href !== "#" && location.startsWith(item.href));
-          return (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                isActive 
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground" 
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
-    </aside>
+          })}
+        </nav>
+
+        {/* Help button */}
+        <div className="p-4 border-t border-border flex-shrink-0">
+          <button
+            onClick={() => setGuideOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-md text-sm font-medium transition-colors bg-primary/10 text-primary hover:bg-primary/20 border border-primary/20"
+          >
+            <HelpCircle className="w-4 h-4" />
+            How to Use Krytos
+          </button>
+        </div>
+      </aside>
+
+      <GuideModal isOpen={guideOpen} onClose={() => setGuideOpen(false)} />
+    </>
   );
 }
