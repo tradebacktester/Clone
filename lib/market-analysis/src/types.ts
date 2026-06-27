@@ -179,6 +179,14 @@ export interface BacktestResult {
   monthlyReturns: import("./backtest/stats.js").MonthlyReturn[];
   yearlyReturns: import("./backtest/stats.js").YearlyReturn[];
   regimeStats: import("./backtest/stats.js").RegimeStats[];
+  /** Name of the data provider that supplied the candles */
+  dataSource?: string;
+  /** True only if synthetic candles were used — should never happen for validation */
+  dataSynthetic?: boolean;
+  /** Warnings from the data provider (gaps, limited history, etc.) */
+  dataWarnings?: string[];
+  /** Coverage % of real candles vs expected bars */
+  dataCoveragePct?: number;
 }
 
 export interface PatternScore {

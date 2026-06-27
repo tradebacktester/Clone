@@ -47,6 +47,10 @@ function buildBacktestResponse(bt: BtRow, result: Awaited<ReturnType<typeof runB
     monthlyReturns: result.monthlyReturns,
     yearlyReturns: result.yearlyReturns,
     regimeStats: result.regimeStats,
+    dataSource: result.dataSource,
+    dataSynthetic: result.dataSynthetic,
+    dataWarnings: result.dataWarnings,
+    dataCoveragePct: result.dataCoveragePct,
     createdAt: bt.createdAt?.toISOString() ?? new Date().toISOString(),
   };
 }

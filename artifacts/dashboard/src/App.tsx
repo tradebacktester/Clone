@@ -19,6 +19,7 @@ import Insights from "@/pages/insights";
 import Reports from "@/pages/reports";
 import TimePerformance from "@/pages/time-performance";
 import Replay from "@/pages/replay";
+import Historical from "@/pages/historical";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -48,6 +49,7 @@ function Router() {
         <Route path="/reports" component={Reports} />
         <Route path="/time-performance" component={TimePerformance} />
         <Route path="/replay" component={Replay} />
+        <Route path="/historical" component={Historical} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

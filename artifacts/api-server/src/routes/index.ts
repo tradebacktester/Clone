@@ -17,6 +17,7 @@ import supervisorRouter from "./supervisor";
 import v2Router from "./v2";
 import reportsRouter from "./reports";
 import replayRouter from "./replay";
+import historicalRouter from "./historical";
 
 const router: IRouter = Router();
 
@@ -38,5 +39,6 @@ router.use(supervisorRouter);
 router.use(v2Router);
 router.use(reportsRouter);
 router.use(replayRouter);
+router.use(historicalRouter);
 
 export default router;

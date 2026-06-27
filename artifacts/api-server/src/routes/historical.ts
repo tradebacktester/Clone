@@ -17,7 +17,7 @@ import {
   detectHistoricalBias,
   generateHistoricalReport,
   type HistoricalConfig,
-} from "@workspace/market-analysis/historical";
+} from "@workspace/market-analysis";
 import type { Pair, Timeframe } from "@workspace/market-analysis";
 
 const router = Router();
@@ -79,35 +79,32 @@ router.post("/historical/fetch", async (req, res) => {
     };
 
     if (!pair || !timeframe || !startDate || !endDate) {
-      return res.status(400).json({ error: "pair, timeframe, startDate, endDate required" });
+      res.status(400).json({ error: "pair, timeframe, startDate, endDate required" });
+      return;
     }
 
     const start = new Date(startDate);
     const end   = new Date(endDate);
     if (isNaN(start.getTime()) || isNaN(end.getTime())) {
-      return res.status(400).json({ error: "Invalid date format" });
+      res.status(400).json({ error: "Invalid date format" });
+      return;
     }
 
     // Use cache if valid and not forced
     if (!forceRefresh && await isCacheValid(pair, timeframe, start, end)) {
       const cached = await getCachedCandles(pair, timeframe, start, end);
-      return res.json({
-        source: "cache",
-        candles: cached.length,
-        message: `Loaded ${cached.length} candles from cache`,
-      });
+      res.json({ source: "cache", candles: cached.length, message: `Loaded ${cached.length} candles from cache` });
+      return;
     }
 
     const result = await registry.fetchBest(pair, timeframe, start, end);
 
     if (result.candles.length === 0) {
-      return res.json({
-        source: result.provider,
-        candles: 0,
-        warnings: result.warnings,
-        gaps: result.gaps,
-        message: "No data available from any configured provider",
+      res.json({
+        source: result.provider, candles: 0, warnings: result.warnings,
+        gaps: result.gaps, message: "No data available from any configured provider",
       });
+      return;
     }
 
     const inserted = await cacheCandles(result);
@@ -117,11 +114,7 @@ router.post("/historical/fetch", async (req, res) => {
       source: result.provider,
       candles: result.candles.length,
       inserted,
-      quality: {
-        grade: quality.grade,
-        overallScore: quality.overallScore,
-        coveragePct: quality.coveragePct,
-      },
+      quality: { grade: quality.grade, overallScore: quality.overallScore, coveragePct: quality.coveragePct },
       gaps: result.gaps.length,
       warnings: result.warnings,
       notes: result.notes,
@@ -138,7 +131,8 @@ router.post("/historical/run", async (req, res) => {
     const { pair, timeframe, startDate, endDate } = config;
 
     if (!pair || !timeframe || !startDate || !endDate) {
-      return res.status(400).json({ error: "pair, timeframe, startDate, endDate required" });
+      res.status(400).json({ error: "pair, timeframe, startDate, endDate required" });
+      return;
     }
 
     const start = new Date(startDate);
@@ -302,7 +296,7 @@ router.get("/historical/:id", async (req, res) => {
       .from(historicalSessionsTable)
       .where(eq(historicalSessionsTable.id, id));
 
-    if (!session) return res.status(404).json({ error: "Session not found" });
+    if (!session) { res.status(404).json({ error: "Session not found" }); return; }
     res.json({ session });
   } catch (err) {
     res.status(500).json({ error: String(err) });
@@ -323,9 +317,10 @@ router.get("/historical/:id/report", async (req, res) => {
       .from(historicalSessionsTable)
       .where(eq(historicalSessionsTable.id, id));
 
-    if (!session) return res.status(404).json({ error: "Session not found" });
+    if (!session) { res.status(404).json({ error: "Session not found" }); return; }
     if (!session.reportGenerated || !session.reportText) {
-      return res.status(404).json({ error: "Report not yet generated" });
+      res.status(404).json({ error: "Report not yet generated" });
+      return;
     }
 
     res.setHeader("Content-Type", "text/markdown; charset=utf-8");
@@ -345,7 +340,8 @@ router.post("/historical/upload-csv", async (req, res) => {
     };
 
     if (!filename || !content) {
-      return res.status(400).json({ error: "filename and content (base64) required" });
+      res.status(400).json({ error: "filename and content (base64) required" });
+      return;
     }
 
     const dir = path.join(process.cwd(), "uploads", "market-data", type);
@@ -362,6 +358,7 @@ router.post("/historical/upload-csv", async (req, res) => {
       size: buffer.length,
       message: `CSV saved to uploads/market-data/${type}/${safeFilename}`,
     });
+    return;
   } catch (err) {
     res.status(500).json({ error: String(err) });
   }

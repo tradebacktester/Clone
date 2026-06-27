@@ -5,10 +5,11 @@ import type {
   Pair,
   Timeframe,
 } from "../types.js";
-import { fetchCandles, generateSyntheticCandlesForDateRange } from "../data/fetcher.js";
 import { detectSwings, calcATR } from "../analysis/swings.js";
 import { detectRegimeDetailed } from "../market_regime/regime_detector.js";
 import { calcFullStats } from "./stats.js";
+import { createDefaultRegistry } from "../historical/providers/registry.js";
+import { expectedBarCount } from "../historical/providers/base.js";
 
 interface BacktestConfig {
   pair: Pair;
@@ -261,19 +262,55 @@ export async function runBacktest(config: BacktestConfig): Promise<BacktestResul
   };
   const downsampleFactor = downsampleFactors[`${execTf}->${ctxTf}`] ?? 1;
 
-  let execCandles: Candle[];
-  try {
-    const fetched = await fetchCandles(pair, execTf);
-    const start = new Date(config.startDate).getTime();
-    const end = new Date(config.endDate).getTime();
-    execCandles = fetched.filter(c => c.time.getTime() >= start && c.time.getTime() <= end);
-    if (execCandles.length < 50) throw new Error("Insufficient candles in range");
-  } catch {
-    execCandles = generateSyntheticCandlesForDateRange(pair, config.startDate, config.endDate, execTf);
-  }
+  const registry = createDefaultRegistry();
+  const startDate = new Date(config.startDate);
+  const endDate = new Date(config.endDate);
+  const fetchResult = await registry.fetchBest(pair, execTf, startDate, endDate);
+  const execCandles: Candle[] = fetchResult.candles;
+
+  const expectedBars = expectedBarCount(execTf, startDate, endDate);
+  const coveragePct = expectedBars > 0 ? Math.min(100, (execCandles.length / expectedBars) * 100) : 0;
+  const dataWarnings = [...fetchResult.warnings];
 
   if (execCandles.length < 50) {
-    execCandles = generateSyntheticCandlesForDateRange(pair, config.startDate, config.endDate, execTf);
+    const noDataWarning = fetchResult.provider === "none"
+      ? `No configured market data provider has real ${execTf} data for ${pair} ${config.startDate}→${config.endDate}. ` +
+        `Add a provider (OANDA API key, HistData CSV, or MT5 export) to run a valid backtest.`
+      : `Insufficient real ${execTf} data for ${pair}: got ${execCandles.length} bars (need ≥50). ` +
+        `The backtest cannot run without enough real candles.`;
+
+    dataWarnings.push(noDataWarning);
+
+    const emptyStats = calcFullStats([], config.initialBalance);
+    return {
+      trades: [],
+      totalTrades: 0,
+      winners: 0,
+      losers: 0,
+      winRate: 0,
+      totalPnl: 0,
+      finalBalance: config.initialBalance,
+      maxDrawdown: 0,
+      profitFactor: 0,
+      sharpeRatio: 0,
+      equityCurve: [{ time: config.startDate, balance: config.initialBalance }],
+      expectancy: 0,
+      avgRR: 0,
+      avgWin: 0,
+      avgLoss: 0,
+      maxConsecWins: 0,
+      maxConsecLosses: 0,
+      sessionStats: emptyStats.sessionStats,
+      pairStats: emptyStats.pairStats,
+      zoneStats: emptyStats.zoneStats,
+      monthlyReturns: emptyStats.monthlyReturns,
+      yearlyReturns: emptyStats.yearlyReturns,
+      regimeStats: emptyStats.regimeStats,
+      dataSource: fetchResult.provider,
+      dataSynthetic: false,
+      dataWarnings,
+      dataCoveragePct: coveragePct,
+    };
   }
 
   const ctxCandles = downsampleFactor > 1 ? downsampleCandles(execCandles, downsampleFactor) : execCandles;
@@ -511,5 +548,9 @@ export async function runBacktest(config: BacktestConfig): Promise<BacktestResul
     monthlyReturns: stats.monthlyReturns,
     yearlyReturns: stats.yearlyReturns,
     regimeStats: stats.regimeStats,
+    dataSource: fetchResult.provider,
+    dataSynthetic: false,
+    dataWarnings: fetchResult.warnings.length > 0 ? fetchResult.warnings : undefined,
+    dataCoveragePct: Math.round(coveragePct * 10) / 10,
   };
 }

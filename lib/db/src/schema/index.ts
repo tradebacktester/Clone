@@ -10,3 +10,4 @@ export * from "./analytics";
 export * from "./memory";
 export * from "./reports";
 export * from "./replay";
+export * from "./historical";

@@ -11,6 +11,10 @@
     "test": "/home/runner/workspace/node_modules/.pnpm/node_modules/.bin/tsx --test src/market_regime/__tests__/regime.test.ts",
     "test:replay": "/home/runner/workspace/node_modules/.pnpm/node_modules/.bin/tsx --test src/replay/__tests__/replay-engine.test.ts src/replay/__tests__/rule-evaluator.test.ts src/replay/__tests__/bias-detector.test.ts"
   },
+  "dependencies": {
+    "@workspace/db": "workspace:*",
+    "drizzle-orm": "catalog:"
+  },
   "devDependencies": {
     "@types/node": "catalog:"
   }
