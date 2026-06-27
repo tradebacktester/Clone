@@ -11,3 +11,4 @@
 - [Robustness Framework](robustness-framework.md) — 7-engine stress-testing suite; route path prefix gotcha, execution-stress seed fix, report generator export path.
 - [5-Part Audit](audit-findings.md) — code/security/performance/explainability/production-readiness audit; key fixes applied; critical blockers documented.
 - [Trader Intelligence Layer](trader-intelligence-layer.md) — Vasu Decision Model; advisory only; score-vector similarity; DB tables ti_decisions+ti_screenshots; 46 tests pass.
+- [Paper Trading Workspace](paper-workspace.md) — trade_reviews + signal_log tables added; routes under /paper/workspace/*; esbuild cannot resolve zod/v4 — use inline validation in route files instead.

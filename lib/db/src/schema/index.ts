@@ -17,3 +17,5 @@ export * from "./trader-intelligence";
 export * from "./optimizer";
 export * from "./pilot";
 export * from "./paper-config";
+export * from "./trade-reviews";
+export * from "./signal-log";

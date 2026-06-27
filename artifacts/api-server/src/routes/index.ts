@@ -28,6 +28,7 @@ import paperConfigRouter from "./paper-config";
 import thresholdRouter from "./threshold";
 import pilotRouter from "./pilot";
 import improvementRouter from "./improvement";
+import paperWorkspaceRouter from "./paper-workspace";
 
 const router: IRouter = Router();
 
@@ -60,5 +61,6 @@ router.use(traderIntelligenceRouter);
 router.use(thresholdRouter);
 router.use(pilotRouter);
 router.use(improvementRouter);
+router.use(paperWorkspaceRouter);
 
 export default router;

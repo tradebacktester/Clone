@@ -1,4 +1,4 @@
-import { db, tradesTable, botConfigTable, botStateTable } from "@workspace/db";
+import { db, tradesTable, botConfigTable, botStateTable, signalLogTable } from "@workspace/db";
 import { eq, and, sql } from "drizzle-orm";
 import type { TradeSignal, Pair, AnalysisResult } from "@workspace/market-analysis";
 import { getCurrentPrice } from "./price-feed.js";
@@ -166,10 +166,45 @@ async function computePeakBalance(): Promise<number> {
   return peak;
 }
 
+async function logSignal(
+  signal: TradeSignal,
+  pair: Pair,
+  session: string,
+  executed: boolean,
+  tradeId: number | null,
+  skipReason: string | null,
+  regime: string | null,
+  newsStatus: string,
+): Promise<void> {
+  try {
+    await db.insert(signalLogTable).values({
+      pair,
+      direction: signal.direction,
+      confidence: String(signal.confidence),
+      amdPhase: signal.amdPhase,
+      zoneType: signal.zoneType,
+      zoneStrength: String(signal.zoneStrength),
+      regime: regime ?? null,
+      newsStatus,
+      session,
+      executed,
+      tradeId: tradeId != null ? String(tradeId) : null,
+      skipReason,
+      entryPrice: String(signal.entryPrice),
+      stopLoss: String(signal.stopLoss),
+      takeProfit: String(signal.takeProfit),
+      riskReward: String(Math.round(signal.riskReward * 100) / 100),
+    });
+  } catch (err) {
+    logger.warn({ err }, "Signal log insert failed");
+  }
+}
+
 export async function executePaperSignals(
   signals: TradeSignal[],
   pair: Pair,
   analysisResult?: AnalysisResult,
+  newsStatus = "clear",
 ): Promise<void> {
   if (signals.length === 0) return;
 
@@ -208,19 +243,24 @@ export async function executePaperSignals(
   );
   const session = calcSession();
 
+  const regime = analysisResult?.regime.regime ?? null;
+
   if (openTrades.length >= MAX_OPEN_TRADES) {
     recordMissedOpportunity(signal, "max_open_trades", session, null).catch(() => {});
+    logSignal(signal, pair, session, false, null, "max_open_trades", regime, newsStatus).catch(() => {});
     return;
   }
 
   const pairAlreadyOpen = openTrades.some(t => t.pair === pair);
   if (pairAlreadyOpen) {
     recordMissedOpportunity(signal, "pair_already_open", session, null).catch(() => {});
+    logSignal(signal, pair, session, false, null, "pair_already_open", regime, newsStatus).catch(() => {});
     return;
   }
 
   if (signal.confidence < MIN_SIGNAL_CONFIDENCE) {
     recordMissedOpportunity(signal, "below_confidence", session, null).catch(() => {});
+    logSignal(signal, pair, session, false, null, "below_confidence", regime, newsStatus).catch(() => {});
     return;
   }
 
@@ -229,6 +269,7 @@ export async function executePaperSignals(
   if (priceEntry?.source === "fallback") {
     logger.warn({ pair }, "Price source is fallback — refusing to open new position");
     recordMissedOpportunity(signal, "stale_price", session, null).catch(() => {});
+    logSignal(signal, pair, session, false, null, "stale_price", regime, newsStatus).catch(() => {});
     return;
   }
 
@@ -237,6 +278,7 @@ export async function executePaperSignals(
   if (mtfAlignment.alignedCount < 2) {
     logger.info({ pair, mtfScore: mtfAlignment.score, alignedCount: mtfAlignment.alignedCount }, "V2 MTF gate: insufficient alignment — skipping signal");
     recordMissedOpportunity(signal, "mtf_insufficient", session, null).catch(() => {});
+    logSignal(signal, pair, session, false, null, "mtf_insufficient", regime, newsStatus).catch(() => {});
     return;
   }
 
@@ -245,6 +287,7 @@ export async function executePaperSignals(
   if (!analysis) {
     logger.info({ pair }, "V2 TQI gate: no analysis result available — hard rejection");
     recordMissedOpportunity(signal, "tqi_below_threshold", session, null).catch(() => {});
+    logSignal(signal, pair, session, false, null, "no_analysis", regime, newsStatus).catch(() => {});
     return;
   }
 
@@ -252,6 +295,7 @@ export async function executePaperSignals(
   if (!tqiResult.tradeable) {
     logger.info({ pair, tqi: tqiResult.tqi, grade: tqiResult.grade }, "V2 TQI gate: quality below threshold — skipping signal");
     recordMissedOpportunity(signal, "tqi_below_threshold", session, null).catch(() => {});
+    logSignal(signal, pair, session, false, null, "tqi_below_threshold", regime, newsStatus).catch(() => {});
     return;
   }
 
@@ -264,6 +308,7 @@ export async function executePaperSignals(
   if (!corrCheck.allowed) {
     logger.info({ pair, reason: corrCheck.reason }, "V2 correlation gate: overexposure — skipping signal");
     recordMissedOpportunity(signal, "correlation_blocked", session, null).catch(() => {});
+    logSignal(signal, pair, session, false, null, "correlation_blocked", regime, newsStatus).catch(() => {});
     return;
   }
 
@@ -303,6 +348,16 @@ export async function executePaperSignals(
     }
   }
 
+  const spreadPips = getPipSize(pair) > 0.001 ? 1.0 : 1.2;
+
+  const ruleEvaluation = {
+    confidenceGate: { passed: signal.confidence >= MIN_SIGNAL_CONFIDENCE, value: signal.confidence, threshold: MIN_SIGNAL_CONFIDENCE },
+    mtfGate: { passed: mtfAlignment.aligned, score: mtfAlignment.score, alignedCount: mtfAlignment.alignedCount },
+    tqiGate: { passed: tqiResult.tradeable, tqi: tqiResult.tqi, grade: tqiResult.grade },
+    correlationGate: { passed: corrCheck.allowed, reason: corrCheck.reason },
+    newsSafe: { passed: newsStatus === "clear" || newsStatus === "low", status: newsStatus },
+  };
+
   const [inserted] = await db.insert(tradesTable).values({
     pair,
     direction: signal.direction,
@@ -321,6 +376,8 @@ export async function executePaperSignals(
     fibLevel: String(signal.fibLevel),
     riskRewardRatio: String(Math.round(signal.riskReward * 100) / 100),
     slippagePips: String(entrySlippagePips),
+    spreadPips: String(spreadPips),
+    newsStatus,
     regime: analysis?.regime.regime ?? null,
     tqi: tqiResult ? String(tqiResult.tqi) : null,
     tqiGrade: tqiResult?.grade ?? null,
@@ -328,6 +385,8 @@ export async function executePaperSignals(
     mtfScore: String(mtfAlignment.score),
     dynamicRiskPct: String(dynamicRiskPct),
     explanation: explanation ?? null,
+    ruleEvaluation,
+    screenshots: [],
   }).returning({ id: tradesTable.id });
 
   if (inserted?.id) {
@@ -340,6 +399,7 @@ export async function executePaperSignals(
       slippagePips: entrySlippagePips,
       mode: "paper",
     }).catch(() => {});
+    logSignal(signal, pair, session, true, inserted.id, null, regime, newsStatus).catch(() => {});
   }
 
   logger.info(

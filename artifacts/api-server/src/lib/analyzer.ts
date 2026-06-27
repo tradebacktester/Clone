@@ -196,7 +196,8 @@ export async function analyzeAll(): Promise<void> {
         if (tf === "4h") {
           await persistAnalysis(result);
           if (result.signals.length > 0) {
-            await executePaperSignals(result.signals, pair, result).catch(err =>
+            const blockedStatus = blocked.has(pair) ? "high_impact" : "clear";
+            await executePaperSignals(result.signals, pair, result, blockedStatus).catch(err =>
               logger.warn({ pair, err }, "Paper signal execution failed"),
             );
           }
