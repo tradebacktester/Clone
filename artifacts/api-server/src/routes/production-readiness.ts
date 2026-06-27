@@ -8,6 +8,7 @@ import {
 import { readFile } from "fs/promises";
 import { existsSync } from "fs";
 import { join } from "path";
+import { logger } from "../lib/logger.js";
 
 const router = Router();
 
@@ -18,11 +19,12 @@ router.post("/production-readiness/run", async (_req, res): Promise<void> => {
     await startPipeline();
     res.status(202).json({ message: "Production readiness pipeline started", status: "running" });
   } catch (err) {
-    if (String(err).includes("already running")) {
+    if (err instanceof Error && err.message.includes("already running")) {
       res.status(409).json({ error: "Pipeline is already running" });
       return;
     }
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "production-readiness run error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -52,7 +54,8 @@ router.get("/production-readiness/report", async (_req, res): Promise<void> => {
     res.setHeader("Content-Type", "text/plain; charset=utf-8");
     res.send(content);
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "production-readiness report read error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

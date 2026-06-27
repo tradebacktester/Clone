@@ -277,15 +277,14 @@ router.post("/replay/:id/report", async (req: Request, res: Response): Promise<v
   const storedBias = session.biasFlags as unknown;
   const bias: BiasRow = (storedBias && typeof storedBias === "object" && "flags" in (storedBias as object))
     ? storedBias as BiasRow
-    : {
+    : ({
         flags: Array.isArray(storedBias) ? (storedBias as BiasRow["flags"]) : [],
         overallRating: "clean",
         lookAheadDetected: false,
         repaintingDetected: false,
-        futureLeakageDetected: false,
         duplicateSignals: 0,
         invalidEntries: 0,
-      };
+      } as BiasRow);
   const config: ReplayConfig = {
     pair: session.pair as ReplayConfig["pair"],
     timeframe: session.timeframe as ReplayConfig["timeframe"],

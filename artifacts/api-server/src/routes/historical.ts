@@ -4,6 +4,7 @@ import * as path from "path";
 import { db } from "@workspace/db";
 import { historicalSessionsTable } from "@workspace/db/schema";
 import { eq, desc } from "drizzle-orm";
+import { logger } from "../lib/logger.js";
 import {
   createDefaultRegistry,
   computeDataQuality,
@@ -49,7 +50,8 @@ router.get("/historical/providers", async (_req, res) => {
     );
     res.json({ providers: statuses });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "historical providers error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -63,7 +65,8 @@ router.get("/historical/data-status", async (req, res) => {
     );
     res.json({ statuses });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "historical data-status error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -120,7 +123,8 @@ router.post("/historical/fetch", async (req, res) => {
       notes: result.notes,
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "historical fetch error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -152,7 +156,6 @@ router.post("/historical/run", async (req, res) => {
 
     const sessionId = session!.id;
 
-    // Run async — respond immediately with session ID
     res.json({ sessionId, status: "running", message: "Validation started" });
 
     // Fetch data if not cached
@@ -243,10 +246,11 @@ router.post("/historical/run", async (req, res) => {
           })
           .where(eq(historicalSessionsTable.id, sessionId));
       } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
         await db.update(historicalSessionsTable)
           .set({
             status: "failed",
-            errorMessage: String(err),
+            errorMessage: msg,
             updatedAt: new Date(),
           })
           .where(eq(historicalSessionsTable.id, sessionId))
@@ -254,7 +258,8 @@ router.post("/historical/run", async (req, res) => {
       }
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "historical run error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -283,7 +288,8 @@ router.get("/historical/sessions", async (_req, res) => {
       .limit(50);
     res.json({ sessions });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "historical sessions error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -299,7 +305,8 @@ router.get("/historical/:id", async (req, res) => {
     if (!session) { res.status(404).json({ error: "Session not found" }); return; }
     res.json({ session });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "historical get-session error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -326,7 +333,8 @@ router.get("/historical/:id/report", async (req, res) => {
     res.setHeader("Content-Type", "text/markdown; charset=utf-8");
     res.send(session.reportText);
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "historical report error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -360,7 +368,8 @@ router.post("/historical/upload-csv", async (req, res) => {
     });
     return;
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "historical upload-csv error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -371,7 +380,8 @@ router.delete("/historical/:id", async (req, res) => {
     await db.delete(historicalSessionsTable).where(eq(historicalSessionsTable.id, id));
     res.json({ success: true });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "historical delete error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

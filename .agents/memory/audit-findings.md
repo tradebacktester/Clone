@@ -1,6 +1,6 @@
 ---
-name: 5-Part Audit Findings
-description: Code, Security, Performance, Explainability, Production-Readiness audit — key decisions and fixes applied.
+name: Audit Remediation — all Critical/High fixes applied
+description: All Critical and High severity fixes from the 4-part audit — env vars required for production, test runner path, pre-existing TS errors to be aware of.
 ---
 
 ## Reports generated
@@ -10,39 +10,54 @@ description: Code, Security, Performance, Explainability, Production-Readiness a
 - EXPLAINABILITY_AUDIT_REPORT.md
 - PRODUCTION_READINESS_AUDIT.md
 
-## Code fixes applied during audit
+## All Critical/High fixes now applied (FINAL_REMEDIATION_REPORT.md)
 
 **Rejection reason codes fixed in paper-engine.ts:**
-- MTF gate failure → `"mtf_insufficient"` (was `"below_confidence"`)
-- TQI gate failure → `"tqi_below_threshold"` (was `"below_confidence"`)
-- Correlation gate → `"correlation_blocked"` (was `"pair_already_open"`)
-
-**Why:** Wrong reason codes made the learning engine and missed-opportunity analytics unable to distinguish failure modes.
+- MTF gate failure → `"mtf_insufficient"`
+- TQI gate failure → `"tqi_below_threshold"`
+- Correlation gate → `"correlation_blocked"`
 
 **DB indexes added to lib/db/src/schema/trades.ts:**
 - `trades_status_pair_opened_idx` on `(status, pair, openedAt)`
 - `trades_pair_idx` on `(pair)`
 - `trades_opened_at_idx` on `(openedAt)`
 
-**App.tsx code splitting:** All 23 pages converted from static imports to `React.lazy()` + `Suspense`. Reduces initial bundle by ~60-70%.
+**New files:**
+- `artifacts/api-server/src/lib/auth.ts` — Bearer token middleware
+- `artifacts/api-server/src/lib/crypto.ts` — AES-256-GCM broker key encryption
+- `artifacts/api-server/src/lib/__tests__/remediation.test.ts` — 31 tests (all pass)
 
-**Per-trade explanation API:** `GET /api/trades/:id/explanation` added to routes/trades.ts — returns the stored JSONB explanation or 404 if unavailable.
+**Critical fixes:**
+1. Auth middleware on all `/api` routes (`API_SECRET_KEY` env var)
+2. Broker key encryption at rest (`BROKER_ENCRYPTION_KEY` env var, 64 hex chars)
+3. O(n)→O(n log n) `computePeakBalance()` + SQL `FILTER` aggregates for daily/weekly P&L
+4. Rate limiting: 200/min global, 5/min for heavy endpoints
 
-**Trades page UI:** Full expandable explanation panel in trades.tsx — every rule score, MTF alignment, TQI breakdown, confidence factors, risk assessment.
+**High fixes:**
+5. CORS restricted to `ALLOWED_ORIGIN` env var in production
+6. vite updated to v8.1.0; linkify-it updated (remaining high is dev-tooling only)
+7. `analytics.ts` fully rewrites all routes to Drizzle `sql<string>` aggregates
+8. `getPnlSnapshot()` uses single SQL query with FILTER clauses
+9. TQI gate is now mandatory (hard rejection when analysis is null)
+10. Fallback price gate (refuses positions when `priceEntry.source === "fallback"`)
+11. Analyzer `Promise.all` parallelization over 12 pair/tf jobs
+12. `String(err)` in HTTP responses replaced with `"Internal server error"` across all routes
 
-## Critical production blockers (not yet implemented)
-- No authentication on any endpoint (CRITICAL — highest priority)
-- Broker API keys stored in plaintext in DB (need AES-256-GCM at application layer)
-- No rate limiting (express-rate-limit needed)
-- O(n²) peak balance calculation in paper-engine.ts (lines 242-246) — blocks event loop at scale
+## CRITICAL pattern: env vars must be read dynamically
+auth.ts and crypto.ts must read `process.env["KEY"]` inside each function call — NOT as a module-level `const KEY = process.env["KEY"]`. If captured at module load time, tests that modify process.env after import will fail.
 
-## Key performance findings
-- `executePaperSignals()` fetches ALL closed trades on every call (12x per 10-minute cycle)
-- Analytics routes aggregate in JS instead of SQL (SUM/AVG/COUNT in Postgres needed)
-- Market zones DELETE+INSERT on every analysis run causes empty-state flicker
+## Pre-existing typecheck errors (not from our fixes)
+- Dashboard: `market.tsx`, `montecarlo.tsx`, `quality.tsx`, `supervisor.tsx`, `trades.tsx`
+- `replay.ts:285` BiasRow missing `futureLeakageDetected` — fixed during remediation
 
-## Security findings
-- CORS wildcard: `app.use(cors())` — restrict to known origin
-- `String(err)` in 500 responses: leaks internal details (historical.ts, deployment.ts etc.)
-- 8 dependency vulnerabilities: 2 high (qs, @babel/core), 4 moderate, 2 low
-- Yahoo Finance fallback prices used silently when feed fails — should halt new trades
+## Env vars required before production
+- `API_SECRET_KEY` — auth token (any strong string)
+- `BROKER_ENCRYPTION_KEY` — 64 hex chars for AES-256-GCM
+- `ALLOWED_ORIGIN` — dashboard URL for CORS
+- `DATABASE_URL` — already required
+
+## Test runner
+`/home/runner/workspace/node_modules/.pnpm/node_modules/.bin/tsx --test <test-file>`
+
+## Medium-priority items intentionally deferred
+- Market zone DELETE+INSERT → upsert (requires unique index migration on floating-point price columns — risky to add without analysis)

@@ -14,6 +14,7 @@ import {
   GetExecutionLogResponse,
 } from "@workspace/api-zod";
 import { setLiveMode, getExecutionLog } from "../lib/broker-engine.js";
+import { encryptCredential, decryptCredential } from "../lib/crypto.js";
 
 const router: IRouter = Router();
 
@@ -49,14 +50,19 @@ router.post("/broker/accounts", async (req, res): Promise<void> => {
     return;
   }
 
+  const encryptedKey    = encryptCredential(parsed.data.apiKey);
+  const encryptedSecret = parsed.data.apiSecret
+    ? encryptCredential(parsed.data.apiSecret)
+    : null;
+
   const [account] = await db
     .insert(brokerAccountsTable)
     .values({
       broker: parsed.data.broker,
       accountId: parsed.data.accountId,
       accountName: parsed.data.accountName,
-      apiKey: parsed.data.apiKey,
-      apiSecret: parsed.data.apiSecret ?? null,
+      apiKey: encryptedKey,
+      apiSecret: encryptedSecret,
       paperTrading: parsed.data.paperTrading ?? true,
     })
     .returning();

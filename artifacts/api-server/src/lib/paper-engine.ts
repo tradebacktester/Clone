@@ -1,5 +1,5 @@
 import { db, tradesTable, botConfigTable, botStateTable } from "@workspace/db";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import type { TradeSignal, Pair, AnalysisResult } from "@workspace/market-analysis";
 import { getCurrentPrice } from "./price-feed.js";
 import { logger } from "./logger.js";
@@ -104,16 +104,66 @@ function applySlippage(
   };
 }
 
+interface PnlSnapshot {
+  totalPnl: number;
+  todayPnl: number;
+  weeklyPnl: number;
+  balance: number;
+  peakBalance: number;
+}
+
 async function getPaperBalance(): Promise<number> {
-  const closed = await db
-    .select({ pnl: tradesTable.pnl })
+  const result = await db
+    .select({ totalPnl: sql<string>`COALESCE(SUM(pnl), 0)` })
     .from(tradesTable)
     .where(eq(tradesTable.status, "closed"));
-  const realizedPnl = closed.reduce(
-    (sum, t) => sum + parseFloat(t.pnl ?? "0"),
-    0,
-  );
-  return INITIAL_PAPER_BALANCE + realizedPnl;
+  const totalPnl = parseFloat(result[0]?.totalPnl ?? "0");
+  return INITIAL_PAPER_BALANCE + totalPnl;
+}
+
+async function getPnlSnapshot(): Promise<PnlSnapshot> {
+  const todayStart = new Date();
+  todayStart.setUTCHours(0, 0, 0, 0);
+
+  const weekStart = new Date();
+  weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay());
+  weekStart.setUTCHours(0, 0, 0, 0);
+
+  const [agg] = await db
+    .select({
+      totalPnl:  sql<string>`COALESCE(SUM(pnl), 0)`,
+      todayPnl:  sql<string>`COALESCE(SUM(pnl) FILTER (WHERE closed_at >= ${todayStart.toISOString()}), 0)`,
+      weeklyPnl: sql<string>`COALESCE(SUM(pnl) FILTER (WHERE closed_at >= ${weekStart.toISOString()}), 0)`,
+    })
+    .from(tradesTable)
+    .where(eq(tradesTable.status, "closed"));
+
+  const totalPnl  = parseFloat(agg?.totalPnl  ?? "0");
+  const todayPnl  = parseFloat(agg?.todayPnl  ?? "0");
+  const weeklyPnl = parseFloat(agg?.weeklyPnl ?? "0");
+  const balance   = INITIAL_PAPER_BALANCE + totalPnl;
+
+  const peakBalance = await computePeakBalance();
+
+  return { totalPnl, todayPnl, weeklyPnl, balance, peakBalance };
+}
+
+async function computePeakBalance(): Promise<number> {
+  const rows = await db
+    .select({ pnl: tradesTable.pnl, closedAt: tradesTable.closedAt })
+    .from(tradesTable)
+    .where(eq(tradesTable.status, "closed"))
+    .orderBy(tradesTable.closedAt);
+
+  let running = INITIAL_PAPER_BALANCE;
+  let peak = INITIAL_PAPER_BALANCE;
+
+  for (const row of rows) {
+    running += parseFloat(row.pnl ?? "0");
+    if (running > peak) peak = running;
+  }
+
+  return peak;
 }
 
 export async function executePaperSignals(
@@ -131,27 +181,7 @@ export async function executePaperSignals(
   const maxDailyLossPct = parseFloat(config?.maxDailyLoss ?? "3");
   const maxWeeklyLossPct = parseFloat(config?.maxWeeklyLoss ?? "6");
 
-  const todayStart = new Date();
-  todayStart.setUTCHours(0, 0, 0, 0);
-
-  const weekStart = new Date();
-  weekStart.setUTCDate(weekStart.getUTCDate() - weekStart.getUTCDay());
-  weekStart.setUTCHours(0, 0, 0, 0);
-
-  const closedTrades = await db
-    .select()
-    .from(tradesTable)
-    .where(eq(tradesTable.status, "closed"));
-
-  const todayPnl = closedTrades
-    .filter(t => t.closedAt && new Date(t.closedAt) >= todayStart)
-    .reduce((s, t) => s + parseFloat(t.pnl ?? "0"), 0);
-
-  const weeklyPnl = closedTrades
-    .filter(t => t.closedAt && new Date(t.closedAt) >= weekStart)
-    .reduce((s, t) => s + parseFloat(t.pnl ?? "0"), 0);
-
-  const paperBalance = INITIAL_PAPER_BALANCE + closedTrades.reduce((s, t) => s + parseFloat(t.pnl ?? "0"), 0);
+  const { totalPnl, todayPnl, weeklyPnl, balance: paperBalance, peakBalance } = await getPnlSnapshot();
 
   if (todayPnl <= -(paperBalance * maxDailyLossPct) / 100) {
     logger.warn({ pair, todayPnl, maxDailyLossPct }, "Daily loss limit reached — skipping signal");
@@ -172,7 +202,6 @@ export async function executePaperSignals(
     .from(tradesTable)
     .where(eq(tradesTable.status, "open"));
 
-  // Select best signal early so we can record missed opportunities at each rejection
   const signal = signals.reduce(
     (best, s) => (s.confidence > best.confidence ? s : best),
     signals[0]!,
@@ -195,6 +224,14 @@ export async function executePaperSignals(
     return;
   }
 
+  const priceEntry = getCurrentPrice(pair);
+
+  if (priceEntry?.source === "fallback") {
+    logger.warn({ pair }, "Price source is fallback — refusing to open new position");
+    recordMissedOpportunity(signal, "stale_price", session, null).catch(() => {});
+    return;
+  }
+
   // ── V2 Gate 1: Multi-Timeframe Alignment ──────────────────────────────────
   const mtfAlignment = getMtfAlignment(pair, signal.direction);
   if (mtfAlignment.alignedCount < 2) {
@@ -203,16 +240,19 @@ export async function executePaperSignals(
     return;
   }
 
-  // ── V2 Gate 2: Trade Quality Index ────────────────────────────────────────
+  // ── V2 Gate 2: Trade Quality Index — MANDATORY ────────────────────────────
   const analysis = analysisResult;
-  let tqiResult = null;
-  if (analysis) {
-    tqiResult = computeTqi(signal, analysis, mtfAlignment.score);
-    if (!tqiResult.tradeable) {
-      logger.info({ pair, tqi: tqiResult.tqi, grade: tqiResult.grade }, "V2 TQI gate: quality below threshold — skipping signal");
-      recordMissedOpportunity(signal, "tqi_below_threshold", session, null).catch(() => {});
-      return;
-    }
+  if (!analysis) {
+    logger.info({ pair }, "V2 TQI gate: no analysis result available — hard rejection");
+    recordMissedOpportunity(signal, "tqi_below_threshold", session, null).catch(() => {});
+    return;
+  }
+
+  const tqiResult = computeTqi(signal, analysis, mtfAlignment.score);
+  if (!tqiResult.tradeable) {
+    logger.info({ pair, tqi: tqiResult.tqi, grade: tqiResult.grade }, "V2 TQI gate: quality below threshold — skipping signal");
+    recordMissedOpportunity(signal, "tqi_below_threshold", session, null).catch(() => {});
+    return;
   }
 
   // ── V2 Gate 3: Correlation Check ──────────────────────────────────────────
@@ -227,7 +267,6 @@ export async function executePaperSignals(
     return;
   }
 
-  const priceEntry = getCurrentPrice(pair);
   const entryMid = priceEntry?.mid ?? signal.entryPrice;
 
   const { price: actualEntry, pips: entrySlippagePips } = applySlippage(
@@ -237,36 +276,26 @@ export async function executePaperSignals(
     true,
   );
 
-  // ── V2: Dynamic Position Sizing ───────────────────────────────────────────
-  const closedForDD = closedTrades;
-  const peakBalance = closedForDD.reduce((max, t) => {
-    const bal = INITIAL_PAPER_BALANCE + closedForDD
-      .filter(x => x.closedAt != null && x.closedAt <= t.closedAt!)
-      .reduce((s, x) => s + parseFloat(x.pnl ?? "0"), 0);
-    return Math.max(max, bal);
-  }, INITIAL_PAPER_BALANCE);
-  const currentDrawdownPct = peakBalance > 0 ? Math.max(0, ((peakBalance - paperBalance) / peakBalance) * 100) : 0;
+  // ── V2: Dynamic Position Sizing — O(n log n) peak balance ─────────────────
+  const currentDrawdownPct = peakBalance > 0
+    ? Math.max(0, ((peakBalance - paperBalance) / peakBalance) * 100)
+    : 0;
 
-  const sizingResult = analysis
-    ? calcDynamicSize({
-        signal,
-        analysis,
-        balance: paperBalance,
-        baseRiskPct: riskPct,
-        maxRiskPct: riskPct * 2,
-        currentDrawdownPct,
-      })
-    : null;
+  const sizingResult = calcDynamicSize({
+    signal,
+    analysis,
+    balance: paperBalance,
+    baseRiskPct: riskPct,
+    maxRiskPct: riskPct * 2,
+    currentDrawdownPct,
+  });
 
-  const lotSize = sizingResult
-    ? sizingResult.lotSize
-    : calcLotSize(pair, actualEntry, signal.stopLoss, paperBalance, riskPct);
-
-  const dynamicRiskPct = sizingResult?.adjustedRiskPct ?? riskPct;
+  const lotSize = sizingResult.lotSize;
+  const dynamicRiskPct = sizingResult.adjustedRiskPct;
 
   // ── Generate trade explanation ─────────────────────────────────────────────
   let explanation = null;
-  if (analysis && tqiResult && sizingResult) {
+  if (tqiResult && sizingResult) {
     try {
       explanation = generateExplanation(signal, analysis, mtfAlignment, tqiResult, sizingResult);
     } catch (err) {
@@ -517,41 +546,45 @@ export async function getOpenPositions(): Promise<
 }
 
 export async function getPaperPerformance() {
-  const allTrades = await db.select().from(tradesTable);
-  const closed = allTrades.filter(t => t.status === "closed");
-  const open = allTrades.filter(t => t.status === "open");
+  const [agg] = await db
+    .select({
+      totalPnl:    sql<string>`COALESCE(SUM(pnl) FILTER (WHERE status = 'closed'), 0)`,
+      closedCount: sql<string>`COUNT(*) FILTER (WHERE status = 'closed')`,
+      openCount:   sql<string>`COUNT(*) FILTER (WHERE status = 'open')`,
+      winCount:    sql<string>`COUNT(*) FILTER (WHERE status = 'closed' AND pnl > 0)`,
+      lossCount:   sql<string>`COUNT(*) FILTER (WHERE status = 'closed' AND pnl <= 0)`,
+      grossProfit: sql<string>`COALESCE(SUM(pnl) FILTER (WHERE status = 'closed' AND pnl > 0), 0)`,
+      grossLoss:   sql<string>`COALESCE(ABS(SUM(pnl) FILTER (WHERE status = 'closed' AND pnl < 0)), 0)`,
+      avgWin:      sql<string>`COALESCE(AVG(pnl) FILTER (WHERE status = 'closed' AND pnl > 0), 0)`,
+      avgLoss:     sql<string>`COALESCE(AVG(pnl) FILTER (WHERE status = 'closed' AND pnl < 0), 0)`,
+      avgEntrySlippage: sql<string>`COALESCE(AVG(slippage_pips), 0)`,
+      avgExitSlippage:  sql<string>`COALESCE(AVG(exit_slippage_pips), 0)`,
+      todayPnl: sql<string>`COALESCE(SUM(pnl) FILTER (WHERE status = 'closed' AND closed_at >= date_trunc('day', NOW() AT TIME ZONE 'UTC')), 0)`,
+    })
+    .from(tradesTable);
 
-  const realizedPnl = closed.reduce((s, t) => s + parseFloat(t.pnl ?? "0"), 0);
-  const paperBalance = INITIAL_PAPER_BALANCE + realizedPnl;
+  const totalPnl    = parseFloat(agg?.totalPnl    ?? "0");
+  const closedCount = parseInt(agg?.closedCount   ?? "0", 10);
+  const openCount   = parseInt(agg?.openCount     ?? "0", 10);
+  const winCount    = parseInt(agg?.winCount      ?? "0", 10);
+  const lossCount   = parseInt(agg?.lossCount     ?? "0", 10);
+  const grossProfit = parseFloat(agg?.grossProfit ?? "0");
+  const grossLoss   = parseFloat(agg?.grossLoss   ?? "0");
+  const avgWin      = parseFloat(agg?.avgWin      ?? "0");
+  const avgLoss     = parseFloat(agg?.avgLoss     ?? "0");
+  const todayPnl    = parseFloat(agg?.todayPnl    ?? "0");
+  const avgEntrySlip = parseFloat(agg?.avgEntrySlippage ?? "0");
+  const avgExitSlip  = parseFloat(agg?.avgExitSlippage  ?? "0");
 
-  const winners = closed.filter(t => parseFloat(t.pnl ?? "0") > 0);
-  const losers = closed.filter(t => parseFloat(t.pnl ?? "0") <= 0);
+  const paperBalance  = INITIAL_PAPER_BALANCE + totalPnl;
+  const winRate       = closedCount > 0 ? (winCount / closedCount) * 100 : 0;
+  const profitFactor  = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 999 : 0;
+  const avgSlippage   = (avgEntrySlip + avgExitSlip) / 2;
 
-  const winRate = closed.length > 0 ? (winners.length / closed.length) * 100 : 0;
-  const avgWin = winners.length > 0
-    ? winners.reduce((s, t) => s + parseFloat(t.pnl ?? "0"), 0) / winners.length
-    : 0;
-  const avgLoss = losers.length > 0
-    ? losers.reduce((s, t) => s + parseFloat(t.pnl ?? "0"), 0) / losers.length
-    : 0;
-
-  const grossProfit = winners.reduce((s, t) => s + parseFloat(t.pnl ?? "0"), 0);
-  const grossLoss = Math.abs(losers.reduce((s, t) => s + parseFloat(t.pnl ?? "0"), 0));
-  const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit > 0 ? 999 : 0;
-
-  const allSlippages = [
-    ...allTrades.filter(t => t.slippagePips).map(t => parseFloat(t.slippagePips!)),
-    ...allTrades.filter(t => t.exitSlippagePips).map(t => parseFloat(t.exitSlippagePips!)),
-  ];
-  const avgSlippage = allSlippages.length > 0
-    ? allSlippages.reduce((s, v) => s + v, 0) / allSlippages.length
-    : 0;
-
-  const todayStart = new Date();
-  todayStart.setUTCHours(0, 0, 0, 0);
-  const dailyPnl = closed
-    .filter(t => t.closedAt && new Date(t.closedAt) >= todayStart)
-    .reduce((s, t) => s + parseFloat(t.pnl ?? "0"), 0);
+  const open = await db
+    .select({ pair: tradesTable.pair, direction: tradesTable.direction, entryPrice: tradesTable.entryPrice, lotSize: tradesTable.lotSize })
+    .from(tradesTable)
+    .where(eq(tradesTable.status, "open"));
 
   let unrealizedPnl = 0;
   for (const trade of open) {
@@ -572,14 +605,14 @@ export async function getPaperPerformance() {
     balance: Math.round(paperBalance * 100) / 100,
     startBalance: INITIAL_PAPER_BALANCE,
     totalReturn: Math.round(((paperBalance - INITIAL_PAPER_BALANCE) / INITIAL_PAPER_BALANCE) * 10000) / 100,
-    totalTrades: closed.length,
-    openTrades: open.length,
-    winningTrades: winners.length,
-    losingTrades: losers.length,
+    totalTrades: closedCount,
+    openTrades: openCount,
+    winningTrades: winCount,
+    losingTrades: lossCount,
     winRate: Math.round(winRate * 10) / 10,
-    totalPnl: Math.round(realizedPnl * 100) / 100,
+    totalPnl: Math.round(totalPnl * 100) / 100,
     unrealizedPnl: Math.round(unrealizedPnl * 100) / 100,
-    dailyPnl: Math.round(dailyPnl * 100) / 100,
+    dailyPnl: Math.round(todayPnl * 100) / 100,
     avgWin: Math.round(avgWin * 100) / 100,
     avgLoss: Math.round(avgLoss * 100) / 100,
     profitFactor: Math.round(profitFactor * 100) / 100,

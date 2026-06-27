@@ -4,6 +4,7 @@ import { getDeploymentStatus, switchDeploymentMode, enableLiveMode, type Deploym
 import { checkConnectionHealth, getSafetyConfig, reconcilePositions, invalidateSafetyConfigCache } from "../lib/broker-safety.js";
 import { runStrategyHealthCheck, getLatestHealthSnapshots } from "../lib/strategy-health-monitor.js";
 import { getRecoveryLog } from "../lib/recovery-engine.js";
+import { logger } from "../lib/logger.js";
 
 const router = Router();
 
@@ -12,7 +13,8 @@ router.get("/deployment/status", async (_req, res) => {
     const status = await getDeploymentStatus();
     res.json(status);
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "deployment status error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

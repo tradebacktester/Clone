@@ -1,5 +1,5 @@
 import { Router, type IRouter } from "express";
-import { eq, desc } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db, tradesTable } from "@workspace/db";
 import {
   GetAnalyticsSummaryResponse,
@@ -13,9 +13,24 @@ import {
 const router: IRouter = Router();
 
 router.get("/analytics/summary", async (_req, res): Promise<void> => {
-  const trades = await db.select().from(tradesTable).where(eq(tradesTable.status, "closed"));
+  const [agg] = await db
+    .select({
+      totalTrades:  sql<string>`COUNT(*) FILTER (WHERE status = 'closed')`,
+      winCount:     sql<string>`COUNT(*) FILTER (WHERE status = 'closed' AND pnl > 0)`,
+      lossCount:    sql<string>`COUNT(*) FILTER (WHERE status = 'closed' AND pnl <= 0)`,
+      totalPnl:     sql<string>`COALESCE(SUM(pnl) FILTER (WHERE status = 'closed'), 0)`,
+      grossProfit:  sql<string>`COALESCE(SUM(pnl) FILTER (WHERE status = 'closed' AND pnl > 0), 0)`,
+      grossLoss:    sql<string>`COALESCE(ABS(SUM(pnl) FILTER (WHERE status = 'closed' AND pnl < 0)), 0)`,
+      avgWin:       sql<string>`COALESCE(AVG(pnl) FILTER (WHERE status = 'closed' AND pnl > 0), 0)`,
+      avgLoss:      sql<string>`COALESCE(AVG(pnl) FILTER (WHERE status = 'closed' AND pnl < 0), 0)`,
+      bestTrade:    sql<string>`COALESCE(MAX(pnl) FILTER (WHERE status = 'closed'), 0)`,
+      worstTrade:   sql<string>`COALESCE(MIN(pnl) FILTER (WHERE status = 'closed'), 0)`,
+      avgRr:        sql<string>`COALESCE(AVG(risk_reward_ratio) FILTER (WHERE status = 'closed'), 0)`,
+    })
+    .from(tradesTable);
 
-  const totalTrades = trades.length;
+  const totalTrades = parseInt(agg?.totalTrades ?? "0", 10);
+
   if (totalTrades === 0) {
     res.json(GetAnalyticsSummaryResponse.parse({
       totalTrades: 0, winningTrades: 0, losingTrades: 0, winRate: 0,
@@ -25,39 +40,49 @@ router.get("/analytics/summary", async (_req, res): Promise<void> => {
     return;
   }
 
-  const pnls = trades.map(t => parseFloat(t.pnl ?? "0"));
-  const winners = pnls.filter(p => p > 0);
-  const losers = pnls.filter(p => p < 0);
-  const winRate = (winners.length / totalTrades) * 100;
-  const totalPnl = pnls.reduce((a, b) => a + b, 0);
-  const avgWin = winners.length ? winners.reduce((a, b) => a + b, 0) / winners.length : 0;
-  const avgLoss = losers.length ? losers.reduce((a, b) => a + b, 0) / losers.length : 0;
-  const grossProfit = winners.reduce((a, b) => a + b, 0);
-  const grossLoss = Math.abs(losers.reduce((a, b) => a + b, 0));
+  const winCount    = parseInt(agg?.winCount    ?? "0", 10);
+  const lossCount   = parseInt(agg?.lossCount   ?? "0", 10);
+  const totalPnl    = parseFloat(agg?.totalPnl    ?? "0");
+  const grossProfit = parseFloat(agg?.grossProfit ?? "0");
+  const grossLoss   = parseFloat(agg?.grossLoss   ?? "0");
+  const avgWin      = parseFloat(agg?.avgWin      ?? "0");
+  const avgLoss     = parseFloat(agg?.avgLoss     ?? "0");
+  const bestTrade   = parseFloat(agg?.bestTrade   ?? "0");
+  const worstTrade  = parseFloat(agg?.worstTrade  ?? "0");
+  const avgRr       = parseFloat(agg?.avgRr       ?? "0");
+
+  const winRate      = (winCount / totalTrades) * 100;
   const profitFactor = grossLoss > 0 ? grossProfit / grossLoss : grossProfit;
-  const expectancy = (winRate / 100) * avgWin + (1 - winRate / 100) * avgLoss;
-  const avgRr = trades.reduce((s, t) => s + parseFloat(t.riskRewardRatio ?? "0"), 0) / totalTrades;
+  const expectancy   = (winRate / 100) * avgWin + (1 - winRate / 100) * avgLoss;
+
+  // Load only pnl column (not JSONB blobs) for equity-curve calculations
+  const pnlRows = await db
+    .select({ pnl: tradesTable.pnl })
+    .from(tradesTable)
+    .where(eq(tradesTable.status, "closed"))
+    .orderBy(tradesTable.closedAt);
 
   let maxDrawdown = 0;
-  let peak = 0;
+  let peak = 10000;
   let equity = 10000;
-  for (const pnl of pnls) {
+  let consWins = 0; let maxConsWins = 0;
+  let consLosses = 0; let maxConsLosses = 0;
+
+  for (const row of pnlRows) {
+    const pnl = parseFloat(row.pnl ?? "0");
     equity += pnl;
     if (equity > peak) peak = equity;
     const dd = peak > 0 ? ((peak - equity) / peak) * 100 : 0;
     if (dd > maxDrawdown) maxDrawdown = dd;
-  }
 
-  let consWins = 0; let maxConsWins = 0; let consLosses = 0; let maxConsLosses = 0;
-  for (const pnl of pnls) {
     if (pnl > 0) { consWins++; consLosses = 0; maxConsWins = Math.max(maxConsWins, consWins); }
     else { consLosses++; consWins = 0; maxConsLosses = Math.max(maxConsLosses, consLosses); }
   }
 
   res.json(GetAnalyticsSummaryResponse.parse({
-    totalTrades, winningTrades: winners.length, losingTrades: losers.length,
+    totalTrades, winningTrades: winCount, losingTrades: lossCount,
     winRate, totalPnl, avgRr, maxDrawdown, profitFactor, expectancy,
-    avgWin, avgLoss, bestTrade: Math.max(...pnls, 0), worstTrade: Math.min(...pnls, 0),
+    avgWin, avgLoss, bestTrade, worstTrade,
     consecutiveWins: maxConsWins, consecutiveLosses: maxConsLosses,
   }));
 });
@@ -69,7 +94,9 @@ router.get("/analytics/equity-curve", async (req, res): Promise<void> => {
     return;
   }
 
-  const trades = await db.select().from(tradesTable)
+  const trades = await db
+    .select({ pnl: tradesTable.pnl, closedAt: tradesTable.closedAt })
+    .from(tradesTable)
     .where(eq(tradesTable.status, "closed"))
     .orderBy(tradesTable.closedAt);
 
@@ -94,11 +121,21 @@ router.get("/analytics/equity-curve", async (req, res): Promise<void> => {
 });
 
 router.get("/analytics/win-rate-breakdown", async (_req, res): Promise<void> => {
-  const trades = await db.select().from(tradesTable).where(eq(tradesTable.status, "closed"));
+  // Only load grouping columns + pnl — not full rows with JSONB blobs
+  const rows = await db
+    .select({
+      pair:       tradesTable.pair,
+      session:    tradesTable.session,
+      zoneType:   tradesTable.zoneType,
+      amdPattern: tradesTable.amdPattern,
+      pnl:        tradesTable.pnl,
+    })
+    .from(tradesTable)
+    .where(eq(tradesTable.status, "closed"));
 
-  function breakdown(groupFn: (t: typeof tradesTable.$inferSelect) => string) {
+  function breakdown(groupFn: (t: typeof rows[0]) => string) {
     const groups: Record<string, { wins: number; total: number; pnl: number }> = {};
-    for (const t of trades) {
+    for (const t of rows) {
       const key = groupFn(t);
       if (!groups[key]) groups[key] = { wins: 0, total: 0, pnl: 0 };
       groups[key]!.total++;
@@ -115,36 +152,42 @@ router.get("/analytics/win-rate-breakdown", async (_req, res): Promise<void> => 
   }
 
   res.json(GetWinRateBreakdownResponse.parse({
-    byPair: breakdown(t => t.pair),
-    bySession: breakdown(t => t.session),
-    byZoneType: breakdown(t => t.zoneType),
+    byPair:       breakdown(t => t.pair),
+    bySession:    breakdown(t => t.session),
+    byZoneType:   breakdown(t => t.zoneType),
     byAmdPattern: breakdown(t => t.amdPattern),
   }));
 });
 
 router.get("/analytics/monthly-pnl", async (_req, res): Promise<void> => {
-  const trades = await db.select().from(tradesTable).where(eq(tradesTable.status, "closed"));
-  const monthly: Record<string, { pnl: number; wins: number; total: number }> = {};
-  for (const t of trades) {
-    const month = t.closedAt?.toISOString().substring(0, 7) ?? "unknown";
-    if (!monthly[month]) monthly[month] = { pnl: 0, wins: 0, total: 0 };
-    monthly[month]!.pnl += parseFloat(t.pnl ?? "0");
-    monthly[month]!.total++;
-    if (parseFloat(t.pnl ?? "0") > 0) monthly[month]!.wins++;
-  }
-  const result = Object.entries(monthly)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, g]) => GetMonthlyPnlResponseItem.parse({
-      month,
-      pnl: g.pnl,
-      trades: g.total,
-      winRate: g.total > 0 ? (g.wins / g.total) * 100 : 0,
-    }));
+  const rows = await db
+    .select({
+      month:       sql<string>`to_char(closed_at AT TIME ZONE 'UTC', 'YYYY-MM')`,
+      totalPnl:    sql<string>`COALESCE(SUM(pnl), 0)`,
+      tradeCount:  sql<string>`COUNT(*)`,
+      winCount:    sql<string>`COUNT(*) FILTER (WHERE pnl > 0)`,
+    })
+    .from(tradesTable)
+    .where(eq(tradesTable.status, "closed"))
+    .groupBy(sql`to_char(closed_at AT TIME ZONE 'UTC', 'YYYY-MM')`)
+    .orderBy(sql`to_char(closed_at AT TIME ZONE 'UTC', 'YYYY-MM')`);
+
+  const result = rows.map(r => GetMonthlyPnlResponseItem.parse({
+    month:   r.month ?? "unknown",
+    pnl:     parseFloat(r.totalPnl),
+    trades:  parseInt(r.tradeCount, 10),
+    winRate: parseInt(r.tradeCount, 10) > 0
+      ? (parseInt(r.winCount, 10) / parseInt(r.tradeCount, 10)) * 100
+      : 0,
+  }));
+
   res.json(result);
 });
 
 router.get("/analytics/drawdown", async (_req, res): Promise<void> => {
-  const trades = await db.select().from(tradesTable)
+  const trades = await db
+    .select({ pnl: tradesTable.pnl, closedAt: tradesTable.closedAt })
+    .from(tradesTable)
     .where(eq(tradesTable.status, "closed"))
     .orderBy(tradesTable.closedAt);
 

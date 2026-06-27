@@ -10,15 +10,14 @@ import {
 import type { RobustnessPipelineResult } from "@workspace/market-analysis";
 import { writeFile } from "fs/promises";
 import { resolve } from "path";
+import { logger } from "../lib/logger.js";
 
 const router = Router();
 
-/** GET /robustness/status */
 router.get("/robustness/status", (_req, res) => {
   res.json(getRobustnessPipelineStatus());
 });
 
-/** GET /robustness/results — list historical results */
 router.get("/robustness/results", async (_req, res) => {
   try {
     const rows = await db
@@ -28,24 +27,25 @@ router.get("/robustness/results", async (_req, res) => {
       .limit(20);
     res.json({ results: rows, total: rows.length });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "robustness results error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
-/** GET /robustness/results/latest — in-memory latest result */
 router.get("/robustness/results/latest", (_req, res) => {
   const latest = getLatestRobustnessResult();
   if (!latest) {
-    return res.status(404).json({ error: "No robustness result available — run the pipeline first" });
+    res.status(404).json({ error: "No robustness result available — run the pipeline first" });
+    return;
   }
   res.json(latest);
 });
 
-/** POST /robustness/run — start a new robustness pipeline run */
 router.post("/robustness/run", async (req, res) => {
   const status = getRobustnessPipelineStatus();
   if (status.status === "running") {
-    return res.status(409).json({ error: "Pipeline is already running", status });
+    res.status(409).json({ error: "Pipeline is already running", status });
+    return;
   }
 
   const {
@@ -90,19 +90,19 @@ router.post("/robustness/run", async (req, res) => {
           durationMs: result.durationMs,
         });
       } catch (dbErr) {
-        console.error("[robustness] DB insert failed:", dbErr);
+        logger.error({ err: dbErr }, "robustness DB insert failed");
       }
     })
     .catch((err: unknown) => {
-      console.error("[robustness] Pipeline error:", err);
+      logger.error({ err }, "robustness pipeline error");
     });
 });
 
-/** POST /robustness/report — generate ROBUSTNESS_REPORT.md */
 router.post("/robustness/report", async (_req, res) => {
   const latest = getLatestRobustnessResult();
   if (!latest) {
-    return res.status(404).json({ error: "No robustness result available — run the pipeline first" });
+    res.status(404).json({ error: "No robustness result available — run the pipeline first" });
+    return;
   }
 
   try {
@@ -116,7 +116,8 @@ router.post("/robustness/report", async (_req, res) => {
       generatedAt: new Date().toISOString(),
     });
   } catch (err) {
-    res.status(500).json({ error: String(err) });
+    logger.error({ err }, "robustness report generation error");
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

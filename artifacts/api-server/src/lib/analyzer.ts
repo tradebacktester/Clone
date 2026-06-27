@@ -186,8 +186,8 @@ export async function analyzeAll(): Promise<void> {
     setNewsBlockedPairs(new Set());
   }
 
-  for (const pair of PAIRS) {
-    for (const tf of TIMEFRAMES) {
+  const jobs = PAIRS.flatMap(pair =>
+    TIMEFRAMES.map(tf => async () => {
       try {
         const result = await runFullAnalysis(pair, tf);
         const key = `${pair}_${tf}`;
@@ -209,8 +209,10 @@ export async function analyzeAll(): Promise<void> {
       } catch (err) {
         logger.error({ pair, tf, err }, "Analysis failed");
       }
-    }
-  }
+    }),
+  );
+
+  await Promise.all(jobs.map(fn => fn()));
 
   await updateRegimeAnalytics();
 }
