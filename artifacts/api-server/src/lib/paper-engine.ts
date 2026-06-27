@@ -10,6 +10,15 @@ import {
   updateMissedOpportunityAftermath,
 } from "./memory-engine.js";
 import {
+  captureSetupDetected,
+  captureSkippedSetup,
+  captureTradeOpened,
+  captureTradeClose,
+  updateExcursionTracker,
+  updateSkippedSetupAftermath,
+  type SkipContext,
+} from "./memory-capture-engine.js";
+import {
   logTradeOpened,
   logTradeClosed,
   logDailyHalt,
@@ -205,6 +214,7 @@ export async function executePaperSignals(
   pair: Pair,
   analysisResult?: AnalysisResult,
   newsStatus = "clear",
+  snapshotId: string | null = null,
 ): Promise<void> {
   if (signals.length === 0) return;
 
@@ -218,10 +228,33 @@ export async function executePaperSignals(
 
   const { totalPnl, todayPnl, weeklyPnl, balance: paperBalance, peakBalance } = await getPnlSnapshot();
 
+  // Select the highest-confidence signal as the candidate
+  const signal = signals.reduce(
+    (best, s) => (s.confidence > best.confidence ? s : best),
+    signals[0]!,
+  );
+  const session = calcSession();
+  const regime  = analysisResult?.regime.regime ?? null;
+
+  // ── Pre-gate: capture setup detection in episodic memory ──────────────────
+  // This creates the setup record before any gates run; it will be marked
+  // accepted if a trade opens, or skipped if any gate rejects.
+  const setupId = analysisResult
+    ? await captureSetupDetected(signal, analysisResult, session, snapshotId, newsStatus)
+    : null;
+
+  const skipCtx: SkipContext = {
+    priceAtSkip: analysisResult ? undefined : undefined,
+    additionalMeta: { newsStatus, regime },
+  };
+
   if (todayPnl <= -(paperBalance * maxDailyLossPct) / 100) {
     logger.warn({ pair, todayPnl, maxDailyLossPct }, "Daily loss limit reached — skipping signal");
     await db.update(botStateTable).set({ haltedDueToRisk: true });
     logDailyHalt(pair, todayPnl, "paper").catch(() => {});
+    recordMissedOpportunity(signal, "daily_loss_limit", session, null).catch(() => {});
+    captureSkippedSetup(signal, "daily_loss_limit", "daily_loss_limit", session, regime, snapshotId, setupId, skipCtx).catch(() => {});
+    logSignal(signal, pair, session, false, null, "daily_loss_limit", regime, newsStatus).catch(() => {});
     return;
   }
 
@@ -229,6 +262,9 @@ export async function executePaperSignals(
     logger.warn({ pair, weeklyPnl, maxWeeklyLossPct }, "Weekly loss limit reached — skipping signal");
     await db.update(botStateTable).set({ haltedDueToRisk: true });
     logWeeklyHalt(pair, weeklyPnl, "paper").catch(() => {});
+    recordMissedOpportunity(signal, "weekly_loss_limit", session, null).catch(() => {});
+    captureSkippedSetup(signal, "weekly_loss_limit", "weekly_loss_limit", session, regime, snapshotId, setupId, skipCtx).catch(() => {});
+    logSignal(signal, pair, session, false, null, "weekly_loss_limit", regime, newsStatus).catch(() => {});
     return;
   }
 
@@ -237,16 +273,9 @@ export async function executePaperSignals(
     .from(tradesTable)
     .where(eq(tradesTable.status, "open"));
 
-  const signal = signals.reduce(
-    (best, s) => (s.confidence > best.confidence ? s : best),
-    signals[0]!,
-  );
-  const session = calcSession();
-
-  const regime = analysisResult?.regime.regime ?? null;
-
   if (openTrades.length >= MAX_OPEN_TRADES) {
     recordMissedOpportunity(signal, "max_open_trades", session, null).catch(() => {});
+    captureSkippedSetup(signal, "max_open_trades", "max_open_trades", session, regime, snapshotId, setupId, skipCtx).catch(() => {});
     logSignal(signal, pair, session, false, null, "max_open_trades", regime, newsStatus).catch(() => {});
     return;
   }
@@ -254,12 +283,14 @@ export async function executePaperSignals(
   const pairAlreadyOpen = openTrades.some(t => t.pair === pair);
   if (pairAlreadyOpen) {
     recordMissedOpportunity(signal, "pair_already_open", session, null).catch(() => {});
+    captureSkippedSetup(signal, "pair_already_open", "pair_already_open", session, regime, snapshotId, setupId, skipCtx).catch(() => {});
     logSignal(signal, pair, session, false, null, "pair_already_open", regime, newsStatus).catch(() => {});
     return;
   }
 
   if (signal.confidence < MIN_SIGNAL_CONFIDENCE) {
     recordMissedOpportunity(signal, "below_confidence", session, null).catch(() => {});
+    captureSkippedSetup(signal, "below_confidence", "confidence_gate", session, regime, snapshotId, setupId, skipCtx).catch(() => {});
     logSignal(signal, pair, session, false, null, "below_confidence", regime, newsStatus).catch(() => {});
     return;
   }
@@ -269,6 +300,7 @@ export async function executePaperSignals(
   if (priceEntry?.source === "fallback") {
     logger.warn({ pair }, "Price source is fallback — refusing to open new position");
     recordMissedOpportunity(signal, "stale_price", session, null).catch(() => {});
+    captureSkippedSetup(signal, "stale_price", "price_feed_gate", session, regime, snapshotId, setupId, skipCtx).catch(() => {});
     logSignal(signal, pair, session, false, null, "stale_price", regime, newsStatus).catch(() => {});
     return;
   }
@@ -278,6 +310,10 @@ export async function executePaperSignals(
   if (mtfAlignment.alignedCount < 2) {
     logger.info({ pair, mtfScore: mtfAlignment.score, alignedCount: mtfAlignment.alignedCount }, "V2 MTF gate: insufficient alignment — skipping signal");
     recordMissedOpportunity(signal, "mtf_insufficient", session, null).catch(() => {});
+    captureSkippedSetup(signal, "mtf_insufficient", "mtf_gate", session, regime, snapshotId, setupId, {
+      ...skipCtx,
+      additionalMeta: { ...skipCtx.additionalMeta, mtfScore: mtfAlignment.score, alignedCount: mtfAlignment.alignedCount },
+    }).catch(() => {});
     logSignal(signal, pair, session, false, null, "mtf_insufficient", regime, newsStatus).catch(() => {});
     return;
   }
@@ -287,6 +323,7 @@ export async function executePaperSignals(
   if (!analysis) {
     logger.info({ pair }, "V2 TQI gate: no analysis result available — hard rejection");
     recordMissedOpportunity(signal, "tqi_below_threshold", session, null).catch(() => {});
+    captureSkippedSetup(signal, "no_analysis_result", "tqi_gate", session, regime, snapshotId, setupId, skipCtx).catch(() => {});
     logSignal(signal, pair, session, false, null, "no_analysis", regime, newsStatus).catch(() => {});
     return;
   }
@@ -295,6 +332,10 @@ export async function executePaperSignals(
   if (!tqiResult.tradeable) {
     logger.info({ pair, tqi: tqiResult.tqi, grade: tqiResult.grade }, "V2 TQI gate: quality below threshold — skipping signal");
     recordMissedOpportunity(signal, "tqi_below_threshold", session, null).catch(() => {});
+    captureSkippedSetup(signal, "tqi_below_threshold", "tqi_gate", session, regime, snapshotId, setupId, {
+      ...skipCtx,
+      additionalMeta: { ...skipCtx.additionalMeta, tqi: tqiResult.tqi, grade: tqiResult.grade },
+    }).catch(() => {});
     logSignal(signal, pair, session, false, null, "tqi_below_threshold", regime, newsStatus).catch(() => {});
     return;
   }
@@ -308,6 +349,10 @@ export async function executePaperSignals(
   if (!corrCheck.allowed) {
     logger.info({ pair, reason: corrCheck.reason }, "V2 correlation gate: overexposure — skipping signal");
     recordMissedOpportunity(signal, "correlation_blocked", session, null).catch(() => {});
+    captureSkippedSetup(signal, "correlation_blocked", "correlation_gate", session, regime, snapshotId, setupId, {
+      ...skipCtx,
+      additionalMeta: { ...skipCtx.additionalMeta, correlationReason: corrCheck.reason },
+    }).catch(() => {});
     logSignal(signal, pair, session, false, null, "correlation_blocked", regime, newsStatus).catch(() => {});
     return;
   }
@@ -390,7 +435,31 @@ export async function executePaperSignals(
   }).returning({ id: tradesTable.id });
 
   if (inserted?.id) {
+    // Legacy memory engine record
     recordTradeMemory(inserted.id, signal, null, null, session).catch(() => {});
+
+    // V2 episodic memory — trade opened event + link to setup
+    captureTradeOpened(
+      {
+        tradeId:       inserted.id,
+        pair,
+        direction:     signal.direction,
+        entryPrice:    actualEntry,
+        stopLoss:      signal.stopLoss,
+        takeProfit:    signal.takeProfit,
+        lotSize,
+        riskPct:       dynamicRiskPct,
+        slippagePips:  entrySlippagePips,
+        spreadPips,
+        session,
+        regime,
+        newsStatus,
+        ruleEvaluation,
+      },
+      snapshotId,
+      setupId,
+    ).catch(() => {});
+
     logTradeOpened({
       tradeId: inserted.id,
       pair,
@@ -412,6 +481,7 @@ export async function executePaperSignals(
       lots: lotSize,
       slippage: entrySlippagePips,
       confidence: signal.confidence,
+      setupId,
     },
     "Paper trade opened",
   );
@@ -483,6 +553,8 @@ export async function monitorOpenTrades(): Promise<void> {
       const closeReason = slHit ? "sl_hit" : "tp_hit";
       const outcome: "win" | "loss" = closedPnl > 0 ? "win" : "loss";
       const rrActual = Math.abs(closePrice - entryPrice) / Math.abs(entryPrice - stopLoss);
+
+      // Legacy memory engine
       closeTradeMemory(
         trade.id,
         outcome,
@@ -494,6 +566,23 @@ export async function monitorOpenTrades(): Promise<void> {
         trade.openedAt ?? new Date(),
         parseFloat(trade.slippagePips ?? "0"),
       ).catch(() => {});
+
+      // V2 episodic memory — trade close event with MFE/MAE
+      captureTradeClose({
+        tradeId:      trade.id,
+        pair:         trade.pair,
+        direction:    trade.direction,
+        entryPrice,
+        closePrice,
+        stopLoss,
+        takeProfit,
+        lotSize,
+        pnl:          Math.round(closedPnl * 100) / 100,
+        pnlPercent:   Math.round(pnlPercent * 1000) / 1000,
+        closeReason,
+        exitSlippage: exitSlippagePips,
+        openedAt:     trade.openedAt ?? new Date(),
+      }).catch(() => {});
 
       logTradeClosed({
         tradeId: trade.id,
@@ -526,6 +615,9 @@ export async function monitorOpenTrades(): Promise<void> {
         lotSize,
       );
 
+      // Update excursion tracker for MFE/MAE calculation (non-blocking, in-memory)
+      updateExcursionTracker(trade.id, midPrice, entryPrice, trade.direction, trade.pair);
+
       await db
         .update(tradesTable)
         .set({
@@ -535,6 +627,11 @@ export async function monitorOpenTrades(): Promise<void> {
         .where(eq(tradesTable.id, trade.id));
     }
   }
+
+  // Periodically update aftermath data for skipped setups (non-blocking)
+  updateSkippedSetupAftermath(
+    (p) => { const price = getCurrentPrice(p as Pair); return price ? { mid: price.mid } : null; },
+  ).catch(() => {});
 }
 
 export async function getOpenPositions(): Promise<

@@ -20,6 +20,7 @@ import {
   regimePerformanceTable,
   regimeWeightsTable,
 } from "@workspace/db";
+import { captureMarketSnapshot } from "./memory-capture-engine.js";
 import { eq, and, isNull } from "drizzle-orm";
 import { logger } from "./logger.js";
 import { getBlockedPairsSet } from "./news-fetcher.js";
@@ -175,8 +176,9 @@ async function updateRegimeAnalytics(): Promise<void> {
 export async function analyzeAll(): Promise<void> {
   logger.info("Starting market analysis for all pairs");
 
+  let blocked = new Set<string>();
   try {
-    const blocked = await getBlockedPairsSet();
+    blocked = await getBlockedPairsSet();
     setNewsBlockedPairs(blocked);
     if (blocked.size > 0) {
       logger.info({ blocked: [...blocked] }, "News filter blocking pairs");
@@ -195,9 +197,13 @@ export async function analyzeAll(): Promise<void> {
 
         if (tf === "4h") {
           await persistAnalysis(result);
+
+          // Capture market snapshot for episodic memory — one per pair per scan
+          const blockedStatus = blocked.has(pair) ? "high_impact" : "clear";
+          const snapshotId = await captureMarketSnapshot(pair, result, blockedStatus).catch(() => null);
+
           if (result.signals.length > 0) {
-            const blockedStatus = blocked.has(pair) ? "high_impact" : "clear";
-            await executePaperSignals(result.signals, pair, result, blockedStatus).catch(err =>
+            await executePaperSignals(result.signals, pair, result, blockedStatus, snapshotId).catch(err =>
               logger.warn({ pair, err }, "Paper signal execution failed"),
             );
           }

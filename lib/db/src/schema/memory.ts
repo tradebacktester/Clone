@@ -141,127 +141,6 @@ export type SetupConfidenceProfile = typeof setupConfidenceProfilesTable.$inferS
 // V2 LONG-TERM MEMORY TABLES
 // ═══════════════════════════════════════════════════════════════════════════
 
-// ─── Setup Memory ──────────────────────────────────────────────────────────
-// Every detected setup, whether or not a trade was executed.
-// This is the foundation record for memory relationships.
-
-export const setupMemoryTable = pgTable("setup_memory", {
-  id:                 uuid("id").primaryKey().defaultRandom(),
-
-  // Core identifiers
-  pair:               text("pair").notNull(),
-  direction:          text("direction").notNull(),
-  session:            text("session").notNull(),
-  strategyVersion:    text("strategy_version").notNull().default("1.0"),
-
-  // HTF Structure
-  htfStructure:       text("htf_structure"),
-  htfBias:            text("htf_bias"),
-
-  // Zone data
-  supplyZoneHigh:     numeric("supply_zone_high", { precision: 18, scale: 6 }),
-  supplyZoneLow:      numeric("supply_zone_low",  { precision: 18, scale: 6 }),
-  demandZoneHigh:     numeric("demand_zone_high", { precision: 18, scale: 6 }),
-  demandZoneLow:      numeric("demand_zone_low",  { precision: 18, scale: 6 }),
-
-  // Premium / Discount
-  premiumDiscountLevel: numeric("premium_discount_level", { precision: 18, scale: 6 }),
-  premiumDiscountLabel: text("premium_discount_label"),
-
-  // Scoring breakdown
-  zoneScore:          numeric("zone_score",          { precision: 5, scale: 2 }).notNull().default("0"),
-  liquidityScore:     numeric("liquidity_score",     { precision: 5, scale: 2 }).notNull().default("0"),
-  amdScore:           numeric("amd_score",           { precision: 5, scale: 2 }).notNull().default("0"),
-  confirmationScore:  numeric("confirmation_score",  { precision: 5, scale: 2 }).notNull().default("0"),
-  tqi:                numeric("tqi",                 { precision: 5, scale: 2 }),
-  confidence:         numeric("confidence",          { precision: 5, scale: 2 }).notNull().default("0"),
-
-  // Status flags
-  isValid:            boolean("is_valid").notNull().default(true),
-  isAccepted:         boolean("is_accepted").notNull().default(false),
-
-  // Relationship to trade (null if setup was evaluated but no trade taken)
-  linkedTradeId:      integer("linked_trade_id"),
-  linkedTradeUuid:    uuid("linked_trade_uuid"),
-
-  // Market context at setup time
-  marketSnapshotId:   uuid("market_snapshot_id"),
-  regime:             text("regime"),
-  newsState:          text("news_state"),
-
-  // Optional rich context
-  meta:               jsonb("meta").$type<Record<string, unknown>>(),
-
-  evaluatedAt:        timestamp("evaluated_at", { withTimezone: true }).notNull().defaultNow(),
-  createdAt:          timestamp("created_at",   { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [
-  index("setup_memory_pair_idx").on(t.pair),
-  index("setup_memory_evaluated_at_idx").on(t.evaluatedAt),
-  index("setup_memory_is_accepted_idx").on(t.isAccepted),
-  index("setup_memory_is_valid_idx").on(t.isValid),
-  index("setup_memory_session_idx").on(t.session),
-  index("setup_memory_linked_trade_id_idx").on(t.linkedTradeId),
-]);
-
-export const insertSetupMemorySchema = createInsertSchema(setupMemoryTable).omit({ createdAt: true });
-export type InsertSetupMemory = z.infer<typeof insertSetupMemorySchema>;
-export type SetupMemory = typeof setupMemoryTable.$inferSelect;
-
-// ─── Skipped Setup Memory ──────────────────────────────────────────────────
-// Every opportunity that was evaluated and deliberately skipped.
-// Provides a complete audit trail of rejections for learning purposes.
-
-export const skippedSetupMemoryTable = pgTable("skipped_setup_memory", {
-  id:                 uuid("id").primaryKey().defaultRandom(),
-  setupId:            uuid("setup_id"),
-
-  pair:               text("pair").notNull(),
-  direction:          text("direction").notNull(),
-  session:            text("session").notNull(),
-  regime:             text("regime"),
-
-  // Why it was skipped
-  skipReason:         text("skip_reason").notNull(),
-  rejectingRule:      text("rejecting_rule").notNull(),
-  rejectingModule:    text("rejecting_module").notNull(),
-
-  // Scores at time of rejection
-  zoneScore:          numeric("zone_score",         { precision: 5, scale: 2 }),
-  liquidityScore:     numeric("liquidity_score",    { precision: 5, scale: 2 }),
-  amdScore:           numeric("amd_score",          { precision: 5, scale: 2 }),
-  confirmationScore:  numeric("confirmation_score", { precision: 5, scale: 2 }),
-  confidence:         numeric("confidence",         { precision: 5, scale: 2 }),
-
-  // Price at skip time
-  priceAtSkip:        numeric("price_at_skip", { precision: 18, scale: 6 }),
-
-  // Screenshot reference (for future visual analysis)
-  screenshotRef:      text("screenshot_ref"),
-
-  // Market context
-  newsState:          text("news_state"),
-  volatility:         text("volatility"),
-  spread:             numeric("spread", { precision: 6, scale: 2 }),
-  marketContext:      jsonb("market_context").$type<Record<string, unknown>>(),
-
-  // Aftermath tracking (populated by background job)
-  priceAt1h:          numeric("price_at_1h",   { precision: 18, scale: 6 }),
-  priceAt4h:          numeric("price_at_4h",   { precision: 18, scale: 6 }),
-  priceAt24h:         numeric("price_at_24h",  { precision: 18, scale: 6 }),
-  hypotheticalOutcome: text("hypothetical_outcome"),
-
-  createdAt:          timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-}, (t) => [
-  index("skipped_setup_memory_pair_idx").on(t.pair),
-  index("skipped_setup_memory_created_at_idx").on(t.createdAt),
-  index("skipped_setup_memory_rejecting_rule_idx").on(t.rejectingRule),
-  index("skipped_setup_memory_setup_id_idx").on(t.setupId),
-]);
-
-export const insertSkippedSetupMemorySchema = createInsertSchema(skippedSetupMemoryTable).omit({ createdAt: true });
-export type InsertSkippedSetupMemory = z.infer<typeof insertSkippedSetupMemorySchema>;
-export type SkippedSetupMemory = typeof skippedSetupMemoryTable.$inferSelect;
-
 // ─── Market Snapshot Memory ────────────────────────────────────────────────
 // A point-in-time snapshot of market conditions at the moment a setup is evaluated.
 // Referenced by both setup_memory and skipped_setup_memory.
@@ -272,6 +151,7 @@ export const marketSnapshotMemoryTable = pgTable("market_snapshot_memory", {
   capturedAt:         timestamp("captured_at", { withTimezone: true }).notNull().defaultNow(),
   pair:               text("pair").notNull(),
   session:            text("session").notNull(),
+  strategyVersion:    text("strategy_version").notNull().default("2.0"),
 
   // Price data
   priceOpen:          numeric("price_open",  { precision: 18, scale: 6 }),
@@ -308,6 +188,11 @@ export const marketSnapshotMemoryTable = pgTable("market_snapshot_memory", {
   newsStatus:         text("news_status"),
   upcomingEvents:     jsonb("upcoming_events").$type<Array<Record<string, unknown>>>(),
   highImpactWithin1h: boolean("high_impact_within_1h").notNull().default(false),
+
+  // Zone summary at time of snapshot
+  supplyZoneCount:    integer("supply_zone_count").default(0),
+  demandZoneCount:    integer("demand_zone_count").default(0),
+  activeSignalCount:  integer("active_signal_count").default(0),
 }, (t) => [
   index("market_snapshot_memory_pair_idx").on(t.pair),
   index("market_snapshot_memory_captured_at_idx").on(t.capturedAt),
@@ -317,6 +202,198 @@ export const marketSnapshotMemoryTable = pgTable("market_snapshot_memory", {
 export const insertMarketSnapshotMemorySchema = createInsertSchema(marketSnapshotMemoryTable);
 export type InsertMarketSnapshotMemory = z.infer<typeof insertMarketSnapshotMemorySchema>;
 export type MarketSnapshotMemory = typeof marketSnapshotMemoryTable.$inferSelect;
+
+// ─── Setup Memory ──────────────────────────────────────────────────────────
+// Every detected setup, whether or not a trade was executed.
+// This is the foundation record for memory relationships.
+
+export const setupMemoryTable = pgTable("setup_memory", {
+  id:                 uuid("id").primaryKey().defaultRandom(),
+
+  // Core identifiers
+  pair:               text("pair").notNull(),
+  direction:          text("direction").notNull(),
+  session:            text("session").notNull(),
+  strategyVersion:    text("strategy_version").notNull().default("2.0"),
+
+  // HTF Structure
+  htfStructure:       text("htf_structure"),
+  htfBias:            text("htf_bias"),
+
+  // Zone data
+  supplyZoneHigh:     numeric("supply_zone_high", { precision: 18, scale: 6 }),
+  supplyZoneLow:      numeric("supply_zone_low",  { precision: 18, scale: 6 }),
+  demandZoneHigh:     numeric("demand_zone_high", { precision: 18, scale: 6 }),
+  demandZoneLow:      numeric("demand_zone_low",  { precision: 18, scale: 6 }),
+
+  // Premium / Discount
+  premiumDiscountLevel: numeric("premium_discount_level", { precision: 18, scale: 6 }),
+  premiumDiscountLabel: text("premium_discount_label"),
+
+  // Scoring breakdown
+  zoneScore:          numeric("zone_score",          { precision: 5, scale: 2 }).notNull().default("0"),
+  liquidityScore:     numeric("liquidity_score",     { precision: 5, scale: 2 }).notNull().default("0"),
+  amdScore:           numeric("amd_score",           { precision: 5, scale: 2 }).notNull().default("0"),
+  confirmationScore:  numeric("confirmation_score",  { precision: 5, scale: 2 }).notNull().default("0"),
+  tqi:                numeric("tqi",                 { precision: 5, scale: 2 }),
+  confidence:         numeric("confidence",          { precision: 5, scale: 2 }).notNull().default("0"),
+
+  // Entry parameters
+  entryPrice:         numeric("entry_price",   { precision: 18, scale: 6 }),
+  stopLoss:           numeric("stop_loss",     { precision: 18, scale: 6 }),
+  takeProfit:         numeric("take_profit",   { precision: 18, scale: 6 }),
+  riskReward:         numeric("risk_reward",   { precision: 6, scale: 2 }),
+
+  // Status flags
+  isValid:            boolean("is_valid").notNull().default(true),
+  isAccepted:         boolean("is_accepted").notNull().default(false),
+
+  // Relationship to trade (null if setup was evaluated but no trade taken)
+  linkedTradeId:      integer("linked_trade_id"),
+  linkedTradeUuid:    uuid("linked_trade_uuid"),
+
+  // Market context at setup time
+  marketSnapshotId:   uuid("market_snapshot_id"),
+  regime:             text("regime"),
+  newsState:          text("news_state"),
+
+  // Optional rich context
+  meta:               jsonb("meta").$type<Record<string, unknown>>(),
+
+  evaluatedAt:        timestamp("evaluated_at", { withTimezone: true }).notNull().defaultNow(),
+  createdAt:          timestamp("created_at",   { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("setup_memory_pair_idx").on(t.pair),
+  index("setup_memory_evaluated_at_idx").on(t.evaluatedAt),
+  index("setup_memory_is_accepted_idx").on(t.isAccepted),
+  index("setup_memory_is_valid_idx").on(t.isValid),
+  index("setup_memory_session_idx").on(t.session),
+  index("setup_memory_linked_trade_id_idx").on(t.linkedTradeId),
+  index("setup_memory_snapshot_id_idx").on(t.marketSnapshotId),
+]);
+
+export const insertSetupMemorySchema = createInsertSchema(setupMemoryTable).omit({ createdAt: true });
+export type InsertSetupMemory = z.infer<typeof insertSetupMemorySchema>;
+export type SetupMemory = typeof setupMemoryTable.$inferSelect;
+
+// ─── Skipped Setup Memory ──────────────────────────────────────────────────
+// Every opportunity that was evaluated and deliberately skipped.
+// Provides a complete audit trail of rejections for learning purposes.
+
+export const skippedSetupMemoryTable = pgTable("skipped_setup_memory", {
+  id:                 uuid("id").primaryKey().defaultRandom(),
+  setupId:            uuid("setup_id"),
+
+  pair:               text("pair").notNull(),
+  direction:          text("direction").notNull(),
+  session:            text("session").notNull(),
+  regime:             text("regime"),
+
+  // Why it was skipped
+  skipReason:         text("skip_reason").notNull(),
+  rejectingRule:      text("rejecting_rule").notNull(),
+  rejectingModule:    text("rejecting_module").notNull(),
+
+  // Scores at time of rejection
+  zoneScore:          numeric("zone_score",         { precision: 5, scale: 2 }),
+  liquidityScore:     numeric("liquidity_score",    { precision: 5, scale: 2 }),
+  amdScore:           numeric("amd_score",          { precision: 5, scale: 2 }),
+  confirmationScore:  numeric("confirmation_score", { precision: 5, scale: 2 }),
+  confidence:         numeric("confidence",         { precision: 5, scale: 2 }),
+
+  // Price at skip time
+  priceAtSkip:        numeric("price_at_skip", { precision: 18, scale: 6 }),
+  entryPrice:         numeric("entry_price",   { precision: 18, scale: 6 }),
+  stopLoss:           numeric("stop_loss",     { precision: 18, scale: 6 }),
+  takeProfit:         numeric("take_profit",   { precision: 18, scale: 6 }),
+  riskReward:         numeric("risk_reward",   { precision: 6, scale: 2 }),
+
+  // Screenshot reference (for future visual analysis)
+  screenshotRef:      text("screenshot_ref"),
+
+  // Market context
+  newsState:          text("news_state"),
+  volatility:         text("volatility"),
+  spread:             numeric("spread", { precision: 6, scale: 2 }),
+  marketSnapshotId:   uuid("market_snapshot_id"),
+  marketContext:      jsonb("market_context").$type<Record<string, unknown>>(),
+
+  // Aftermath tracking (populated by background job)
+  priceAt1h:          numeric("price_at_1h",   { precision: 18, scale: 6 }),
+  priceAt4h:          numeric("price_at_4h",   { precision: 18, scale: 6 }),
+  priceAt24h:         numeric("price_at_24h",  { precision: 18, scale: 6 }),
+  hypotheticalOutcome: text("hypothetical_outcome"),
+
+  createdAt:          timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("skipped_setup_memory_pair_idx").on(t.pair),
+  index("skipped_setup_memory_created_at_idx").on(t.createdAt),
+  index("skipped_setup_memory_rejecting_rule_idx").on(t.rejectingRule),
+  index("skipped_setup_memory_setup_id_idx").on(t.setupId),
+  index("skipped_setup_memory_snapshot_id_idx").on(t.marketSnapshotId),
+]);
+
+export const insertSkippedSetupMemorySchema = createInsertSchema(skippedSetupMemoryTable).omit({ createdAt: true });
+export type InsertSkippedSetupMemory = z.infer<typeof insertSkippedSetupMemorySchema>;
+export type SkippedSetupMemory = typeof skippedSetupMemoryTable.$inferSelect;
+
+// ─── Trade Events ──────────────────────────────────────────────────────────
+// Append-only event log for every meaningful change to a trade's lifecycle.
+// One row per event. Never updated. Always appended.
+// This forms the complete episodic memory timeline per trade.
+
+export const tradeEventsTable = pgTable("trade_events", {
+  id:            serial("id").primaryKey(),
+
+  // Identifiers
+  tradeId:       integer("trade_id").notNull(),
+  setupId:       uuid("setup_id"),       // linked setup_memory record
+  snapshotId:    uuid("snapshot_id"),    // linked market_snapshot_memory record
+
+  // Event classification
+  // opened | break_even | partial_close | trailing_stop | sl_updated |
+  // tp_updated | size_changed | manual_close | closed | price_update
+  eventType:     text("event_type").notNull(),
+
+  // Price state at event time
+  price:         numeric("price",       { precision: 18, scale: 6 }),
+  stopLoss:      numeric("stop_loss",   { precision: 18, scale: 6 }),
+  takeProfit:    numeric("take_profit", { precision: 18, scale: 6 }),
+  lotSize:       numeric("lot_size",   { precision: 10, scale: 4 }),
+
+  // Open event fields
+  riskPct:       numeric("risk_pct",   { precision: 5, scale: 2 }),
+  expectedRr:    numeric("expected_rr",{ precision: 6, scale: 2 }),
+  spreadPips:    numeric("spread_pips",{ precision: 6, scale: 2 }),
+  brokerResponse: text("broker_response"),
+
+  // Close event fields
+  pnl:           numeric("pnl",           { precision: 18, scale: 4 }),
+  pnlPercent:    numeric("pnl_percent",   { precision: 10, scale: 4 }),
+  riskReward:    numeric("risk_reward",   { precision: 6, scale: 2 }),
+  closeReason:   text("close_reason"),
+  outcome:       text("outcome"),          // 'win' | 'loss' | 'break_even'
+  durationMins:  integer("duration_mins"),
+
+  // Excursion analysis (only on close events)
+  mfePips:       numeric("mfe_pips", { precision: 8, scale: 2 }), // Maximum Favorable Excursion
+  maePips:       numeric("mae_pips", { precision: 8, scale: 2 }), // Maximum Adverse Excursion
+  slippagePips:  numeric("slippage_pips", { precision: 6, scale: 2 }),
+
+  // Generic metadata for any extra context
+  meta:          jsonb("meta").$type<Record<string, unknown>>(),
+
+  occurredAt:    timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("trade_events_trade_id_idx").on(t.tradeId),
+  index("trade_events_setup_id_idx").on(t.setupId),
+  index("trade_events_event_type_idx").on(t.eventType),
+  index("trade_events_occurred_at_idx").on(t.occurredAt),
+]);
+
+export const insertTradeEventSchema = createInsertSchema(tradeEventsTable).omit({ id: true });
+export type InsertTradeEvent = z.infer<typeof insertTradeEventSchema>;
+export type TradeEvent = typeof tradeEventsTable.$inferSelect;
 
 // ─── Memory Metadata ───────────────────────────────────────────────────────
 // Tracks the integrity and provenance of every memory record.
@@ -337,7 +414,7 @@ export const memoryMetadataTable = pgTable("memory_metadata", {
 
   // Provenance
   sourceModule:   text("source_module").notNull(),
-  sourceVersion:  text("source_version").notNull().default("1.0"),
+  sourceVersion:  text("source_version").notNull().default("2.0"),
   createdBy:      text("created_by").notNull().default("system"),
 
   createdAt:      timestamp("created_at",  { withTimezone: true }).notNull().defaultNow(),

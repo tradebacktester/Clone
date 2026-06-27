@@ -18,6 +18,12 @@ import {
   apiNotFound,
   MEMORY_TABLES,
 } from "@workspace/market-analysis";
+import {
+  getTradeTimeline,
+  getGlobalTimeline,
+  getMemoryHistory,
+  getTradeEvents,
+} from "../lib/memory-capture-engine.js";
 
 const router: IRouter = Router();
 
@@ -261,6 +267,71 @@ router.post("/memory/setups/:id/archive", async (req, res): Promise<void> => {
   } catch (err) {
     logger.error({ err }, "POST /memory/setups/:id/archive error");
     res.status(500).json(apiError("Failed to archive setup"));
+  }
+});
+
+// ─── Memory Capture Engine — Timeline Endpoints ───────────────────────────
+
+// GET /memory/timeline — global chronological event timeline across all pairs
+router.get("/memory/timeline", async (req, res): Promise<void> => {
+  try {
+    const q      = req.query as Record<string, string | undefined>;
+    const limit  = Math.min(parseInt(q.limit  ?? "50"),  200);
+    const offset = Math.max(parseInt(q.offset ?? "0"),     0);
+    const pair   = q.pair ? String(q.pair).toUpperCase() : undefined;
+
+    const result = await getGlobalTimeline({ pair, limit, offset });
+    res.json(result);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/timeline error");
+    res.status(500).json(apiError("Failed to retrieve memory timeline"));
+  }
+});
+
+// GET /memory/trade/:id — full episodic timeline for a single trade
+router.get("/memory/trade/:id", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.id, 10);
+    if (isNaN(tradeId) || tradeId <= 0) {
+      res.status(400).json(apiError("Invalid trade ID — must be a positive integer"));
+      return;
+    }
+    const result = await getTradeTimeline(tradeId);
+    res.json(result);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/trade/:id error");
+    res.status(500).json(apiError("Failed to retrieve trade timeline"));
+  }
+});
+
+// GET /memory/trade/:id/events — just the event log for a single trade
+router.get("/memory/trade/:id/events", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.id, 10);
+    if (isNaN(tradeId) || tradeId <= 0) {
+      res.status(400).json(apiError("Invalid trade ID"));
+      return;
+    }
+    const events = await getTradeEvents(tradeId);
+    res.json({ tradeId, count: events.length, events });
+  } catch (err) {
+    logger.error({ err }, "GET /memory/trade/:id/events error");
+    res.status(500).json(apiError("Failed to retrieve trade events"));
+  }
+});
+
+// GET /memory/history — paginated full history of all memory records
+router.get("/memory/history", async (req, res): Promise<void> => {
+  try {
+    const q      = req.query as Record<string, string | undefined>;
+    const limit  = Math.min(parseInt(q.limit  ?? "50"),  200);
+    const offset = Math.max(parseInt(q.offset ?? "0"),     0);
+
+    const result = await getMemoryHistory({ limit, offset });
+    res.json(result);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/history error");
+    res.status(500).json(apiError("Failed to retrieve memory history"));
   }
 });
 
