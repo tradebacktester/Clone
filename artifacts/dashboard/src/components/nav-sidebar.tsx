@@ -72,9 +72,15 @@ export function NavSidebar() {
     <>
       <aside className="w-64 border-r border-border bg-sidebar flex-shrink-0 flex flex-col h-full">
         {/* Logo */}
-        <div className="p-4 border-b border-border flex items-center gap-2">
-          <Activity className="w-6 h-6 text-primary" />
-          <span className="font-bold text-lg tracking-tight uppercase">Krytos</span>
+        <div className="px-4 py-3 border-b border-border flex items-center gap-3">
+          <img
+            src="/krytos-logo.png"
+            alt="Krytos"
+            className="w-8 h-8 rounded object-cover flex-shrink-0"
+          />
+          <span className="font-bold text-lg tracking-widest uppercase">
+            KRY<span className="text-red-500">T</span>OS
+          </span>
         </div>
 
         {/* Nav items */}

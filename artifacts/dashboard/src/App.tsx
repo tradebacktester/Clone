@@ -3,7 +3,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
-import { lazy, Suspense } from "react";
+import { SplashScreen } from "@/components/splash-screen";
+import { lazy, Suspense, useState, useCallback } from "react";
 
 const Dashboard = lazy(() => import("@/pages/dashboard"));
 const Trades = lazy(() => import("@/pages/trades"));
@@ -92,9 +93,13 @@ function Router() {
 }
 
 function App() {
+  const [splashDone, setSplashDone] = useState(false);
+  const handleSplashComplete = useCallback(() => setSplashDone(true), []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
+        {!splashDone && <SplashScreen onComplete={handleSplashComplete} />}
         <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
           <Router />
         </WouterRouter>
