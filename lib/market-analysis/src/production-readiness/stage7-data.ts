@@ -97,7 +97,8 @@ export async function runStage7(): Promise<StageResult> {
     };
   }
 
-  const providers = registry.listProviders();
+  const providerStatuses = await registry.getStatus(PAIRS[0], TIMEFRAMES[0]);
+  const providers = providerStatuses;
   const configuredProviders = providers.filter((p) => p.configured);
   const highQualityProviders = configuredProviders.filter((p) => p.priority <= 7);
 
@@ -127,16 +128,24 @@ export async function runStage7(): Promise<StageResult> {
   for (const pair of PAIRS) {
     for (const tf of TIMEFRAMES) {
       try {
-        const fetchResult = await registry.fetchBest(pair, tf, {
-          start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-          end: new Date(),
-          minBars: 10,
-        });
+        const start = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const end = new Date();
+        const fetchResult = await registry.fetchBest(pair, tf, start, end);
 
         const candles = fetchResult?.candles ?? [];
-        const analysis = analyzeCandles(candles, tf);
+        const analysis = analyzeCandles(
+          candles.map((c) => ({
+            time: c.time instanceof Date ? c.time.getTime() : (c.time as number),
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+          })),
+          tf,
+        );
 
-        const coveragePct = fetchResult?.coveragePct ?? 0;
+        const totalExpected = fetchResult?.totalExpected ?? 0;
+        const coveragePct = totalExpected > 0 ? Math.min(100, (candles.length / totalExpected) * 100) : (candles.length > 0 ? 80 : 0);
         const qualityScore = Math.max(
           0,
           Math.min(

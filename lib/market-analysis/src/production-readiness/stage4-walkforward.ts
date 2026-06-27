@@ -40,7 +40,8 @@ export async function runStage4(): Promise<StageResult> {
     };
   }
 
-  const { summary, windows } = wfResult;
+  const { summary, pairs } = wfResult;
+  const windows = pairs.flatMap((p) => p.windows);
 
   findings.push({
     level: "info",
