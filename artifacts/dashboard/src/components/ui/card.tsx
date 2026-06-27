@@ -1,5 +1,4 @@
 import * as React from "react"
-
 import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
@@ -9,9 +8,14 @@ const Card = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-xl border bg-card text-card-foreground shadow",
+      "rounded-xl border bg-card text-card-foreground shadow ai-card",
       className
     )}
+    style={{
+      background: "linear-gradient(135deg, hsl(245 18% 6%) 0%, hsl(250 20% 5%) 100%)",
+      border: "1px solid rgba(139,92,246,0.14)",
+      borderRadius: 10,
+    }}
     {...props}
   />
 ))

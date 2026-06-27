@@ -60,74 +60,74 @@
 }
 
 :root, .dark {
-  --button-outline: rgba(255,255,255, .10);
-  --badge-outline: rgba(255,255,255, .05);
+  --button-outline: rgba(139,92,246, .15);
+  --badge-outline: rgba(139,92,246, .08);
 
   --opaque-button-border-intensity: 9;
 
-  --elevate-1: rgba(255,255,255, .04);
-  --elevate-2: rgba(255,255,255, .09);
+  --elevate-1: rgba(139,92,246, .05);
+  --elevate-2: rgba(139,92,246, .10);
 
-  /* Deep charcoal terminal aesthetic */
-  --background: 220 10% 4%;
-  --foreground: 210 20% 90%;
+  /* Deep AI void — near-black with subtle violet undertone */
+  --background: 240 15% 3%;
+  --foreground: 220 20% 92%;
 
-  --border: 220 10% 15%;
+  --border: 260 20% 14%;
 
-  --card: 220 10% 6%;
-  --card-foreground: 210 20% 90%;
-  --card-border: 220 10% 12%;
+  --card: 245 18% 5%;
+  --card-foreground: 220 20% 92%;
+  --card-border: 260 20% 12%;
 
-  --sidebar: 220 10% 5%;
-  --sidebar-foreground: 210 20% 80%;
-  --sidebar-border: 220 10% 12%;
-  --sidebar-primary: 210 100% 60%;
+  --sidebar: 245 20% 4%;
+  --sidebar-foreground: 220 15% 78%;
+  --sidebar-border: 260 20% 11%;
+  --sidebar-primary: 262 80% 65%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 220 10% 12%;
-  --sidebar-accent-foreground: 210 20% 90%;
-  --sidebar-ring: 210 100% 60%;
+  --sidebar-accent: 255 20% 11%;
+  --sidebar-accent-foreground: 220 20% 92%;
+  --sidebar-ring: 262 80% 65%;
 
-  --popover: 220 10% 8%;
-  --popover-foreground: 210 20% 90%;
-  --popover-border: 220 10% 15%;
+  --popover: 245 20% 7%;
+  --popover-foreground: 220 20% 92%;
+  --popover-border: 260 20% 14%;
 
-  /* Techy Cyan/Blue */
-  --primary: 200 100% 45%;
-  --primary-foreground: 0 0% 0%;
+  /* Neural Violet / Electric Purple as primary */
+  --primary: 262 80% 65%;
+  --primary-foreground: 0 0% 100%;
 
-  --secondary: 220 10% 15%;
-  --secondary-foreground: 210 20% 90%;
+  --secondary: 255 20% 12%;
+  --secondary-foreground: 220 20% 92%;
 
-  --muted: 220 10% 10%;
-  --muted-foreground: 210 10% 55%;
+  --muted: 250 15% 9%;
+  --muted-foreground: 240 10% 52%;
 
-  --accent: 220 10% 15%;
-  --accent-foreground: 210 20% 90%;
+  --accent: 255 20% 12%;
+  --accent-foreground: 220 20% 92%;
 
-  /* Status Colors */
-  --destructive: 0 80% 55%;
+  --destructive: 0 75% 58%;
   --destructive-foreground: 0 0% 100%;
-  
-  --success: 142 70% 45%;
+
+  --success: 142 68% 48%;
   --success-foreground: 0 0% 10%;
 
-  --warning: 38 90% 50%;
+  --warning: 38 90% 52%;
   --warning-foreground: 0 0% 10%;
 
-  --input: 220 10% 15%;
-  --ring: 200 100% 45%;
-  
-  --chart-1: 200 100% 45%;
-  --chart-2: 142 70% 45%;
-  --chart-3: 0 80% 55%;
-  --chart-4: 38 90% 50%;
-  --chart-5: 280 80% 60%;
+  --input: 255 20% 12%;
+  --ring: 262 80% 65%;
+
+  --chart-1: 262 80% 65%;
+  --chart-2: 142 68% 48%;
+  --chart-3: 0 75% 58%;
+  --chart-4: 38 90% 52%;
+  --chart-5: 190 90% 55%;
 
   --app-font-sans: 'Inter', system-ui, sans-serif;
   --app-font-mono: 'JetBrains Mono', 'Fira Code', monospace;
-  --radius: 0.25rem;
+  --radius: 0.375rem;
 }
 
+/* ─── Global base ─────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border;
@@ -135,4 +135,145 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+}
+
+/* ─── AI Neural Grid Background ──────────────────────── */
+.ai-grid-bg {
+  background-image:
+    linear-gradient(rgba(139,92,246,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(139,92,246,0.04) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ─── Glowing pulse for active indicators ────────────── */
+@keyframes ai-pulse-glow {
+  0%, 100% { box-shadow: 0 0 4px 1px rgba(139,92,246,0.3); }
+  50%       { box-shadow: 0 0 14px 4px rgba(139,92,246,0.65); }
+}
+.ai-glow {
+  animation: ai-pulse-glow 2.4s ease-in-out infinite;
+}
+
+/* ─── Ambient scanning line ──────────────────────────── */
+@keyframes ai-scan {
+  0%   { top: -2px; opacity: 0.6; }
+  80%  { opacity: 0.6; }
+  100% { top: 100%; opacity: 0; }
+}
+.ai-scan-line::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(139,92,246,0.5), transparent);
+  animation: ai-scan 5s linear infinite;
+  pointer-events: none;
+}
+
+/* ─── Neural node dot animation ──────────────────────── */
+@keyframes ai-node-ping {
+  0%   { transform: scale(1); opacity: 0.8; }
+  70%  { transform: scale(2.2); opacity: 0; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+.ai-node::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(139,92,246,0.5);
+  animation: ai-node-ping 2s ease-out infinite;
+}
+
+/* ─── Card hover lift with glow ──────────────────────── */
+.ai-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.ai-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 0 1px rgba(139,92,246,0.25), 0 8px 32px rgba(139,92,246,0.12);
+  border-color: rgba(139,92,246,0.3);
+}
+
+/* ─── Sidebar nav active glow ────────────────────────── */
+.ai-nav-active {
+  background: linear-gradient(90deg, rgba(139,92,246,0.18) 0%, rgba(139,92,246,0.06) 100%);
+  border-left: 2px solid hsl(262 80% 65%);
+  box-shadow: inset 4px 0 12px rgba(139,92,246,0.08);
+}
+
+/* ─── Metric value shimmer on load ───────────────────── */
+@keyframes ai-shimmer {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.ai-shimmer-text {
+  background: linear-gradient(90deg, hsl(262 80% 65%), hsl(190 90% 65%), hsl(262 80% 65%));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: ai-shimmer 3s linear infinite;
+}
+
+/* ─── Header top bar gradient ────────────────────────── */
+.ai-header-gradient {
+  background: linear-gradient(180deg,
+    rgba(139,92,246,0.06) 0%,
+    transparent 100%
+  );
+  border-bottom: 1px solid rgba(139,92,246,0.15);
+}
+
+/* ─── Sidebar gradient ───────────────────────────────── */
+.ai-sidebar-gradient {
+  background: linear-gradient(180deg,
+    hsl(245 20% 5%) 0%,
+    hsl(250 22% 4%) 100%
+  );
+}
+
+/* ─── Floating orb background effects ───────────────── */
+.ai-orb-1 {
+  position: fixed;
+  top: -200px; left: -200px;
+  width: 600px; height: 600px;
+  background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+.ai-orb-2 {
+  position: fixed;
+  bottom: -150px; right: -150px;
+  width: 500px; height: 500px;
+  background: radial-gradient(circle, rgba(59,130,246,0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ─── Progress bar neural fill ───────────────────────── */
+.ai-progress-fill {
+  background: linear-gradient(90deg, hsl(262 80% 55%), hsl(220 80% 65%), hsl(262 80% 65%));
+  background-size: 200% auto;
+  animation: ai-shimmer 2s linear infinite;
+}
+
+/* ─── Typing cursor blink ────────────────────────────── */
+@keyframes ai-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.ai-cursor::after {
+  content: '▋';
+  animation: ai-cursor 0.9s step-end infinite;
+  color: hsl(262 80% 65%);
+}
+
+/* ─── Success glow ───────────────────────────────────── */
+.ai-success-glow {
+  box-shadow: 0 0 12px rgba(34,197,94,0.3);
+}
+
+/* ─── Danger glow ────────────────────────────────────── */
+.ai-danger-glow {
+  box-shadow: 0 0 12px rgba(239,68,68,0.3);
 }
