@@ -22,6 +22,7 @@ import productionReadinessRouter from "./production-readiness";
 import deploymentRouter from "./deployment";
 import readinessChecklistRouter from "./readiness-checklist";
 import liveJournalRouter from "./live-journal";
+import robustnessRouter from "./robustness";
 
 const router: IRouter = Router();
 
@@ -48,5 +49,6 @@ router.use(productionReadinessRouter);
 router.use(deploymentRouter);
 router.use(readinessChecklistRouter);
 router.use(liveJournalRouter);
+router.use(robustnessRouter);
 
 export default router;
