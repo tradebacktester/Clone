@@ -1608,6 +1608,131 @@ export interface LiveJournalList {
   offset: number;
 }
 
+export type RobustnessPipelineStatusStatus = typeof RobustnessPipelineStatusStatus[keyof typeof RobustnessPipelineStatusStatus];
+
+
+export const RobustnessPipelineStatusStatus = {
+  idle: 'idle',
+  running: 'running',
+  complete: 'complete',
+  failed: 'failed',
+} as const;
+
+export interface RobustnessPipelineStatus {
+  status: RobustnessPipelineStatusStatus;
+  stage: string;
+  progress: number;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  error?: string | null;
+}
+
+export interface RobustnessRunInput {
+  pair?: string | null;
+  numSimTrades?: number | null;
+  baseWinRate?: number | null;
+  baseRR?: number | null;
+  riskPerTrade?: number | null;
+  skipWalkForward?: boolean | null;
+}
+
+export interface RobustnessResultSummary {
+  id?: number;
+  runAt?: string;
+  pair?: string;
+  overallScore?: string | null;
+  stabilityScore?: string | null;
+  generalizationScore?: string | null;
+  riskResilienceScore?: string | null;
+  executionResilienceScore?: string | null;
+  dataQualityScore?: string | null;
+  durationMs?: number | null;
+  findings?: unknown | null;
+  recommendations?: unknown | null;
+}
+
+export interface RobustnessResultList {
+  results: RobustnessResultSummary[];
+  total: number;
+}
+
+export type RobustnessPipelineResultScoreBreakdown = {
+  stability?: number;
+  generalization?: number;
+  riskResilience?: number;
+  executionResilience?: number;
+  dataQuality?: number;
+};
+
+export type RobustnessPipelineResultScore = {
+  overall?: number;
+  grade?: string;
+  verdict?: string;
+  breakdown?: RobustnessPipelineResultScoreBreakdown;
+};
+
+/**
+ * SensitivityAnalysisResult
+ */
+export type RobustnessPipelineResultSensitivity = { [key: string]: unknown };
+
+/**
+ * MarketStressResult
+ */
+export type RobustnessPipelineResultMarketStress = { [key: string]: unknown };
+
+/**
+ * ExecutionStressResult
+ */
+export type RobustnessPipelineResultExecutionStress = { [key: string]: unknown };
+
+/**
+ * RiskStressResult
+ */
+export type RobustnessPipelineResultRiskStress = { [key: string]: unknown };
+
+/**
+ * WFRobustnessResult
+ */
+export type RobustnessPipelineResultWalkForward = { [key: string]: unknown };
+
+/**
+ * OOSResult
+ */
+export type RobustnessPipelineResultOos = { [key: string]: unknown };
+
+/**
+ * ConfidenceStabilityResult
+ */
+export type RobustnessPipelineResultConfidenceStability = { [key: string]: unknown };
+
+/**
+ * Full in-memory robustness pipeline result
+ */
+export interface RobustnessPipelineResult {
+  id?: string;
+  runAt?: string;
+  pair?: string;
+  durationMs?: number;
+  score?: RobustnessPipelineResultScore;
+  findings?: string[];
+  recommendations?: string[];
+  /** SensitivityAnalysisResult */
+  sensitivity?: RobustnessPipelineResultSensitivity;
+  /** MarketStressResult */
+  marketStress?: RobustnessPipelineResultMarketStress;
+  /** ExecutionStressResult */
+  executionStress?: RobustnessPipelineResultExecutionStress;
+  /** RiskStressResult */
+  riskStress?: RobustnessPipelineResultRiskStress;
+  /** WFRobustnessResult */
+  walkForward?: RobustnessPipelineResultWalkForward;
+  /** OOSResult */
+  oos?: RobustnessPipelineResultOos;
+  /** ConfidenceStabilityResult */
+  confidenceStability?: RobustnessPipelineResultConfidenceStability;
+}
+
 export type ListTradesParams = {
 status?: ListTradesStatus;
 pair?: string;
@@ -1794,5 +1919,16 @@ export type UpdateLiveJournalEntryBody = {
   exitReason?: string;
   notes?: string;
   brokerExecution?: UpdateLiveJournalEntryBodyBrokerExecution;
+};
+
+export type RunRobustnessPipeline200 = {
+  message?: string;
+  status?: RobustnessPipelineStatus;
+};
+
+export type GenerateRobustnessReport200 = {
+  path: string;
+  content: string;
+  generatedAt: string;
 };
 

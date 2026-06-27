@@ -1,22 +1,25 @@
 import { Router } from "express";
 import { db, robustnessResultsTable } from "@workspace/db";
-import { desc, eq } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import {
   runRobustnessPipeline,
   getRobustnessPipelineStatus,
   getLatestRobustnessResult,
+  generateRobustnessReportMarkdown,
 } from "@workspace/market-analysis";
 import type { RobustnessPipelineResult } from "@workspace/market-analysis";
+import { writeFile } from "fs/promises";
+import { resolve } from "path";
 
 const router = Router();
 
-/** GET /api/robustness/status */
-router.get("/api/robustness/status", (_req, res) => {
+/** GET /robustness/status */
+router.get("/robustness/status", (_req, res) => {
   res.json(getRobustnessPipelineStatus());
 });
 
-/** GET /api/robustness/results — list historical results */
-router.get("/api/robustness/results", async (_req, res) => {
+/** GET /robustness/results — list historical results */
+router.get("/robustness/results", async (_req, res) => {
   try {
     const rows = await db
       .select()
@@ -29,8 +32,8 @@ router.get("/api/robustness/results", async (_req, res) => {
   }
 });
 
-/** GET /api/robustness/results/latest — in-memory latest result */
-router.get("/api/robustness/results/latest", (_req, res) => {
+/** GET /robustness/results/latest — in-memory latest result */
+router.get("/robustness/results/latest", (_req, res) => {
   const latest = getLatestRobustnessResult();
   if (!latest) {
     return res.status(404).json({ error: "No robustness result available — run the pipeline first" });
@@ -38,8 +41,8 @@ router.get("/api/robustness/results/latest", (_req, res) => {
   res.json(latest);
 });
 
-/** POST /api/robustness/run — start a new robustness pipeline run */
-router.post("/api/robustness/run", async (req, res) => {
+/** POST /robustness/run — start a new robustness pipeline run */
+router.post("/robustness/run", async (req, res) => {
   const status = getRobustnessPipelineStatus();
   if (status.status === "running") {
     return res.status(409).json({ error: "Pipeline is already running", status });
@@ -61,10 +64,8 @@ router.post("/api/robustness/run", async (req, res) => {
     skipWalkForward?: boolean;
   };
 
-  // Run async — respond immediately
   res.json({ message: "Robustness pipeline started", status: getRobustnessPipelineStatus() });
 
-  // Fire and forget — saves to DB when done
   runRobustnessPipeline({ pair, numSimTrades, baseWinRate, baseRR, riskPerTrade, skipWalkForward })
     .then(async (result: RobustnessPipelineResult) => {
       try {
@@ -95,6 +96,28 @@ router.post("/api/robustness/run", async (req, res) => {
     .catch((err: unknown) => {
       console.error("[robustness] Pipeline error:", err);
     });
+});
+
+/** POST /robustness/report — generate ROBUSTNESS_REPORT.md */
+router.post("/robustness/report", async (_req, res) => {
+  const latest = getLatestRobustnessResult();
+  if (!latest) {
+    return res.status(404).json({ error: "No robustness result available — run the pipeline first" });
+  }
+
+  try {
+    const content = generateRobustnessReportMarkdown(latest);
+    const reportPath = resolve(process.cwd(), "ROBUSTNESS_REPORT.md");
+    await writeFile(reportPath, content, "utf-8");
+
+    res.json({
+      path: reportPath,
+      content,
+      generatedAt: new Date().toISOString(),
+    });
+  } catch (err) {
+    res.status(500).json({ error: String(err) });
+  }
 });
 
 export default router;

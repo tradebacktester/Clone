@@ -80,6 +80,7 @@ export {
   getRobustnessPipelineStatus,
   getLatestRobustnessResult,
 } from "./robustness/pipeline.js";
+export { generateRobustnessReportMarkdown } from "./robustness/report-generator.js";
 
 import type { Pair, Timeframe, AnalysisResult } from "./types.js";
 import { fetchCandles } from "./data/fetcher.js";

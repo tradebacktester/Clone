@@ -44,6 +44,7 @@ import type {
   EquityPoint,
   ExecutionLogResponse,
   GenerateReportInput,
+  GenerateRobustnessReport200,
   GetChecklistHistoryParams,
   GetEquityCurveParams,
   GetExecutionLogParams,
@@ -86,8 +87,13 @@ import type {
   ReportSummary,
   RiskSettings,
   RiskSettingsInput,
+  RobustnessPipelineResult,
+  RobustnessPipelineStatus,
+  RobustnessResultList,
+  RobustnessRunInput,
   RuleAdherenceResponse,
   RunReadinessChecklistBody,
+  RunRobustnessPipeline200,
   SetLiveGate200,
   SetLiveGateBody,
   SetupScore,
@@ -6079,5 +6085,377 @@ export const useUpdateLiveJournalEntry = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateLiveJournalEntryMutationOptions(options));
+    }
+
+export const getGetRobustnessStatusUrl = () => {
+
+
+
+
+  return `/api/robustness/status`
+}
+
+/**
+ * @summary Get robustness pipeline status
+ */
+export const getRobustnessStatus = async ( options?: RequestInit): Promise<RobustnessPipelineStatus> => {
+
+  return customFetch<RobustnessPipelineStatus>(getGetRobustnessStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRobustnessStatusQueryKey = () => {
+    return [
+    `/api/robustness/status`
+    ] as const;
+    }
+
+
+export const getGetRobustnessStatusQueryOptions = <TData = Awaited<ReturnType<typeof getRobustnessStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRobustnessStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRobustnessStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRobustnessStatus>>> = ({ signal }) => getRobustnessStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRobustnessStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRobustnessStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getRobustnessStatus>>>
+export type GetRobustnessStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get robustness pipeline status
+ */
+
+export function useGetRobustnessStatus<TData = Awaited<ReturnType<typeof getRobustnessStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRobustnessStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRobustnessStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getListRobustnessResultsUrl = () => {
+
+
+
+
+  return `/api/robustness/results`
+}
+
+/**
+ * @summary List historical robustness run summaries
+ */
+export const listRobustnessResults = async ( options?: RequestInit): Promise<RobustnessResultList> => {
+
+  return customFetch<RobustnessResultList>(getListRobustnessResultsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListRobustnessResultsQueryKey = () => {
+    return [
+    `/api/robustness/results`
+    ] as const;
+    }
+
+
+export const getListRobustnessResultsQueryOptions = <TData = Awaited<ReturnType<typeof listRobustnessResults>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRobustnessResults>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListRobustnessResultsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listRobustnessResults>>> = ({ signal }) => listRobustnessResults({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listRobustnessResults>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListRobustnessResultsQueryResult = NonNullable<Awaited<ReturnType<typeof listRobustnessResults>>>
+export type ListRobustnessResultsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List historical robustness run summaries
+ */
+
+export function useListRobustnessResults<TData = Awaited<ReturnType<typeof listRobustnessResults>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listRobustnessResults>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListRobustnessResultsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLatestRobustnessResultUrl = () => {
+
+
+
+
+  return `/api/robustness/results/latest`
+}
+
+/**
+ * @summary Get the latest in-memory robustness pipeline result
+ */
+export const getLatestRobustnessResult = async ( options?: RequestInit): Promise<RobustnessPipelineResult> => {
+
+  return customFetch<RobustnessPipelineResult>(getGetLatestRobustnessResultUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLatestRobustnessResultQueryKey = () => {
+    return [
+    `/api/robustness/results/latest`
+    ] as const;
+    }
+
+
+export const getGetLatestRobustnessResultQueryOptions = <TData = Awaited<ReturnType<typeof getLatestRobustnessResult>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLatestRobustnessResult>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLatestRobustnessResultQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestRobustnessResult>>> = ({ signal }) => getLatestRobustnessResult({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLatestRobustnessResult>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLatestRobustnessResultQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestRobustnessResult>>>
+export type GetLatestRobustnessResultQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the latest in-memory robustness pipeline result
+ */
+
+export function useGetLatestRobustnessResult<TData = Awaited<ReturnType<typeof getLatestRobustnessResult>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLatestRobustnessResult>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLatestRobustnessResultQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRunRobustnessPipelineUrl = () => {
+
+
+
+
+  return `/api/robustness/run`
+}
+
+/**
+ * @summary Start a robustness pipeline run (async)
+ */
+export const runRobustnessPipeline = async (robustnessRunInput: RobustnessRunInput, options?: RequestInit): Promise<RunRobustnessPipeline200> => {
+
+  return customFetch<RunRobustnessPipeline200>(getRunRobustnessPipelineUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      robustnessRunInput,)
+  }
+);}
+
+
+
+
+export const getRunRobustnessPipelineMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runRobustnessPipeline>>, TError,{data: BodyType<RobustnessRunInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runRobustnessPipeline>>, TError,{data: BodyType<RobustnessRunInput>}, TContext> => {
+
+const mutationKey = ['runRobustnessPipeline'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runRobustnessPipeline>>, {data: BodyType<RobustnessRunInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runRobustnessPipeline(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunRobustnessPipelineMutationResult = NonNullable<Awaited<ReturnType<typeof runRobustnessPipeline>>>
+    export type RunRobustnessPipelineMutationBody = BodyType<RobustnessRunInput>
+    export type RunRobustnessPipelineMutationError = ErrorType<void>
+
+    /**
+ * @summary Start a robustness pipeline run (async)
+ */
+export const useRunRobustnessPipeline = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runRobustnessPipeline>>, TError,{data: BodyType<RobustnessRunInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runRobustnessPipeline>>,
+        TError,
+        {data: BodyType<RobustnessRunInput>},
+        TContext
+      > => {
+      return useMutation(getRunRobustnessPipelineMutationOptions(options));
+    }
+
+export const getGenerateRobustnessReportUrl = () => {
+
+
+
+
+  return `/api/robustness/report`
+}
+
+/**
+ * @summary Generate ROBUSTNESS_REPORT.md from the latest pipeline result
+ */
+export const generateRobustnessReport = async ( options?: RequestInit): Promise<GenerateRobustnessReport200> => {
+
+  return customFetch<GenerateRobustnessReport200>(getGenerateRobustnessReportUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGenerateRobustnessReportMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRobustnessReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateRobustnessReport>>, TError,void, TContext> => {
+
+const mutationKey = ['generateRobustnessReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateRobustnessReport>>, void> = () => {
+
+
+          return  generateRobustnessReport(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateRobustnessReportMutationResult = NonNullable<Awaited<ReturnType<typeof generateRobustnessReport>>>
+
+    export type GenerateRobustnessReportMutationError = ErrorType<void>
+
+    /**
+ * @summary Generate ROBUSTNESS_REPORT.md from the latest pipeline result
+ */
+export const useGenerateRobustnessReport = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateRobustnessReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateRobustnessReport>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getGenerateRobustnessReportMutationOptions(options));
     }
 

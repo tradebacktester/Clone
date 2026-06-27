@@ -98,6 +98,16 @@ export async function runExecutionStressTests(config: {
   for (let i = 0; i < EXECUTION_SCENARIOS.length; i++) {
     const def = EXECUTION_SCENARIOS[i]!;
 
+    // Use the same seed as baseline when only spread cost changes (no win-rate/RR
+    // multipliers) so that trade outcomes are identical and the spread impact is
+    // measured deterministically. Different seeds are used only when the scenario
+    // inherently changes which trades are selected (missed signals, etc.).
+    const onlySpreadCost =
+      (def.simOverride.winRateMultiplier ?? 1.0) === 1.0 &&
+      (def.simOverride.rrMultiplier ?? 1.0) === 1.0 &&
+      (def.simOverride.missedSignalRate ?? 0) === 0 &&
+      (def.simOverride.partialFillRate ?? 1.0) === 1.0;
+
     const { stats } = runSimulation({
       baseWinRate: baseWinRate * (def.simOverride.winRateMultiplier ?? 1.0),
       rrRatio: baseRR * (def.simOverride.rrMultiplier ?? 1.0),
@@ -106,7 +116,7 @@ export async function runExecutionStressTests(config: {
       spreadCostPips: def.simOverride.spreadCostPips ?? 0,
       missedSignalRate: def.simOverride.missedSignalRate ?? 0,
       partialFillRate: def.simOverride.partialFillRate ?? 1.0,
-      seed: seed + i + 1,
+      seed: onlySpreadCost ? seed : seed + i + 1,
     });
 
     const pnlImpact = baseline.totalPnl !== 0

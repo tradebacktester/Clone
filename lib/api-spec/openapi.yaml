@@ -1331,6 +1331,92 @@ paths:
         "200":
           description: OK
 
+  # ── Robustness & Stress Testing ──────────────────────────────────────────────
+  /robustness/status:
+    get:
+      operationId: getRobustnessStatus
+      summary: Get robustness pipeline status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RobustnessPipelineStatus"
+
+  /robustness/results:
+    get:
+      operationId: listRobustnessResults
+      summary: List historical robustness run summaries
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RobustnessResultList"
+
+  /robustness/results/latest:
+    get:
+      operationId: getLatestRobustnessResult
+      summary: Get the latest in-memory robustness pipeline result
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RobustnessPipelineResult"
+        "404":
+          description: No result available
+
+  /robustness/run:
+    post:
+      operationId: runRobustnessPipeline
+      summary: Start a robustness pipeline run (async)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RobustnessRunInput"
+      responses:
+        "200":
+          description: Pipeline started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  status:
+                    $ref: "#/components/schemas/RobustnessPipelineStatus"
+        "409":
+          description: Pipeline already running
+
+  /robustness/report:
+    post:
+      operationId: generateRobustnessReport
+      summary: Generate ROBUSTNESS_REPORT.md from the latest pipeline result
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [path, content, generatedAt]
+                properties:
+                  path:
+                    type: string
+                  content:
+                    type: string
+                  generatedAt:
+                    type: string
+        "404":
+          description: No robustness result available
+
 components:
   schemas:
 
@@ -3850,3 +3936,157 @@ components:
           type: integer
         offset:
           type: integer
+
+    # ── Robustness & Stress Testing ───────────────────────────────────────────
+    RobustnessPipelineStatus:
+      type: object
+      required: [status, stage, progress]
+      properties:
+        status:
+          type: string
+          enum: [idle, running, complete, failed]
+        stage:
+          type: string
+        progress:
+          type: number
+        startedAt:
+          type: string
+          nullable: true
+        completedAt:
+          type: string
+          nullable: true
+        error:
+          type: string
+          nullable: true
+
+    RobustnessRunInput:
+      type: object
+      properties:
+        pair:
+          type: string
+          nullable: true
+        numSimTrades:
+          type: integer
+          nullable: true
+        baseWinRate:
+          type: number
+          nullable: true
+        baseRR:
+          type: number
+          nullable: true
+        riskPerTrade:
+          type: number
+          nullable: true
+        skipWalkForward:
+          type: boolean
+          nullable: true
+
+    RobustnessResultSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        runAt:
+          type: string
+        pair:
+          type: string
+        overallScore:
+          type: string
+          nullable: true
+        stabilityScore:
+          type: string
+          nullable: true
+        generalizationScore:
+          type: string
+          nullable: true
+        riskResilienceScore:
+          type: string
+          nullable: true
+        executionResilienceScore:
+          type: string
+          nullable: true
+        dataQualityScore:
+          type: string
+          nullable: true
+        durationMs:
+          type: integer
+          nullable: true
+        findings:
+          nullable: true
+        recommendations:
+          nullable: true
+
+    RobustnessResultList:
+      type: object
+      required: [results, total]
+      properties:
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/RobustnessResultSummary"
+        total:
+          type: integer
+
+    RobustnessPipelineResult:
+      type: object
+      description: Full in-memory robustness pipeline result
+      properties:
+        id:
+          type: string
+        runAt:
+          type: string
+        pair:
+          type: string
+        durationMs:
+          type: integer
+        score:
+          type: object
+          properties:
+            overall:
+              type: number
+            grade:
+              type: string
+            verdict:
+              type: string
+            breakdown:
+              type: object
+              properties:
+                stability:
+                  type: number
+                generalization:
+                  type: number
+                riskResilience:
+                  type: number
+                executionResilience:
+                  type: number
+                dataQuality:
+                  type: number
+        findings:
+          type: array
+          items:
+            type: string
+        recommendations:
+          type: array
+          items:
+            type: string
+        sensitivity:
+          type: object
+          description: SensitivityAnalysisResult
+        marketStress:
+          type: object
+          description: MarketStressResult
+        executionStress:
+          type: object
+          description: ExecutionStressResult
+        riskStress:
+          type: object
+          description: RiskStressResult
+        walkForward:
+          type: object
+          description: WFRobustnessResult
+        oos:
+          type: object
+          description: OOSResult
+        confidenceStability:
+          type: object
+          description: ConfidenceStabilityResult

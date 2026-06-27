@@ -2229,3 +2229,119 @@ export const UpdateLiveJournalEntryBody = zod.object({
 })
 
 
+/**
+ * @summary Get robustness pipeline status
+ */
+export const GetRobustnessStatusResponse = zod.object({
+  "status": zod.enum(['idle', 'running', 'complete', 'failed']),
+  "stage": zod.string(),
+  "progress": zod.number(),
+  "startedAt": zod.string().nullish(),
+  "completedAt": zod.string().nullish(),
+  "error": zod.string().nullish()
+})
+
+
+/**
+ * @summary List historical robustness run summaries
+ */
+export const ListRobustnessResultsResponse = zod.object({
+  "results": zod.array(zod.object({
+  "id": zod.number().optional(),
+  "runAt": zod.string().optional(),
+  "pair": zod.string().optional(),
+  "overallScore": zod.string().nullish(),
+  "stabilityScore": zod.string().nullish(),
+  "generalizationScore": zod.string().nullish(),
+  "riskResilienceScore": zod.string().nullish(),
+  "executionResilienceScore": zod.string().nullish(),
+  "dataQualityScore": zod.string().nullish(),
+  "durationMs": zod.number().nullish(),
+  "findings": zod.unknown().nullish(),
+  "recommendations": zod.unknown().nullish()
+})),
+  "total": zod.number()
+})
+
+
+/**
+ * @summary Get the latest in-memory robustness pipeline result
+ */
+export const GetLatestRobustnessResultResponse = zod.object({
+  "id": zod.string().optional(),
+  "runAt": zod.string().optional(),
+  "pair": zod.string().optional(),
+  "durationMs": zod.number().optional(),
+  "score": zod.object({
+  "overall": zod.number().optional(),
+  "grade": zod.string().optional(),
+  "verdict": zod.string().optional(),
+  "breakdown": zod.object({
+  "stability": zod.number().optional(),
+  "generalization": zod.number().optional(),
+  "riskResilience": zod.number().optional(),
+  "executionResilience": zod.number().optional(),
+  "dataQuality": zod.number().optional()
+}).optional()
+}).optional(),
+  "findings": zod.array(zod.string()).optional(),
+  "recommendations": zod.array(zod.string()).optional(),
+  "sensitivity": zod.object({
+
+}).passthrough().optional().describe('SensitivityAnalysisResult'),
+  "marketStress": zod.object({
+
+}).passthrough().optional().describe('MarketStressResult'),
+  "executionStress": zod.object({
+
+}).passthrough().optional().describe('ExecutionStressResult'),
+  "riskStress": zod.object({
+
+}).passthrough().optional().describe('RiskStressResult'),
+  "walkForward": zod.object({
+
+}).passthrough().optional().describe('WFRobustnessResult'),
+  "oos": zod.object({
+
+}).passthrough().optional().describe('OOSResult'),
+  "confidenceStability": zod.object({
+
+}).passthrough().optional().describe('ConfidenceStabilityResult')
+}).describe('Full in-memory robustness pipeline result')
+
+
+/**
+ * @summary Start a robustness pipeline run (async)
+ */
+export const RunRobustnessPipelineBody = zod.object({
+  "pair": zod.string().nullish(),
+  "numSimTrades": zod.number().nullish(),
+  "baseWinRate": zod.number().nullish(),
+  "baseRR": zod.number().nullish(),
+  "riskPerTrade": zod.number().nullish(),
+  "skipWalkForward": zod.boolean().nullish()
+})
+
+export const RunRobustnessPipelineResponse = zod.object({
+  "message": zod.string().optional(),
+  "status": zod.object({
+  "status": zod.enum(['idle', 'running', 'complete', 'failed']),
+  "stage": zod.string(),
+  "progress": zod.number(),
+  "startedAt": zod.string().nullish(),
+  "completedAt": zod.string().nullish(),
+  "error": zod.string().nullish()
+}).optional()
+})
+
+
+/**
+ * @summary Generate ROBUSTNESS_REPORT.md from the latest pipeline result
+ */
+export const GenerateRobustnessReportResponse = zod.object({
+  "path": zod.string(),
+  "content": zod.string(),
+  "generatedAt": zod.string()
+})
+
+

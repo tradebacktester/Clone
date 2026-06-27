@@ -24,6 +24,7 @@ import ProductionReadiness from "@/pages/production-readiness";
 import DeploymentManager from "@/pages/deployment";
 import LiveJournal from "@/pages/live-journal";
 import ReadinessChecklist from "@/pages/readiness-checklist";
+import Robustness from "@/pages/robustness";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -58,6 +59,7 @@ function Router() {
         <Route path="/deployment" component={DeploymentManager} />
         <Route path="/live-journal" component={LiveJournal} />
         <Route path="/readiness-checklist" component={ReadinessChecklist} />
+        <Route path="/robustness" component={Robustness} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
