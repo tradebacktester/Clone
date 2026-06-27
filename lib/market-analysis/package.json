@@ -9,7 +9,8 @@
   "scripts": {
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "/home/runner/workspace/node_modules/.pnpm/node_modules/.bin/tsx --test src/market_regime/__tests__/regime.test.ts",
-    "test:replay": "/home/runner/workspace/node_modules/.pnpm/node_modules/.bin/tsx --test src/replay/__tests__/replay-engine.test.ts src/replay/__tests__/rule-evaluator.test.ts src/replay/__tests__/bias-detector.test.ts"
+    "test:replay": "/home/runner/workspace/node_modules/.pnpm/node_modules/.bin/tsx --test src/replay/__tests__/replay-engine.test.ts src/replay/__tests__/rule-evaluator.test.ts src/replay/__tests__/bias-detector.test.ts",
+    "test:memory": "/home/runner/workspace/node_modules/.pnpm/node_modules/.bin/tsx --test src/memory/tests/memory-validation.test.ts src/memory/tests/memory-index.test.ts src/memory/tests/memory-search.test.ts src/memory/tests/memory-api.test.ts"
   },
   "dependencies": {
     "@workspace/db": "workspace:*",

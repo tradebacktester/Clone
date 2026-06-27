@@ -1,4 +1,5 @@
 export * from "./types.js";
+export * from "./memory/index.js";
 export * from "./data/fetcher.js";
 export { startPipeline, getPipelineStatus, getLatestResult, loadLatestResultFromDisk } from "./production-readiness/index.js";
 export type { PipelineResult, PipelineStatus, StageResult, CategoryScores, Finding } from "./production-readiness/index.js";
