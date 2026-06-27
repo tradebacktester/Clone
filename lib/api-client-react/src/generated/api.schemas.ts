@@ -1878,6 +1878,383 @@ export interface TiComparison {
   bothRejected: TiComparisonCategory;
 }
 
+export interface PaperExecConfig {
+  id: number;
+  pair: string;
+  spreadPips: number;
+  minEntrySlippagePips: number;
+  maxEntrySlippagePips: number;
+  minExitSlippagePips: number;
+  maxExitSlippagePips: number;
+  commissionPerLot: number;
+  partialFillsEnabled: boolean;
+  fillRejectionRatePct: number;
+  updatedAt: string;
+}
+
+export interface PaperExecConfigUpdate {
+  spreadPips?: number;
+  minEntrySlippagePips?: number;
+  maxEntrySlippagePips?: number;
+  minExitSlippagePips?: number;
+  maxExitSlippagePips?: number;
+  commissionPerLot?: number;
+  partialFillsEnabled?: boolean;
+  fillRejectionRatePct?: number;
+}
+
+export interface PaperExecQualitySummary {
+  avgSignalToFillMs?: number;
+  avgEntrySlippagePips?: number;
+  avgExitSlippagePips?: number;
+  avgSpreadPips?: number;
+  avgQualityScore?: number;
+  totalLogs?: number;
+  p95SignalToFillMs?: number;
+  p95EntrySlippagePips?: number;
+}
+
+export type PaperExecQualityRecentItem = { [key: string]: unknown };
+
+export interface PaperExecQuality {
+  summary: PaperExecQualitySummary;
+  recent: PaperExecQualityRecentItem[];
+}
+
+export interface PaperEquityCurvePoint {
+  tradeId?: number;
+  closedAt?: string | null;
+  pnl?: number;
+  balance?: number;
+  drawdownPct?: number;
+  pair?: string;
+  closeReason?: string | null;
+}
+
+export interface PaperEquityCurve {
+  initialBalance: number;
+  currentBalance: number;
+  peakBalance: number;
+  maxDrawdownPct: number;
+  totalReturn: number;
+  curve: PaperEquityCurvePoint[];
+}
+
+export interface ThresholdCurvePoint {
+  value?: number;
+  winRate?: number;
+  profitFactor?: number;
+  tradeCount?: number;
+  expectedValue?: number;
+}
+
+export interface ThresholdPerMetric {
+  name?: string;
+  current?: number;
+  proposed?: number;
+  curve?: ThresholdCurvePoint[];
+  baselineWinRate?: number;
+  proposedWinRate?: number;
+  baselinePF?: number;
+  proposedPF?: number;
+  improvementPct?: number;
+}
+
+export type ThresholdResultPerThreshold = {[key: string]: ThresholdPerMetric};
+
+export type ThresholdResultWfFoldsItem = { [key: string]: unknown };
+
+export type ThresholdResultSummary = { [key: string]: unknown };
+
+export interface ThresholdResult {
+  id?: number;
+  runAt?: string;
+  tradesAnalyzed?: number;
+  durationMs?: number;
+  perThreshold?: ThresholdResultPerThreshold;
+  wfFolds?: ThresholdResultWfFoldsItem[];
+  wfPassRate?: number;
+  wfConsistent?: boolean;
+  summary?: ThresholdResultSummary;
+}
+
+export interface ThresholdRunSummary {
+  id: number;
+  runAt: string;
+  tradesAnalyzed: number;
+  durationMs?: number;
+  baselineWinRate?: number | null;
+  proposedWinRate?: number | null;
+  baselineProfitFactor?: number | null;
+  proposedProfitFactor?: number | null;
+  wfPassRate?: number | null;
+  wfConsistent?: boolean | null;
+  tradeCountDelta?: number | null;
+}
+
+export type ThresholdLatestPerThresholdAnalysis = { [key: string]: unknown };
+
+export type ThresholdLatestWfFoldsItem = { [key: string]: unknown };
+
+export interface ThresholdLatest {
+  hasResult: boolean;
+  message?: string;
+  id?: number;
+  runAt?: string;
+  tradesAnalyzed?: number;
+  baselineWinRate?: number | null;
+  proposedWinRate?: number | null;
+  wfPassRate?: number | null;
+  wfConsistent?: boolean | null;
+  perThresholdAnalysis?: ThresholdLatestPerThresholdAnalysis;
+  wfFolds?: ThresholdLatestWfFoldsItem[];
+}
+
+export interface PilotStatus {
+  enabled: boolean;
+  halted: boolean;
+  haltReason?: string | null;
+  consecLosses: number;
+  shutdownThreshold: number;
+  maxRiskPerTradePct: number;
+  maxDailyLossPct: number;
+  maxWeeklyLossPct: number;
+  maxOpenTrades: number;
+  manualConfirmRequired: boolean;
+  requireCertification: boolean;
+  totalTrades: number;
+  totalPnl: number;
+  brokerAccountId?: number | null;
+  startedAt?: string | null;
+  stoppedAt?: string | null;
+  updatedAt?: string;
+  dailyPnl?: number;
+  weeklyPnl?: number;
+  currentOpenTrades?: number;
+  canTrade: boolean;
+  blockReason?: string | null;
+}
+
+export interface PilotConfigUpdate {
+  maxRiskPerTradePct?: number;
+  maxDailyLossPct?: number;
+  maxWeeklyLossPct?: number;
+  maxOpenTrades?: number;
+  manualConfirmRequired?: boolean;
+  shutdownOnNConsecLosses?: number;
+  requireCertification?: boolean;
+}
+
+export interface PilotEvent {
+  id: number;
+  eventType: string;
+  pair?: string | null;
+  direction?: string | null;
+  tradeId?: number | null;
+  pnl?: number | null;
+  riskPct?: number | null;
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface ImprovementBreakdownItem {
+  trades?: number;
+  winRate?: number;
+  pnl?: number;
+}
+
+export type ImprovementSummaryOverall = {
+  totalTrades?: number;
+  winRate?: number;
+  profitFactor?: number;
+  totalPnl?: number;
+  avgTqi?: number;
+  avgSetupScore?: number;
+  rollingWinRate10?: number;
+};
+
+export type ImprovementSummaryMonthlyItem = { [key: string]: unknown };
+
+export type ImprovementSummaryBySessionItem = { [key: string]: unknown };
+
+export type ImprovementSummaryByPairItem = { [key: string]: unknown };
+
+export type ImprovementSummaryBySetupItem = { [key: string]: unknown };
+
+export type ImprovementSummaryByRegimeItem = { [key: string]: unknown };
+
+export interface ImprovementSummary {
+  overall?: ImprovementSummaryOverall;
+  monthly?: ImprovementSummaryMonthlyItem[];
+  bySession?: ImprovementSummaryBySessionItem[];
+  byPair?: ImprovementSummaryByPairItem[];
+  bySetup?: ImprovementSummaryBySetupItem[];
+  byRegime?: ImprovementSummaryByRegimeItem[];
+}
+
+export type PaperExecConfigInputPair = typeof PaperExecConfigInputPair[keyof typeof PaperExecConfigInputPair];
+
+
+export const PaperExecConfigInputPair = {
+  'EUR/USD': 'EUR/USD',
+  'GBP/USD': 'GBP/USD',
+  'USD/JPY': 'USD/JPY',
+} as const;
+
+export interface PaperExecConfigInput {
+  pair: PaperExecConfigInputPair;
+  spreadPips?: number;
+  minEntrySlippagePips?: number;
+  maxEntrySlippagePips?: number;
+  minExitSlippagePips?: number;
+  maxExitSlippagePips?: number;
+  commissionPerLot?: number;
+  partialFillsEnabled?: boolean;
+  fillRejectionRatePct?: number;
+}
+
+export type ExecQualitySummaryLogItem = {
+  id?: number;
+  tradeId?: number;
+  pair?: string;
+  direction?: string;
+  requestedEntryPrice?: number;
+  actualEntryPrice?: number;
+  slippagePips?: number;
+  wasRejected?: boolean;
+  wasPartialFill?: boolean;
+  fillRatio?: number;
+  fillTimeSec?: number;
+  createdAt?: string;
+};
+
+export interface ExecQualitySummary {
+  avgSlippagePips?: number;
+  avgFillTimeSec?: number;
+  rejectionRate?: number;
+  partialFillRate?: number;
+  log?: ExecQualitySummaryLogItem[];
+}
+
+export interface PilotConfig {
+  id?: number;
+  enabled?: boolean;
+  brokerAccountId?: number;
+  riskCapPct?: number;
+  consecutiveLossHalt?: number;
+  consecutiveLossCount?: number;
+  halted?: boolean;
+  haltReason?: string;
+  startedAt?: string;
+  updatedAt?: string;
+}
+
+export interface PilotConfigInput {
+  riskCapPct?: number;
+  consecutiveLossHalt?: number;
+  brokerAccountId?: number;
+}
+
+export type ComparisonStatsBot = {
+  trades?: number;
+  winRate?: number;
+  profitFactor?: number;
+  totalPnl?: number;
+  avgRR?: number;
+  avgTqi?: number;
+};
+
+export type ComparisonStatsManual = {
+  trades?: number;
+  winRate?: number;
+  profitFactor?: number;
+  totalPnl?: number;
+  avgRR?: number;
+};
+
+export type ComparisonStatsEdge = {
+  winRateDelta?: number;
+  pnlDelta?: number;
+  pfDelta?: number;
+};
+
+export interface ComparisonStats {
+  bot?: ComparisonStatsBot;
+  manual?: ComparisonStatsManual;
+  edge?: ComparisonStatsEdge;
+}
+
+export type ConfidenceCalibrationBucketsItem = {
+  bucket?: string;
+  traderConfidenceAvg?: number;
+  actualWinRate?: number;
+  count?: number;
+  calibrationError?: number;
+};
+
+export interface ConfidenceCalibration {
+  buckets?: ConfidenceCalibrationBucketsItem[];
+  overallCalibrationError?: number;
+}
+
+export type StrategyDriftAllTime = {
+  winRate?: number;
+  profitFactor?: number;
+  trades?: number;
+};
+
+export type StrategyDriftRolling30d = {
+  winRate?: number;
+  profitFactor?: number;
+  trades?: number;
+};
+
+export type StrategyDriftDriftSeverity = typeof StrategyDriftDriftSeverity[keyof typeof StrategyDriftDriftSeverity];
+
+
+export const StrategyDriftDriftSeverity = {
+  none: 'none',
+  mild: 'mild',
+  moderate: 'moderate',
+  severe: 'severe',
+} as const;
+
+export type StrategyDriftDrift = {
+  winRateDelta?: number;
+  profitFactorDelta?: number;
+  driftDetected?: boolean;
+  severity?: StrategyDriftDriftSeverity;
+};
+
+export interface StrategyDrift {
+  allTime?: StrategyDriftAllTime;
+  rolling30d?: StrategyDriftRolling30d;
+  drift?: StrategyDriftDrift;
+}
+
+export interface ThresholdOptimizerInput {
+  minTrades?: number;
+  folds?: number;
+  minWinRate?: number;
+  minProfitFactor?: number;
+}
+
+export type ThresholdRunFullRecommendations = {
+  entryScore?: number;
+  tqi?: number;
+  setupQuality?: number;
+  rationale?: string;
+};
+
+export interface ThresholdRunFull {
+  id?: number;
+  runAt?: string;
+  totalTrades?: number;
+  folds?: number;
+  results?: ThresholdRunSummary[];
+  recommendations?: ThresholdRunFullRecommendations;
+}
+
 export type ListTradesParams = {
 status?: ListTradesStatus;
 pair?: string;
@@ -2077,6 +2454,14 @@ export type GenerateRobustnessReport200 = {
   generatedAt: string;
 };
 
+export type GetExecQualityParams = {
+limit?: number;
+};
+
+export type ListPilotEventsParams = {
+limit?: number;
+};
+
 export type ListTiDecisionsParams = {
 pair?: string;
 decision?: string;
@@ -2108,4 +2493,54 @@ export type GenerateTiReport200 = {
   content: string;
   generatedAt: string;
 };
+
+export type GetPaperExecConfigs200 = {
+  configs: PaperExecConfig[];
+};
+
+export type GetPaperExecQualityParams = {
+limit?: number;
+};
+
+export type GetPaperDrawdown200 = { [key: string]: unknown };
+
+export type RunThresholdAnalysisBody = {
+  windowSize?: number;
+  folds?: number;
+};
+
+export type GetThresholdHistoryParams = {
+limit?: number;
+};
+
+export type GetThresholdHistory200 = {
+  runs: ThresholdRunSummary[];
+};
+
+export type EnablePilotModeBody = {
+  brokerAccountId?: number;
+};
+
+export type EnablePilotMode200 = {
+  success: boolean;
+  message: string;
+};
+
+export type DisablePilotModeBody = {
+  reason?: string;
+};
+
+export type DisablePilotMode200 = {
+  success: boolean;
+  message: string;
+};
+
+export type ClearPilotHalt200 = {
+  success: boolean;
+  message: string;
+};
+
+export type GetImprovementRecommendations200 = { [key: string]: unknown };
+
+export type GenerateImprovementReport200 = { [key: string]: unknown };
 

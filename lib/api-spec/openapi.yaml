@@ -1887,6 +1887,276 @@ paths:
                   generatedAt:
                     type: string
 
+  # ── Paper Exec Config ──────────────────────────────────────────────────────
+
+  /paper/exec-config:
+    get:
+      operationId: getPaperExecConfigs
+      summary: List per-pair paper execution configs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [configs]
+                properties:
+                  configs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/PaperExecConfig"
+
+  /paper/exec-config/{pair}:
+    get:
+      operationId: getPaperExecConfigForPair
+      summary: Get paper execution config for a pair
+      parameters:
+        - name: pair
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperExecConfig"
+    put:
+      operationId: updatePaperExecConfig
+      summary: Update paper execution config for a pair
+      parameters:
+        - name: pair
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaperExecConfigUpdate"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperExecConfig"
+
+  /paper/exec-quality:
+    get:
+      operationId: getPaperExecQuality
+      summary: Get execution quality metrics and recent log
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperExecQuality"
+
+  /paper/equity-curve:
+    get:
+      operationId: getPaperEquityCurve
+      summary: Get paper trading equity curve
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperEquityCurve"
+
+  /paper/drawdown:
+    get:
+      operationId: getPaperDrawdown
+      summary: Get paper trading drawdown analysis
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  # ── Threshold Optimization ─────────────────────────────────────────────────
+
+  /threshold/analyze:
+    post:
+      operationId: runThresholdAnalysis
+      summary: Run threshold optimization with walk-forward validation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                windowSize:
+                  type: integer
+                folds:
+                  type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThresholdResult"
+
+  /threshold/history:
+    get:
+      operationId: getThresholdHistory
+      summary: List past threshold optimization runs
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [runs]
+                properties:
+                  runs:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/ThresholdRunSummary"
+
+  /threshold/latest:
+    get:
+      operationId: getLatestThreshold
+      summary: Get most recent threshold optimization result
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThresholdLatest"
+
+  # ── Pilot Mode ─────────────────────────────────────────────────────────────
+
+  /pilot/status:
+    get:
+      operationId: getPilotStatus
+      summary: Get pilot mode status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PilotStatus"
+
+  /pilot/enable:
+    post:
+      operationId: enablePilotMode
+      summary: Enable pilot mode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                brokerAccountId:
+                  type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /pilot/disable:
+    post:
+      operationId: disablePilotMode
+      summary: Disable pilot mode
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  /pilot/clear-halt:
+    post:
+      operationId: clearPilotHalt
+      summary: Clear pilot mode halt and reset consecutive loss counter
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [success, message]
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+
+  # ── Continuous Improvement New Paths ────────────────────────────────────────
+
+  /improvement/recommendations:
+    get:
+      operationId: getImprovementRecommendations
+      summary: Get actionable improvement recommendations (advisory only, never auto-applies)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
+  /improvement/report:
+    post:
+      operationId: generateImprovementReport
+      summary: Generate improvement report markdown file
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+
 components:
   schemas:
 
@@ -4855,3 +5125,649 @@ components:
           $ref: "#/components/schemas/TiComparisonCategory"
         bothRejected:
           $ref: "#/components/schemas/TiComparisonCategory"
+
+    # ── Paper Exec Config Schemas ───────────────────────────────────────────
+
+    PaperExecConfig:
+      type: object
+      required: [id, pair, spreadPips, minEntrySlippagePips, maxEntrySlippagePips, minExitSlippagePips, maxExitSlippagePips, commissionPerLot, partialFillsEnabled, fillRejectionRatePct, updatedAt]
+      properties:
+        id:
+          type: integer
+        pair:
+          type: string
+        spreadPips:
+          type: number
+        minEntrySlippagePips:
+          type: number
+        maxEntrySlippagePips:
+          type: number
+        minExitSlippagePips:
+          type: number
+        maxExitSlippagePips:
+          type: number
+        commissionPerLot:
+          type: number
+        partialFillsEnabled:
+          type: boolean
+        fillRejectionRatePct:
+          type: number
+        updatedAt:
+          type: string
+
+    PaperExecConfigUpdate:
+      type: object
+      properties:
+        spreadPips:
+          type: number
+        minEntrySlippagePips:
+          type: number
+        maxEntrySlippagePips:
+          type: number
+        minExitSlippagePips:
+          type: number
+        maxExitSlippagePips:
+          type: number
+        commissionPerLot:
+          type: number
+        partialFillsEnabled:
+          type: boolean
+        fillRejectionRatePct:
+          type: number
+
+    PaperExecQualitySummary:
+      type: object
+      properties:
+        avgSignalToFillMs:
+          type: number
+        avgEntrySlippagePips:
+          type: number
+        avgExitSlippagePips:
+          type: number
+        avgSpreadPips:
+          type: number
+        avgQualityScore:
+          type: number
+        totalLogs:
+          type: integer
+        p95SignalToFillMs:
+          type: number
+        p95EntrySlippagePips:
+          type: number
+
+    PaperExecQuality:
+      type: object
+      required: [summary, recent]
+      properties:
+        summary:
+          $ref: "#/components/schemas/PaperExecQualitySummary"
+        recent:
+          type: array
+          items:
+            type: object
+
+    PaperEquityCurvePoint:
+      type: object
+      properties:
+        tradeId:
+          type: integer
+        closedAt:
+          type: string
+          nullable: true
+        pnl:
+          type: number
+        balance:
+          type: number
+        drawdownPct:
+          type: number
+        pair:
+          type: string
+        closeReason:
+          type: string
+          nullable: true
+
+    PaperEquityCurve:
+      type: object
+      required: [initialBalance, currentBalance, peakBalance, maxDrawdownPct, totalReturn, curve]
+      properties:
+        initialBalance:
+          type: number
+        currentBalance:
+          type: number
+        peakBalance:
+          type: number
+        maxDrawdownPct:
+          type: number
+        totalReturn:
+          type: number
+        curve:
+          type: array
+          items:
+            $ref: "#/components/schemas/PaperEquityCurvePoint"
+
+    # ── Threshold Schemas ───────────────────────────────────────────────────
+
+    ThresholdCurvePoint:
+      type: object
+      properties:
+        value:
+          type: number
+        winRate:
+          type: number
+        profitFactor:
+          type: number
+        tradeCount:
+          type: integer
+        expectedValue:
+          type: number
+
+    ThresholdPerMetric:
+      type: object
+      properties:
+        name:
+          type: string
+        current:
+          type: number
+        proposed:
+          type: number
+        curve:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThresholdCurvePoint"
+        baselineWinRate:
+          type: number
+        proposedWinRate:
+          type: number
+        baselinePF:
+          type: number
+        proposedPF:
+          type: number
+        improvementPct:
+          type: number
+
+    ThresholdResult:
+      type: object
+      properties:
+        id:
+          type: integer
+        runAt:
+          type: string
+        tradesAnalyzed:
+          type: integer
+        durationMs:
+          type: integer
+        perThreshold:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/ThresholdPerMetric"
+        wfFolds:
+          type: array
+          items:
+            type: object
+        wfPassRate:
+          type: number
+        wfConsistent:
+          type: boolean
+        summary:
+          type: object
+
+    ThresholdRunSummary:
+      type: object
+      required: [id, runAt, tradesAnalyzed]
+      properties:
+        id:
+          type: integer
+        runAt:
+          type: string
+        tradesAnalyzed:
+          type: integer
+        durationMs:
+          type: integer
+        baselineWinRate:
+          type: number
+          nullable: true
+        proposedWinRate:
+          type: number
+          nullable: true
+        baselineProfitFactor:
+          type: number
+          nullable: true
+        proposedProfitFactor:
+          type: number
+          nullable: true
+        wfPassRate:
+          type: number
+          nullable: true
+        wfConsistent:
+          type: boolean
+          nullable: true
+        tradeCountDelta:
+          type: integer
+          nullable: true
+
+    ThresholdLatest:
+      type: object
+      required: [hasResult]
+      properties:
+        hasResult:
+          type: boolean
+        message:
+          type: string
+        id:
+          type: integer
+        runAt:
+          type: string
+        tradesAnalyzed:
+          type: integer
+        baselineWinRate:
+          type: number
+          nullable: true
+        proposedWinRate:
+          type: number
+          nullable: true
+        wfPassRate:
+          type: number
+          nullable: true
+        wfConsistent:
+          type: boolean
+          nullable: true
+        perThresholdAnalysis:
+          type: object
+        wfFolds:
+          type: array
+          items:
+            type: object
+
+    # ── Pilot Mode Schemas ──────────────────────────────────────────────────
+
+    PilotStatus:
+      type: object
+      required: [enabled, halted, consecLosses, shutdownThreshold, maxRiskPerTradePct, maxDailyLossPct, maxWeeklyLossPct, maxOpenTrades, manualConfirmRequired, requireCertification, totalTrades, totalPnl, canTrade]
+      properties:
+        enabled:
+          type: boolean
+        halted:
+          type: boolean
+        haltReason:
+          type: string
+          nullable: true
+        consecLosses:
+          type: integer
+        shutdownThreshold:
+          type: integer
+        maxRiskPerTradePct:
+          type: number
+        maxDailyLossPct:
+          type: number
+        maxWeeklyLossPct:
+          type: number
+        maxOpenTrades:
+          type: integer
+        manualConfirmRequired:
+          type: boolean
+        requireCertification:
+          type: boolean
+        totalTrades:
+          type: integer
+        totalPnl:
+          type: number
+        brokerAccountId:
+          type: integer
+          nullable: true
+        startedAt:
+          type: string
+          nullable: true
+        stoppedAt:
+          type: string
+          nullable: true
+        updatedAt:
+          type: string
+        dailyPnl:
+          type: number
+        weeklyPnl:
+          type: number
+        currentOpenTrades:
+          type: integer
+        canTrade:
+          type: boolean
+        blockReason:
+          type: string
+          nullable: true
+
+    PilotConfigUpdate:
+      type: object
+      properties:
+        maxRiskPerTradePct:
+          type: number
+        maxDailyLossPct:
+          type: number
+        maxWeeklyLossPct:
+          type: number
+        maxOpenTrades:
+          type: integer
+        manualConfirmRequired:
+          type: boolean
+        shutdownOnNConsecLosses:
+          type: integer
+        requireCertification:
+          type: boolean
+
+    PilotEvent:
+      type: object
+      required: [id, eventType, createdAt]
+      properties:
+        id:
+          type: integer
+        eventType:
+          type: string
+        pair:
+          type: string
+          nullable: true
+        direction:
+          type: string
+          nullable: true
+        tradeId:
+          type: integer
+          nullable: true
+        pnl:
+          type: number
+          nullable: true
+        riskPct:
+          type: number
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+
+    # ── Improvement Schemas ─────────────────────────────────────────────────
+
+    ImprovementBreakdownItem:
+      type: object
+      properties:
+        trades:
+          type: integer
+        winRate:
+          type: number
+        pnl:
+          type: number
+
+    ImprovementSummary:
+      type: object
+      properties:
+        overall:
+          type: object
+          properties:
+            totalTrades:
+              type: integer
+            winRate:
+              type: number
+            profitFactor:
+              type: number
+            totalPnl:
+              type: number
+            avgTqi:
+              type: number
+            avgSetupScore:
+              type: number
+            rollingWinRate10:
+              type: number
+        monthly:
+          type: array
+          items:
+            type: object
+        bySession:
+          type: array
+          items:
+            type: object
+        byPair:
+          type: array
+          items:
+            type: object
+        bySetup:
+          type: array
+          items:
+            type: object
+        byRegime:
+          type: array
+          items:
+            type: object
+
+    PaperExecConfigInput:
+      type: object
+      required: [pair]
+      properties:
+        pair:
+          type: string
+          enum: [EUR/USD, GBP/USD, USD/JPY]
+        spreadPips:
+          type: number
+        minEntrySlippagePips:
+          type: number
+        maxEntrySlippagePips:
+          type: number
+        minExitSlippagePips:
+          type: number
+        maxExitSlippagePips:
+          type: number
+        commissionPerLot:
+          type: number
+        partialFillsEnabled:
+          type: boolean
+        fillRejectionRatePct:
+          type: number
+
+    ExecQualitySummary:
+      type: object
+      properties:
+        avgSlippagePips:
+          type: number
+        avgFillTimeSec:
+          type: number
+        rejectionRate:
+          type: number
+        partialFillRate:
+          type: number
+        log:
+          type: array
+          items:
+            type: object
+            properties:
+              id:
+                type: integer
+              tradeId:
+                type: integer
+              pair:
+                type: string
+              direction:
+                type: string
+              requestedEntryPrice:
+                type: number
+              actualEntryPrice:
+                type: number
+              slippagePips:
+                type: number
+              wasRejected:
+                type: boolean
+              wasPartialFill:
+                type: boolean
+              fillRatio:
+                type: number
+              fillTimeSec:
+                type: number
+              createdAt:
+                type: string
+
+    PilotConfig:
+      type: object
+      properties:
+        id:
+          type: integer
+        enabled:
+          type: boolean
+        brokerAccountId:
+          type: integer
+        riskCapPct:
+          type: number
+        consecutiveLossHalt:
+          type: integer
+        consecutiveLossCount:
+          type: integer
+        halted:
+          type: boolean
+        haltReason:
+          type: string
+        startedAt:
+          type: string
+        updatedAt:
+          type: string
+
+    PilotConfigInput:
+      type: object
+      properties:
+        riskCapPct:
+          type: number
+        consecutiveLossHalt:
+          type: integer
+        brokerAccountId:
+          type: integer
+
+    ComparisonStats:
+      type: object
+      properties:
+        bot:
+          type: object
+          properties:
+            trades:
+              type: integer
+            winRate:
+              type: number
+            profitFactor:
+              type: number
+            totalPnl:
+              type: number
+            avgRR:
+              type: number
+            avgTqi:
+              type: number
+        manual:
+          type: object
+          properties:
+            trades:
+              type: integer
+            winRate:
+              type: number
+            profitFactor:
+              type: number
+            totalPnl:
+              type: number
+            avgRR:
+              type: number
+        edge:
+          type: object
+          properties:
+            winRateDelta:
+              type: number
+            pnlDelta:
+              type: number
+            pfDelta:
+              type: number
+
+    ConfidenceCalibration:
+      type: object
+      properties:
+        buckets:
+          type: array
+          items:
+            type: object
+            properties:
+              bucket:
+                type: string
+              traderConfidenceAvg:
+                type: number
+              actualWinRate:
+                type: number
+              count:
+                type: integer
+              calibrationError:
+                type: number
+        overallCalibrationError:
+          type: number
+
+    StrategyDrift:
+      type: object
+      properties:
+        allTime:
+          type: object
+          properties:
+            winRate:
+              type: number
+            profitFactor:
+              type: number
+            trades:
+              type: integer
+        rolling30d:
+          type: object
+          properties:
+            winRate:
+              type: number
+            profitFactor:
+              type: number
+            trades:
+              type: integer
+        drift:
+          type: object
+          properties:
+            winRateDelta:
+              type: number
+            profitFactorDelta:
+              type: number
+            driftDetected:
+              type: boolean
+            severity:
+              type: string
+              enum: [none, mild, moderate, severe]
+
+    ThresholdOptimizerInput:
+      type: object
+      properties:
+        minTrades:
+          type: integer
+          default: 30
+        folds:
+          type: integer
+          default: 5
+        minWinRate:
+          type: number
+          default: 0.55
+        minProfitFactor:
+          type: number
+          default: 1.3
+
+    ThresholdRunFull:
+      type: object
+      properties:
+        id:
+          type: integer
+        runAt:
+          type: string
+        totalTrades:
+          type: integer
+        folds:
+          type: integer
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/ThresholdRunSummary"
+        recommendations:
+          type: object
+          properties:
+            entryScore:
+              type: number
+            tqi:
+              type: number
+            setupQuality:
+              type: number
+            rationale:
+              type: string

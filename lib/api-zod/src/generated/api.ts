@@ -2346,6 +2346,358 @@ export const GenerateRobustnessReportResponse = zod.object({
 
 
 /**
+ * @summary Get per-pair paper execution config (spread, slippage, commission)
+ */
+export const GetPaperExecConfigResponseItem = zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "spreadPips": zod.number(),
+  "minEntrySlippagePips": zod.number(),
+  "maxEntrySlippagePips": zod.number(),
+  "minExitSlippagePips": zod.number(),
+  "maxExitSlippagePips": zod.number(),
+  "commissionPerLot": zod.number(),
+  "partialFillsEnabled": zod.boolean(),
+  "fillRejectionRatePct": zod.number(),
+  "updatedAt": zod.string()
+})
+export const GetPaperExecConfigResponse = zod.array(GetPaperExecConfigResponseItem)
+
+
+/**
+ * @summary Create or update paper execution config for a pair
+ */
+export const UpsertPaperExecConfigBody = zod.object({
+  "pair": zod.enum(['EUR/USD', 'GBP/USD', 'USD/JPY']),
+  "spreadPips": zod.number().optional(),
+  "minEntrySlippagePips": zod.number().optional(),
+  "maxEntrySlippagePips": zod.number().optional(),
+  "minExitSlippagePips": zod.number().optional(),
+  "maxExitSlippagePips": zod.number().optional(),
+  "commissionPerLot": zod.number().optional(),
+  "partialFillsEnabled": zod.boolean().optional(),
+  "fillRejectionRatePct": zod.number().optional()
+})
+
+export const UpsertPaperExecConfigResponse = zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "spreadPips": zod.number(),
+  "minEntrySlippagePips": zod.number(),
+  "maxEntrySlippagePips": zod.number(),
+  "minExitSlippagePips": zod.number(),
+  "maxExitSlippagePips": zod.number(),
+  "commissionPerLot": zod.number(),
+  "partialFillsEnabled": zod.boolean(),
+  "fillRejectionRatePct": zod.number(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Get execution quality metrics and log
+ */
+export const getExecQualityQueryLimitDefault = 50;
+
+export const GetExecQualityQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getExecQualityQueryLimitDefault)
+})
+
+export const GetExecQualityResponse = zod.object({
+  "avgSlippagePips": zod.number().optional(),
+  "avgFillTimeSec": zod.number().optional(),
+  "rejectionRate": zod.number().optional(),
+  "partialFillRate": zod.number().optional(),
+  "log": zod.array(zod.object({
+  "id": zod.number().optional(),
+  "tradeId": zod.number().optional(),
+  "pair": zod.string().optional(),
+  "direction": zod.string().optional(),
+  "requestedEntryPrice": zod.number().optional(),
+  "actualEntryPrice": zod.number().optional(),
+  "slippagePips": zod.number().optional(),
+  "wasRejected": zod.boolean().optional(),
+  "wasPartialFill": zod.boolean().optional(),
+  "fillRatio": zod.number().optional(),
+  "fillTimeSec": zod.number().optional(),
+  "createdAt": zod.string().optional()
+})).optional()
+})
+
+
+/**
+ * @summary Analyze historical trades and find optimal score thresholds with walk-forward validation
+ */
+export const runThresholdOptimizerBodyMinTradesDefault = 30;
+export const runThresholdOptimizerBodyFoldsDefault = 5;
+export const runThresholdOptimizerBodyMinWinRateDefault = 0.55;
+export const runThresholdOptimizerBodyMinProfitFactorDefault = 1.3;
+
+export const RunThresholdOptimizerBody = zod.object({
+  "minTrades": zod.number().default(runThresholdOptimizerBodyMinTradesDefault),
+  "folds": zod.number().default(runThresholdOptimizerBodyFoldsDefault),
+  "minWinRate": zod.number().default(runThresholdOptimizerBodyMinWinRateDefault),
+  "minProfitFactor": zod.number().default(runThresholdOptimizerBodyMinProfitFactorDefault)
+})
+
+export const RunThresholdOptimizerResponse = zod.object({
+  "id": zod.number(),
+  "runAt": zod.string(),
+  "tradesAnalyzed": zod.number(),
+  "durationMs": zod.number().optional(),
+  "baselineWinRate": zod.number().nullish(),
+  "proposedWinRate": zod.number().nullish(),
+  "baselineProfitFactor": zod.number().nullish(),
+  "proposedProfitFactor": zod.number().nullish(),
+  "wfPassRate": zod.number().nullish(),
+  "wfConsistent": zod.boolean().nullish(),
+  "tradeCountDelta": zod.number().nullish()
+})
+
+
+/**
+ * @summary List all threshold optimization runs
+ */
+export const ListThresholdRunsResponseItem = zod.object({
+  "id": zod.number(),
+  "runAt": zod.string(),
+  "tradesAnalyzed": zod.number(),
+  "durationMs": zod.number().optional(),
+  "baselineWinRate": zod.number().nullish(),
+  "proposedWinRate": zod.number().nullish(),
+  "baselineProfitFactor": zod.number().nullish(),
+  "proposedProfitFactor": zod.number().nullish(),
+  "wfPassRate": zod.number().nullish(),
+  "wfConsistent": zod.boolean().nullish(),
+  "tradeCountDelta": zod.number().nullish()
+})
+export const ListThresholdRunsResponse = zod.array(ListThresholdRunsResponseItem)
+
+
+/**
+ * @summary Get the most recent threshold optimization result
+ */
+export const GetLatestThresholdRunResponse = zod.object({
+  "id": zod.number().optional(),
+  "runAt": zod.string().optional(),
+  "totalTrades": zod.number().optional(),
+  "folds": zod.number().optional(),
+  "results": zod.array(zod.object({
+  "id": zod.number(),
+  "runAt": zod.string(),
+  "tradesAnalyzed": zod.number(),
+  "durationMs": zod.number().optional(),
+  "baselineWinRate": zod.number().nullish(),
+  "proposedWinRate": zod.number().nullish(),
+  "baselineProfitFactor": zod.number().nullish(),
+  "proposedProfitFactor": zod.number().nullish(),
+  "wfPassRate": zod.number().nullish(),
+  "wfConsistent": zod.boolean().nullish(),
+  "tradeCountDelta": zod.number().nullish()
+})).optional(),
+  "recommendations": zod.object({
+  "entryScore": zod.number().optional(),
+  "tqi": zod.number().optional(),
+  "setupQuality": zod.number().optional(),
+  "rationale": zod.string().optional()
+}).optional()
+})
+
+
+/**
+ * @summary Get Pilot Mode configuration and status
+ */
+export const GetPilotConfigResponse = zod.object({
+  "id": zod.number().optional(),
+  "enabled": zod.boolean().optional(),
+  "brokerAccountId": zod.number().optional(),
+  "riskCapPct": zod.number().optional(),
+  "consecutiveLossHalt": zod.number().optional(),
+  "consecutiveLossCount": zod.number().optional(),
+  "halted": zod.boolean().optional(),
+  "haltReason": zod.string().optional(),
+  "startedAt": zod.string().optional(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Update Pilot Mode settings (when not running)
+ */
+export const UpdatePilotConfigBody = zod.object({
+  "riskCapPct": zod.number().optional(),
+  "consecutiveLossHalt": zod.number().optional(),
+  "brokerAccountId": zod.number().optional()
+})
+
+export const UpdatePilotConfigResponse = zod.object({
+  "id": zod.number().optional(),
+  "enabled": zod.boolean().optional(),
+  "brokerAccountId": zod.number().optional(),
+  "riskCapPct": zod.number().optional(),
+  "consecutiveLossHalt": zod.number().optional(),
+  "consecutiveLossCount": zod.number().optional(),
+  "halted": zod.boolean().optional(),
+  "haltReason": zod.string().optional(),
+  "startedAt": zod.string().optional(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Start Pilot Mode (requires certification pass)
+ */
+export const StartPilotModeResponse = zod.object({
+  "id": zod.number().optional(),
+  "enabled": zod.boolean().optional(),
+  "brokerAccountId": zod.number().optional(),
+  "riskCapPct": zod.number().optional(),
+  "consecutiveLossHalt": zod.number().optional(),
+  "consecutiveLossCount": zod.number().optional(),
+  "halted": zod.boolean().optional(),
+  "haltReason": zod.string().optional(),
+  "startedAt": zod.string().optional(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Stop Pilot Mode
+ */
+export const StopPilotModeResponse = zod.object({
+  "id": zod.number().optional(),
+  "enabled": zod.boolean().optional(),
+  "brokerAccountId": zod.number().optional(),
+  "riskCapPct": zod.number().optional(),
+  "consecutiveLossHalt": zod.number().optional(),
+  "consecutiveLossCount": zod.number().optional(),
+  "halted": zod.boolean().optional(),
+  "haltReason": zod.string().optional(),
+  "startedAt": zod.string().optional(),
+  "updatedAt": zod.string().optional()
+})
+
+
+/**
+ * @summary Get Pilot Mode event log
+ */
+export const listPilotEventsQueryLimitDefault = 100;
+
+export const ListPilotEventsQueryParams = zod.object({
+  "limit": zod.coerce.number().default(listPilotEventsQueryLimitDefault)
+})
+
+export const ListPilotEventsResponseItem = zod.object({
+  "id": zod.number(),
+  "eventType": zod.string(),
+  "pair": zod.string().nullish(),
+  "direction": zod.string().nullish(),
+  "tradeId": zod.number().nullish(),
+  "pnl": zod.number().nullish(),
+  "riskPct": zod.number().nullish(),
+  "notes": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const ListPilotEventsResponse = zod.array(ListPilotEventsResponseItem)
+
+
+/**
+ * @summary Consolidated improvement analytics — monthly trends, drift, calibration
+ */
+export const GetImprovementSummaryResponse = zod.object({
+  "overall": zod.object({
+  "totalTrades": zod.number().optional(),
+  "winRate": zod.number().optional(),
+  "profitFactor": zod.number().optional(),
+  "totalPnl": zod.number().optional(),
+  "avgTqi": zod.number().optional(),
+  "avgSetupScore": zod.number().optional(),
+  "rollingWinRate10": zod.number().optional()
+}).optional(),
+  "monthly": zod.array(zod.object({
+
+}).passthrough()).optional(),
+  "bySession": zod.array(zod.object({
+
+}).passthrough()).optional(),
+  "byPair": zod.array(zod.object({
+
+}).passthrough()).optional(),
+  "bySetup": zod.array(zod.object({
+
+}).passthrough()).optional(),
+  "byRegime": zod.array(zod.object({
+
+}).passthrough()).optional()
+})
+
+
+/**
+ * @summary Compare trader confidence vs actual outcomes (from Trader Intelligence layer)
+ */
+export const GetConfidenceCalibrationResponse = zod.object({
+  "buckets": zod.array(zod.object({
+  "bucket": zod.string().optional(),
+  "traderConfidenceAvg": zod.number().optional(),
+  "actualWinRate": zod.number().optional(),
+  "count": zod.number().optional(),
+  "calibrationError": zod.number().optional()
+})).optional(),
+  "overallCalibrationError": zod.number().optional()
+})
+
+
+/**
+ * @summary Detect drift — rolling vs all-time win rate and profit factor
+ */
+export const GetStrategyDriftResponse = zod.object({
+  "allTime": zod.object({
+  "winRate": zod.number().optional(),
+  "profitFactor": zod.number().optional(),
+  "trades": zod.number().optional()
+}).optional(),
+  "rolling30d": zod.object({
+  "winRate": zod.number().optional(),
+  "profitFactor": zod.number().optional(),
+  "trades": zod.number().optional()
+}).optional(),
+  "drift": zod.object({
+  "winRateDelta": zod.number().optional(),
+  "profitFactorDelta": zod.number().optional(),
+  "driftDetected": zod.boolean().optional(),
+  "severity": zod.enum(['none', 'mild', 'moderate', 'severe']).optional()
+}).optional()
+})
+
+
+/**
+ * @summary Enhanced Manual vs Bot comparison with false positive/negative rates
+ */
+export const GetComparisonStatsResponse = zod.object({
+  "bot": zod.object({
+  "trades": zod.number().optional(),
+  "winRate": zod.number().optional(),
+  "profitFactor": zod.number().optional(),
+  "totalPnl": zod.number().optional(),
+  "avgRR": zod.number().optional(),
+  "avgTqi": zod.number().optional()
+}).optional(),
+  "manual": zod.object({
+  "trades": zod.number().optional(),
+  "winRate": zod.number().optional(),
+  "profitFactor": zod.number().optional(),
+  "totalPnl": zod.number().optional(),
+  "avgRR": zod.number().optional()
+}).optional(),
+  "edge": zod.object({
+  "winRateDelta": zod.number().optional(),
+  "pnlDelta": zod.number().optional(),
+  "pfDelta": zod.number().optional()
+}).optional()
+})
+
+
+/**
  * @summary List trader decisions
  */
 export const listTiDecisionsQueryLimitDefault = 50;
@@ -2750,5 +3102,300 @@ export const GenerateTiReportResponse = zod.object({
   "content": zod.string(),
   "generatedAt": zod.string()
 })
+
+
+/**
+ * @summary List per-pair paper execution configs
+ */
+export const GetPaperExecConfigsResponse = zod.object({
+  "configs": zod.array(zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "spreadPips": zod.number(),
+  "minEntrySlippagePips": zod.number(),
+  "maxEntrySlippagePips": zod.number(),
+  "minExitSlippagePips": zod.number(),
+  "maxExitSlippagePips": zod.number(),
+  "commissionPerLot": zod.number(),
+  "partialFillsEnabled": zod.boolean(),
+  "fillRejectionRatePct": zod.number(),
+  "updatedAt": zod.string()
+}))
+})
+
+
+/**
+ * @summary Get paper execution config for a pair
+ */
+export const GetPaperExecConfigForPairParams = zod.object({
+  "pair": zod.coerce.string()
+})
+
+export const GetPaperExecConfigForPairResponse = zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "spreadPips": zod.number(),
+  "minEntrySlippagePips": zod.number(),
+  "maxEntrySlippagePips": zod.number(),
+  "minExitSlippagePips": zod.number(),
+  "maxExitSlippagePips": zod.number(),
+  "commissionPerLot": zod.number(),
+  "partialFillsEnabled": zod.boolean(),
+  "fillRejectionRatePct": zod.number(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update paper execution config for a pair
+ */
+export const UpdatePaperExecConfigParams = zod.object({
+  "pair": zod.coerce.string()
+})
+
+export const UpdatePaperExecConfigBody = zod.object({
+  "spreadPips": zod.number().optional(),
+  "minEntrySlippagePips": zod.number().optional(),
+  "maxEntrySlippagePips": zod.number().optional(),
+  "minExitSlippagePips": zod.number().optional(),
+  "maxExitSlippagePips": zod.number().optional(),
+  "commissionPerLot": zod.number().optional(),
+  "partialFillsEnabled": zod.boolean().optional(),
+  "fillRejectionRatePct": zod.number().optional()
+})
+
+export const UpdatePaperExecConfigResponse = zod.object({
+  "id": zod.number(),
+  "pair": zod.string(),
+  "spreadPips": zod.number(),
+  "minEntrySlippagePips": zod.number(),
+  "maxEntrySlippagePips": zod.number(),
+  "minExitSlippagePips": zod.number(),
+  "maxExitSlippagePips": zod.number(),
+  "commissionPerLot": zod.number(),
+  "partialFillsEnabled": zod.boolean(),
+  "fillRejectionRatePct": zod.number(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Get execution quality metrics and recent log
+ */
+export const GetPaperExecQualityQueryParams = zod.object({
+  "limit": zod.coerce.number().optional()
+})
+
+export const GetPaperExecQualityResponse = zod.object({
+  "summary": zod.object({
+  "avgSignalToFillMs": zod.number().optional(),
+  "avgEntrySlippagePips": zod.number().optional(),
+  "avgExitSlippagePips": zod.number().optional(),
+  "avgSpreadPips": zod.number().optional(),
+  "avgQualityScore": zod.number().optional(),
+  "totalLogs": zod.number().optional(),
+  "p95SignalToFillMs": zod.number().optional(),
+  "p95EntrySlippagePips": zod.number().optional()
+}),
+  "recent": zod.array(zod.object({
+
+}).passthrough())
+})
+
+
+/**
+ * @summary Get paper trading equity curve
+ */
+export const GetPaperEquityCurveResponse = zod.object({
+  "initialBalance": zod.number(),
+  "currentBalance": zod.number(),
+  "peakBalance": zod.number(),
+  "maxDrawdownPct": zod.number(),
+  "totalReturn": zod.number(),
+  "curve": zod.array(zod.object({
+  "tradeId": zod.number().optional(),
+  "closedAt": zod.string().nullish(),
+  "pnl": zod.number().optional(),
+  "balance": zod.number().optional(),
+  "drawdownPct": zod.number().optional(),
+  "pair": zod.string().optional(),
+  "closeReason": zod.string().nullish()
+}))
+})
+
+
+/**
+ * @summary Get paper trading drawdown analysis
+ */
+export const GetPaperDrawdownResponse = zod.object({
+
+}).passthrough()
+
+
+/**
+ * @summary Run threshold optimization with walk-forward validation
+ */
+export const RunThresholdAnalysisBody = zod.object({
+  "windowSize": zod.number().optional(),
+  "folds": zod.number().optional()
+})
+
+export const RunThresholdAnalysisResponse = zod.object({
+  "id": zod.number().optional(),
+  "runAt": zod.string().optional(),
+  "tradesAnalyzed": zod.number().optional(),
+  "durationMs": zod.number().optional(),
+  "perThreshold": zod.record(zod.string(), zod.object({
+  "name": zod.string().optional(),
+  "current": zod.number().optional(),
+  "proposed": zod.number().optional(),
+  "curve": zod.array(zod.object({
+  "value": zod.number().optional(),
+  "winRate": zod.number().optional(),
+  "profitFactor": zod.number().optional(),
+  "tradeCount": zod.number().optional(),
+  "expectedValue": zod.number().optional()
+})).optional(),
+  "baselineWinRate": zod.number().optional(),
+  "proposedWinRate": zod.number().optional(),
+  "baselinePF": zod.number().optional(),
+  "proposedPF": zod.number().optional(),
+  "improvementPct": zod.number().optional()
+})).optional(),
+  "wfFolds": zod.array(zod.object({
+
+}).passthrough()).optional(),
+  "wfPassRate": zod.number().optional(),
+  "wfConsistent": zod.boolean().optional(),
+  "summary": zod.object({
+
+}).passthrough().optional()
+})
+
+
+/**
+ * @summary List past threshold optimization runs
+ */
+export const GetThresholdHistoryQueryParams = zod.object({
+  "limit": zod.coerce.number().optional()
+})
+
+export const GetThresholdHistoryResponse = zod.object({
+  "runs": zod.array(zod.object({
+  "id": zod.number(),
+  "runAt": zod.string(),
+  "tradesAnalyzed": zod.number(),
+  "durationMs": zod.number().optional(),
+  "baselineWinRate": zod.number().nullish(),
+  "proposedWinRate": zod.number().nullish(),
+  "baselineProfitFactor": zod.number().nullish(),
+  "proposedProfitFactor": zod.number().nullish(),
+  "wfPassRate": zod.number().nullish(),
+  "wfConsistent": zod.boolean().nullish(),
+  "tradeCountDelta": zod.number().nullish()
+}))
+})
+
+
+/**
+ * @summary Get most recent threshold optimization result
+ */
+export const GetLatestThresholdResponse = zod.object({
+  "hasResult": zod.boolean(),
+  "message": zod.string().optional(),
+  "id": zod.number().optional(),
+  "runAt": zod.string().optional(),
+  "tradesAnalyzed": zod.number().optional(),
+  "baselineWinRate": zod.number().nullish(),
+  "proposedWinRate": zod.number().nullish(),
+  "wfPassRate": zod.number().nullish(),
+  "wfConsistent": zod.boolean().nullish(),
+  "perThresholdAnalysis": zod.object({
+
+}).passthrough().optional(),
+  "wfFolds": zod.array(zod.object({
+
+}).passthrough()).optional()
+})
+
+
+/**
+ * @summary Get pilot mode status
+ */
+export const GetPilotStatusResponse = zod.object({
+  "enabled": zod.boolean(),
+  "halted": zod.boolean(),
+  "haltReason": zod.string().nullish(),
+  "consecLosses": zod.number(),
+  "shutdownThreshold": zod.number(),
+  "maxRiskPerTradePct": zod.number(),
+  "maxDailyLossPct": zod.number(),
+  "maxWeeklyLossPct": zod.number(),
+  "maxOpenTrades": zod.number(),
+  "manualConfirmRequired": zod.boolean(),
+  "requireCertification": zod.boolean(),
+  "totalTrades": zod.number(),
+  "totalPnl": zod.number(),
+  "brokerAccountId": zod.number().nullish(),
+  "startedAt": zod.string().nullish(),
+  "stoppedAt": zod.string().nullish(),
+  "updatedAt": zod.string().optional(),
+  "dailyPnl": zod.number().optional(),
+  "weeklyPnl": zod.number().optional(),
+  "currentOpenTrades": zod.number().optional(),
+  "canTrade": zod.boolean(),
+  "blockReason": zod.string().nullish()
+})
+
+
+/**
+ * @summary Enable pilot mode
+ */
+export const EnablePilotModeBody = zod.object({
+  "brokerAccountId": zod.number().optional()
+})
+
+export const EnablePilotModeResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Disable pilot mode
+ */
+export const DisablePilotModeBody = zod.object({
+  "reason": zod.string().optional()
+})
+
+export const DisablePilotModeResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Clear pilot mode halt and reset consecutive loss counter
+ */
+export const ClearPilotHaltResponse = zod.object({
+  "success": zod.boolean(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Get actionable improvement recommendations (advisory only, never auto-applies)
+ */
+export const GetImprovementRecommendationsResponse = zod.object({
+
+}).passthrough()
+
+
+/**
+ * @summary Generate improvement report markdown file
+ */
+export const GenerateImprovementReportResponse = zod.object({
+
+}).passthrough()
 
 

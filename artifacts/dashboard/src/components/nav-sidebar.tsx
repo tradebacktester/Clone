@@ -24,6 +24,9 @@ import {
   ClipboardCheck,
   FlaskConical,
   Lightbulb,
+  Scale,
+  Shield,
+  Zap,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -52,6 +55,12 @@ export function NavSidebar() {
     { href: "/readiness-checklist", label: "Live Readiness", icon: ClipboardCheck },
     { href: "/live-journal", label: "Live Journal", icon: BookOpen },
     { href: "/backtest", label: "Backtest", icon: History },
+    { label: "─ Go-Live Pipeline ─", href: "#", icon: Activity, divider: true },
+    { href: "/paper-trading", label: "Paper Trading", icon: Activity },
+    { href: "/comparison", label: "Bot vs Manual", icon: Scale },
+    { href: "/threshold", label: "Thresholds", icon: Zap },
+    { href: "/pilot", label: "Pilot Mode", icon: Shield },
+    { href: "/improvement", label: "Improvement", icon: TrendingUp },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
 
@@ -62,9 +71,16 @@ export function NavSidebar() {
         <span className="font-bold text-lg tracking-tight uppercase">TradeClone AI</span>
       </div>
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-        {navItems.map((item) => {
+        {navItems.map((item, idx) => {
+          if ((item as Record<string, unknown>).divider) {
+            return (
+              <div key={idx} className="pt-3 pb-1 px-3">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground/60">{item.label}</span>
+              </div>
+            );
+          }
           const Icon = item.icon;
-          const isActive = location === item.href || (item.href !== "/" && location.startsWith(item.href));
+          const isActive = location === item.href || (item.href !== "/" && item.href !== "#" && location.startsWith(item.href));
           return (
             <Link 
               key={item.href} 

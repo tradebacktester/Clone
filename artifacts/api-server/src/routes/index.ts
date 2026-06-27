@@ -24,6 +24,10 @@ import readinessChecklistRouter from "./readiness-checklist";
 import liveJournalRouter from "./live-journal";
 import robustnessRouter from "./robustness";
 import traderIntelligenceRouter from "./trader-intelligence";
+import paperConfigRouter from "./paper-config";
+import thresholdRouter from "./threshold";
+import pilotRouter from "./pilot";
+import improvementRouter from "./improvement";
 
 const router: IRouter = Router();
 
@@ -39,6 +43,7 @@ router.use(newsRouter);
 router.use(regimeRouter);
 router.use(montecarloRouter);
 router.use(paperRouter);
+router.use(paperConfigRouter);
 router.use(qualityRouter);
 router.use(memoryRouter);
 router.use(supervisorRouter);
@@ -52,5 +57,8 @@ router.use(readinessChecklistRouter);
 router.use(liveJournalRouter);
 router.use(robustnessRouter);
 router.use(traderIntelligenceRouter);
+router.use(thresholdRouter);
+router.use(pilotRouter);
+router.use(improvementRouter);
 
 export default router;

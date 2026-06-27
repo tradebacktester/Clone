@@ -34,21 +34,32 @@ import type {
   BrokerAccountInput,
   BrokerSafetyConfig,
   ChecklistResult,
+  ClearPilotHalt200,
+  ComparisonStats,
+  ConfidenceCalibration,
   ConfidenceProfile,
   ConnectionHealth,
   CorrelationStatus,
   CreateLiveJournalEntryBody,
   DeploymentStatus,
+  DisablePilotMode200,
+  DisablePilotModeBody,
   DrawdownPoint,
   EmergencyStopResponse,
+  EnablePilotMode200,
+  EnablePilotModeBody,
   EquityPoint,
+  ExecQualitySummary,
   ExecutionLogResponse,
+  GenerateImprovementReport200,
   GenerateReportInput,
   GenerateRobustnessReport200,
   GenerateTiReport200,
   GetChecklistHistoryParams,
   GetEquityCurveParams,
+  GetExecQualityParams,
   GetExecutionLogParams,
+  GetImprovementRecommendations200,
   GetLiveJournalParams,
   GetMarketZonesParams,
   GetMemoryTradesParams,
@@ -58,14 +69,21 @@ import type {
   GetNewsEventsParams,
   GetNewsEventsResponse,
   GetNewsStatusResponse,
+  GetPaperDrawdown200,
+  GetPaperExecConfigs200,
+  GetPaperExecQualityParams,
   GetRecoveryLogParams,
   GetStrategyHealthSnapshotsParams,
   GetSupervisorAlertsParams,
+  GetThresholdHistory200,
+  GetThresholdHistoryParams,
   GetTiRecommendationParams,
   GetTiSimilarSetupsParams,
   GetTimePerformanceParams,
   HealthStatus,
+  ImprovementSummary,
   LearningStats,
+  ListPilotEventsParams,
   ListReportsParams,
   ListTiDecisionsParams,
   ListTradesParams,
@@ -81,8 +99,17 @@ import type {
   MonteCarloResult,
   MonthlyPnl,
   MtfAlignment,
+  PaperEquityCurve,
+  PaperExecConfig,
+  PaperExecConfigInput,
+  PaperExecConfigUpdate,
+  PaperExecQuality,
   PaperPerformance,
   PaperPositions,
+  PilotConfig,
+  PilotConfigInput,
+  PilotEvent,
+  PilotStatus,
   ReconciliationResult,
   RecoveryLogEntry,
   RegimeAnalyticsResponse,
@@ -98,14 +125,21 @@ import type {
   RuleAdherenceResponse,
   RunReadinessChecklistBody,
   RunRobustnessPipeline200,
+  RunThresholdAnalysisBody,
   SetLiveGate200,
   SetLiveGateBody,
   SetupScore,
+  StrategyDrift,
   StrategyHealthReport,
   StrategyHealthSnapshot,
   SupervisorAlert,
   SupervisorStatus,
   SwitchDeploymentModeBody,
+  ThresholdLatest,
+  ThresholdOptimizerInput,
+  ThresholdResult,
+  ThresholdRunFull,
+  ThresholdRunSummary,
   TiComparison,
   TiDecision,
   TiDecisionDetail,
@@ -6474,6 +6508,1143 @@ export const useGenerateRobustnessReport = <TError = ErrorType<void>,
       return useMutation(getGenerateRobustnessReportMutationOptions(options));
     }
 
+export const getGetPaperExecConfigUrl = () => {
+
+
+
+
+  return `/api/paper/config`
+}
+
+/**
+ * @summary Get per-pair paper execution config (spread, slippage, commission)
+ */
+export const getPaperExecConfig = async ( options?: RequestInit): Promise<PaperExecConfig[]> => {
+
+  return customFetch<PaperExecConfig[]>(getGetPaperExecConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPaperExecConfigQueryKey = () => {
+    return [
+    `/api/paper/config`
+    ] as const;
+    }
+
+
+export const getGetPaperExecConfigQueryOptions = <TData = Awaited<ReturnType<typeof getPaperExecConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperExecConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPaperExecConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaperExecConfig>>> = ({ signal }) => getPaperExecConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaperExecConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPaperExecConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getPaperExecConfig>>>
+export type GetPaperExecConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get per-pair paper execution config (spread, slippage, commission)
+ */
+
+export function useGetPaperExecConfig<TData = Awaited<ReturnType<typeof getPaperExecConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperExecConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPaperExecConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpsertPaperExecConfigUrl = () => {
+
+
+
+
+  return `/api/paper/config`
+}
+
+/**
+ * @summary Create or update paper execution config for a pair
+ */
+export const upsertPaperExecConfig = async (paperExecConfigInput: PaperExecConfigInput, options?: RequestInit): Promise<PaperExecConfig> => {
+
+  return customFetch<PaperExecConfig>(getUpsertPaperExecConfigUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      paperExecConfigInput,)
+  }
+);}
+
+
+
+
+export const getUpsertPaperExecConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertPaperExecConfig>>, TError,{data: BodyType<PaperExecConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof upsertPaperExecConfig>>, TError,{data: BodyType<PaperExecConfigInput>}, TContext> => {
+
+const mutationKey = ['upsertPaperExecConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof upsertPaperExecConfig>>, {data: BodyType<PaperExecConfigInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  upsertPaperExecConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpsertPaperExecConfigMutationResult = NonNullable<Awaited<ReturnType<typeof upsertPaperExecConfig>>>
+    export type UpsertPaperExecConfigMutationBody = BodyType<PaperExecConfigInput>
+    export type UpsertPaperExecConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create or update paper execution config for a pair
+ */
+export const useUpsertPaperExecConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof upsertPaperExecConfig>>, TError,{data: BodyType<PaperExecConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof upsertPaperExecConfig>>,
+        TError,
+        {data: BodyType<PaperExecConfigInput>},
+        TContext
+      > => {
+      return useMutation(getUpsertPaperExecConfigMutationOptions(options));
+    }
+
+export const getGetExecQualityUrl = (params?: GetExecQualityParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/paper/quality?${stringifiedParams}` : `/api/paper/quality`
+}
+
+/**
+ * @summary Get execution quality metrics and log
+ */
+export const getExecQuality = async (params?: GetExecQualityParams, options?: RequestInit): Promise<ExecQualitySummary> => {
+
+  return customFetch<ExecQualitySummary>(getGetExecQualityUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetExecQualityQueryKey = (params?: GetExecQualityParams,) => {
+    return [
+    `/api/paper/quality`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetExecQualityQueryOptions = <TData = Awaited<ReturnType<typeof getExecQuality>>, TError = ErrorType<unknown>>(params?: GetExecQualityParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecQuality>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetExecQualityQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getExecQuality>>> = ({ signal }) => getExecQuality(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getExecQuality>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetExecQualityQueryResult = NonNullable<Awaited<ReturnType<typeof getExecQuality>>>
+export type GetExecQualityQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get execution quality metrics and log
+ */
+
+export function useGetExecQuality<TData = Awaited<ReturnType<typeof getExecQuality>>, TError = ErrorType<unknown>>(
+ params?: GetExecQualityParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getExecQuality>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetExecQualityQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRunThresholdOptimizerUrl = () => {
+
+
+
+
+  return `/api/threshold-optimizer/run`
+}
+
+/**
+ * @summary Analyze historical trades and find optimal score thresholds with walk-forward validation
+ */
+export const runThresholdOptimizer = async (thresholdOptimizerInput?: ThresholdOptimizerInput, options?: RequestInit): Promise<ThresholdRunSummary> => {
+
+  return customFetch<ThresholdRunSummary>(getRunThresholdOptimizerUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      thresholdOptimizerInput,)
+  }
+);}
+
+
+
+
+export const getRunThresholdOptimizerMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runThresholdOptimizer>>, TError,{data?: BodyType<ThresholdOptimizerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runThresholdOptimizer>>, TError,{data?: BodyType<ThresholdOptimizerInput>}, TContext> => {
+
+const mutationKey = ['runThresholdOptimizer'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runThresholdOptimizer>>, {data?: BodyType<ThresholdOptimizerInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runThresholdOptimizer(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunThresholdOptimizerMutationResult = NonNullable<Awaited<ReturnType<typeof runThresholdOptimizer>>>
+    export type RunThresholdOptimizerMutationBody = BodyType<ThresholdOptimizerInput> | undefined
+    export type RunThresholdOptimizerMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Analyze historical trades and find optimal score thresholds with walk-forward validation
+ */
+export const useRunThresholdOptimizer = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runThresholdOptimizer>>, TError,{data?: BodyType<ThresholdOptimizerInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runThresholdOptimizer>>,
+        TError,
+        {data?: BodyType<ThresholdOptimizerInput>},
+        TContext
+      > => {
+      return useMutation(getRunThresholdOptimizerMutationOptions(options));
+    }
+
+export const getListThresholdRunsUrl = () => {
+
+
+
+
+  return `/api/threshold-optimizer/results`
+}
+
+/**
+ * @summary List all threshold optimization runs
+ */
+export const listThresholdRuns = async ( options?: RequestInit): Promise<ThresholdRunSummary[]> => {
+
+  return customFetch<ThresholdRunSummary[]>(getListThresholdRunsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListThresholdRunsQueryKey = () => {
+    return [
+    `/api/threshold-optimizer/results`
+    ] as const;
+    }
+
+
+export const getListThresholdRunsQueryOptions = <TData = Awaited<ReturnType<typeof listThresholdRuns>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listThresholdRuns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListThresholdRunsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listThresholdRuns>>> = ({ signal }) => listThresholdRuns({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listThresholdRuns>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListThresholdRunsQueryResult = NonNullable<Awaited<ReturnType<typeof listThresholdRuns>>>
+export type ListThresholdRunsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List all threshold optimization runs
+ */
+
+export function useListThresholdRuns<TData = Awaited<ReturnType<typeof listThresholdRuns>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listThresholdRuns>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListThresholdRunsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLatestThresholdRunUrl = () => {
+
+
+
+
+  return `/api/threshold-optimizer/results/latest`
+}
+
+/**
+ * @summary Get the most recent threshold optimization result
+ */
+export const getLatestThresholdRun = async ( options?: RequestInit): Promise<ThresholdRunFull> => {
+
+  return customFetch<ThresholdRunFull>(getGetLatestThresholdRunUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLatestThresholdRunQueryKey = () => {
+    return [
+    `/api/threshold-optimizer/results/latest`
+    ] as const;
+    }
+
+
+export const getGetLatestThresholdRunQueryOptions = <TData = Awaited<ReturnType<typeof getLatestThresholdRun>>, TError = ErrorType<void>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLatestThresholdRun>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLatestThresholdRunQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestThresholdRun>>> = ({ signal }) => getLatestThresholdRun({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLatestThresholdRun>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLatestThresholdRunQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestThresholdRun>>>
+export type GetLatestThresholdRunQueryError = ErrorType<void>
+
+
+/**
+ * @summary Get the most recent threshold optimization result
+ */
+
+export function useGetLatestThresholdRun<TData = Awaited<ReturnType<typeof getLatestThresholdRun>>, TError = ErrorType<void>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLatestThresholdRun>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLatestThresholdRunQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPilotConfigUrl = () => {
+
+
+
+
+  return `/api/pilot/config`
+}
+
+/**
+ * @summary Get Pilot Mode configuration and status
+ */
+export const getPilotConfig = async ( options?: RequestInit): Promise<PilotConfig> => {
+
+  return customFetch<PilotConfig>(getGetPilotConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPilotConfigQueryKey = () => {
+    return [
+    `/api/pilot/config`
+    ] as const;
+    }
+
+
+export const getGetPilotConfigQueryOptions = <TData = Awaited<ReturnType<typeof getPilotConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPilotConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPilotConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPilotConfig>>> = ({ signal }) => getPilotConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPilotConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPilotConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getPilotConfig>>>
+export type GetPilotConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get Pilot Mode configuration and status
+ */
+
+export function useGetPilotConfig<TData = Awaited<ReturnType<typeof getPilotConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPilotConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPilotConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdatePilotConfigUrl = () => {
+
+
+
+
+  return `/api/pilot/config`
+}
+
+/**
+ * @summary Update Pilot Mode settings (when not running)
+ */
+export const updatePilotConfig = async (pilotConfigInput: PilotConfigInput, options?: RequestInit): Promise<PilotConfig> => {
+
+  return customFetch<PilotConfig>(getUpdatePilotConfigUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      pilotConfigInput,)
+  }
+);}
+
+
+
+
+export const getUpdatePilotConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePilotConfig>>, TError,{data: BodyType<PilotConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePilotConfig>>, TError,{data: BodyType<PilotConfigInput>}, TContext> => {
+
+const mutationKey = ['updatePilotConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePilotConfig>>, {data: BodyType<PilotConfigInput>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updatePilotConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePilotConfigMutationResult = NonNullable<Awaited<ReturnType<typeof updatePilotConfig>>>
+    export type UpdatePilotConfigMutationBody = BodyType<PilotConfigInput>
+    export type UpdatePilotConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update Pilot Mode settings (when not running)
+ */
+export const useUpdatePilotConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePilotConfig>>, TError,{data: BodyType<PilotConfigInput>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updatePilotConfig>>,
+        TError,
+        {data: BodyType<PilotConfigInput>},
+        TContext
+      > => {
+      return useMutation(getUpdatePilotConfigMutationOptions(options));
+    }
+
+export const getStartPilotModeUrl = () => {
+
+
+
+
+  return `/api/pilot/start`
+}
+
+/**
+ * @summary Start Pilot Mode (requires certification pass)
+ */
+export const startPilotMode = async ( options?: RequestInit): Promise<PilotConfig> => {
+
+  return customFetch<PilotConfig>(getStartPilotModeUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getStartPilotModeMutationOptions = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startPilotMode>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof startPilotMode>>, TError,void, TContext> => {
+
+const mutationKey = ['startPilotMode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof startPilotMode>>, void> = () => {
+
+
+          return  startPilotMode(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StartPilotModeMutationResult = NonNullable<Awaited<ReturnType<typeof startPilotMode>>>
+
+    export type StartPilotModeMutationError = ErrorType<void>
+
+    /**
+ * @summary Start Pilot Mode (requires certification pass)
+ */
+export const useStartPilotMode = <TError = ErrorType<void>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof startPilotMode>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof startPilotMode>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getStartPilotModeMutationOptions(options));
+    }
+
+export const getStopPilotModeUrl = () => {
+
+
+
+
+  return `/api/pilot/stop`
+}
+
+/**
+ * @summary Stop Pilot Mode
+ */
+export const stopPilotMode = async ( options?: RequestInit): Promise<PilotConfig> => {
+
+  return customFetch<PilotConfig>(getStopPilotModeUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getStopPilotModeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopPilotMode>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof stopPilotMode>>, TError,void, TContext> => {
+
+const mutationKey = ['stopPilotMode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof stopPilotMode>>, void> = () => {
+
+
+          return  stopPilotMode(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type StopPilotModeMutationResult = NonNullable<Awaited<ReturnType<typeof stopPilotMode>>>
+
+    export type StopPilotModeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Stop Pilot Mode
+ */
+export const useStopPilotMode = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof stopPilotMode>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof stopPilotMode>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getStopPilotModeMutationOptions(options));
+    }
+
+export const getListPilotEventsUrl = (params?: ListPilotEventsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/pilot/events?${stringifiedParams}` : `/api/pilot/events`
+}
+
+/**
+ * @summary Get Pilot Mode event log
+ */
+export const listPilotEvents = async (params?: ListPilotEventsParams, options?: RequestInit): Promise<PilotEvent[]> => {
+
+  return customFetch<PilotEvent[]>(getListPilotEventsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getListPilotEventsQueryKey = (params?: ListPilotEventsParams,) => {
+    return [
+    `/api/pilot/events`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getListPilotEventsQueryOptions = <TData = Awaited<ReturnType<typeof listPilotEvents>>, TError = ErrorType<unknown>>(params?: ListPilotEventsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPilotEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getListPilotEventsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof listPilotEvents>>> = ({ signal }) => listPilotEvents(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof listPilotEvents>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type ListPilotEventsQueryResult = NonNullable<Awaited<ReturnType<typeof listPilotEvents>>>
+export type ListPilotEventsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get Pilot Mode event log
+ */
+
+export function useListPilotEvents<TData = Awaited<ReturnType<typeof listPilotEvents>>, TError = ErrorType<unknown>>(
+ params?: ListPilotEventsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof listPilotEvents>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getListPilotEventsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetImprovementSummaryUrl = () => {
+
+
+
+
+  return `/api/improvement/summary`
+}
+
+/**
+ * @summary Consolidated improvement analytics — monthly trends, drift, calibration
+ */
+export const getImprovementSummary = async ( options?: RequestInit): Promise<ImprovementSummary> => {
+
+  return customFetch<ImprovementSummary>(getGetImprovementSummaryUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetImprovementSummaryQueryKey = () => {
+    return [
+    `/api/improvement/summary`
+    ] as const;
+    }
+
+
+export const getGetImprovementSummaryQueryOptions = <TData = Awaited<ReturnType<typeof getImprovementSummary>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getImprovementSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetImprovementSummaryQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImprovementSummary>>> = ({ signal }) => getImprovementSummary({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getImprovementSummary>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetImprovementSummaryQueryResult = NonNullable<Awaited<ReturnType<typeof getImprovementSummary>>>
+export type GetImprovementSummaryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Consolidated improvement analytics — monthly trends, drift, calibration
+ */
+
+export function useGetImprovementSummary<TData = Awaited<ReturnType<typeof getImprovementSummary>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getImprovementSummary>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetImprovementSummaryQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetConfidenceCalibrationUrl = () => {
+
+
+
+
+  return `/api/improvement/confidence-calibration`
+}
+
+/**
+ * @summary Compare trader confidence vs actual outcomes (from Trader Intelligence layer)
+ */
+export const getConfidenceCalibration = async ( options?: RequestInit): Promise<ConfidenceCalibration> => {
+
+  return customFetch<ConfidenceCalibration>(getGetConfidenceCalibrationUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetConfidenceCalibrationQueryKey = () => {
+    return [
+    `/api/improvement/confidence-calibration`
+    ] as const;
+    }
+
+
+export const getGetConfidenceCalibrationQueryOptions = <TData = Awaited<ReturnType<typeof getConfidenceCalibration>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getConfidenceCalibration>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConfidenceCalibrationQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConfidenceCalibration>>> = ({ signal }) => getConfidenceCalibration({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConfidenceCalibration>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetConfidenceCalibrationQueryResult = NonNullable<Awaited<ReturnType<typeof getConfidenceCalibration>>>
+export type GetConfidenceCalibrationQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Compare trader confidence vs actual outcomes (from Trader Intelligence layer)
+ */
+
+export function useGetConfidenceCalibration<TData = Awaited<ReturnType<typeof getConfidenceCalibration>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getConfidenceCalibration>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetConfidenceCalibrationQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStrategyDriftUrl = () => {
+
+
+
+
+  return `/api/improvement/strategy-drift`
+}
+
+/**
+ * @summary Detect drift — rolling vs all-time win rate and profit factor
+ */
+export const getStrategyDrift = async ( options?: RequestInit): Promise<StrategyDrift> => {
+
+  return customFetch<StrategyDrift>(getGetStrategyDriftUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStrategyDriftQueryKey = () => {
+    return [
+    `/api/improvement/strategy-drift`
+    ] as const;
+    }
+
+
+export const getGetStrategyDriftQueryOptions = <TData = Awaited<ReturnType<typeof getStrategyDrift>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyDrift>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStrategyDriftQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategyDrift>>> = ({ signal }) => getStrategyDrift({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStrategyDrift>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStrategyDriftQueryResult = NonNullable<Awaited<ReturnType<typeof getStrategyDrift>>>
+export type GetStrategyDriftQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Detect drift — rolling vs all-time win rate and profit factor
+ */
+
+export function useGetStrategyDrift<TData = Awaited<ReturnType<typeof getStrategyDrift>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyDrift>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStrategyDriftQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetComparisonStatsUrl = () => {
+
+
+
+
+  return `/api/improvement/comparison-stats`
+}
+
+/**
+ * @summary Enhanced Manual vs Bot comparison with false positive/negative rates
+ */
+export const getComparisonStats = async ( options?: RequestInit): Promise<ComparisonStats> => {
+
+  return customFetch<ComparisonStats>(getGetComparisonStatsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetComparisonStatsQueryKey = () => {
+    return [
+    `/api/improvement/comparison-stats`
+    ] as const;
+    }
+
+
+export const getGetComparisonStatsQueryOptions = <TData = Awaited<ReturnType<typeof getComparisonStats>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComparisonStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetComparisonStatsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getComparisonStats>>> = ({ signal }) => getComparisonStats({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getComparisonStats>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetComparisonStatsQueryResult = NonNullable<Awaited<ReturnType<typeof getComparisonStats>>>
+export type GetComparisonStatsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Enhanced Manual vs Bot comparison with false positive/negative rates
+ */
+
+export function useGetComparisonStats<TData = Awaited<ReturnType<typeof getComparisonStats>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getComparisonStats>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetComparisonStatsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
 export const getListTiDecisionsUrl = (params?: ListTiDecisionsParams,) => {
   const normalizedParams = new URLSearchParams();
 
@@ -7240,5 +8411,1137 @@ export const useGenerateTiReport = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getGenerateTiReportMutationOptions(options));
+    }
+
+export const getGetPaperExecConfigsUrl = () => {
+
+
+
+
+  return `/api/paper/exec-config`
+}
+
+/**
+ * @summary List per-pair paper execution configs
+ */
+export const getPaperExecConfigs = async ( options?: RequestInit): Promise<GetPaperExecConfigs200> => {
+
+  return customFetch<GetPaperExecConfigs200>(getGetPaperExecConfigsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPaperExecConfigsQueryKey = () => {
+    return [
+    `/api/paper/exec-config`
+    ] as const;
+    }
+
+
+export const getGetPaperExecConfigsQueryOptions = <TData = Awaited<ReturnType<typeof getPaperExecConfigs>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperExecConfigs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPaperExecConfigsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaperExecConfigs>>> = ({ signal }) => getPaperExecConfigs({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaperExecConfigs>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPaperExecConfigsQueryResult = NonNullable<Awaited<ReturnType<typeof getPaperExecConfigs>>>
+export type GetPaperExecConfigsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List per-pair paper execution configs
+ */
+
+export function useGetPaperExecConfigs<TData = Awaited<ReturnType<typeof getPaperExecConfigs>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperExecConfigs>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPaperExecConfigsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPaperExecConfigForPairUrl = (pair: string,) => {
+
+
+
+
+  return `/api/paper/exec-config/${pair}`
+}
+
+/**
+ * @summary Get paper execution config for a pair
+ */
+export const getPaperExecConfigForPair = async (pair: string, options?: RequestInit): Promise<PaperExecConfig> => {
+
+  return customFetch<PaperExecConfig>(getGetPaperExecConfigForPairUrl(pair),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPaperExecConfigForPairQueryKey = (pair: string,) => {
+    return [
+    `/api/paper/exec-config/${pair}`
+    ] as const;
+    }
+
+
+export const getGetPaperExecConfigForPairQueryOptions = <TData = Awaited<ReturnType<typeof getPaperExecConfigForPair>>, TError = ErrorType<unknown>>(pair: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperExecConfigForPair>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPaperExecConfigForPairQueryKey(pair);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaperExecConfigForPair>>> = ({ signal }) => getPaperExecConfigForPair(pair, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(pair), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaperExecConfigForPair>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPaperExecConfigForPairQueryResult = NonNullable<Awaited<ReturnType<typeof getPaperExecConfigForPair>>>
+export type GetPaperExecConfigForPairQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get paper execution config for a pair
+ */
+
+export function useGetPaperExecConfigForPair<TData = Awaited<ReturnType<typeof getPaperExecConfigForPair>>, TError = ErrorType<unknown>>(
+ pair: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperExecConfigForPair>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPaperExecConfigForPairQueryOptions(pair,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdatePaperExecConfigUrl = (pair: string,) => {
+
+
+
+
+  return `/api/paper/exec-config/${pair}`
+}
+
+/**
+ * @summary Update paper execution config for a pair
+ */
+export const updatePaperExecConfig = async (pair: string,
+    paperExecConfigUpdate: PaperExecConfigUpdate, options?: RequestInit): Promise<PaperExecConfig> => {
+
+  return customFetch<PaperExecConfig>(getUpdatePaperExecConfigUrl(pair),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      paperExecConfigUpdate,)
+  }
+);}
+
+
+
+
+export const getUpdatePaperExecConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePaperExecConfig>>, TError,{pair: string;data: BodyType<PaperExecConfigUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updatePaperExecConfig>>, TError,{pair: string;data: BodyType<PaperExecConfigUpdate>}, TContext> => {
+
+const mutationKey = ['updatePaperExecConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updatePaperExecConfig>>, {pair: string;data: BodyType<PaperExecConfigUpdate>}> = (props) => {
+          const {pair,data} = props ?? {};
+
+          return  updatePaperExecConfig(pair,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdatePaperExecConfigMutationResult = NonNullable<Awaited<ReturnType<typeof updatePaperExecConfig>>>
+    export type UpdatePaperExecConfigMutationBody = BodyType<PaperExecConfigUpdate>
+    export type UpdatePaperExecConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update paper execution config for a pair
+ */
+export const useUpdatePaperExecConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updatePaperExecConfig>>, TError,{pair: string;data: BodyType<PaperExecConfigUpdate>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updatePaperExecConfig>>,
+        TError,
+        {pair: string;data: BodyType<PaperExecConfigUpdate>},
+        TContext
+      > => {
+      return useMutation(getUpdatePaperExecConfigMutationOptions(options));
+    }
+
+export const getGetPaperExecQualityUrl = (params?: GetPaperExecQualityParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/paper/exec-quality?${stringifiedParams}` : `/api/paper/exec-quality`
+}
+
+/**
+ * @summary Get execution quality metrics and recent log
+ */
+export const getPaperExecQuality = async (params?: GetPaperExecQualityParams, options?: RequestInit): Promise<PaperExecQuality> => {
+
+  return customFetch<PaperExecQuality>(getGetPaperExecQualityUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPaperExecQualityQueryKey = (params?: GetPaperExecQualityParams,) => {
+    return [
+    `/api/paper/exec-quality`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetPaperExecQualityQueryOptions = <TData = Awaited<ReturnType<typeof getPaperExecQuality>>, TError = ErrorType<unknown>>(params?: GetPaperExecQualityParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperExecQuality>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPaperExecQualityQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaperExecQuality>>> = ({ signal }) => getPaperExecQuality(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaperExecQuality>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPaperExecQualityQueryResult = NonNullable<Awaited<ReturnType<typeof getPaperExecQuality>>>
+export type GetPaperExecQualityQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get execution quality metrics and recent log
+ */
+
+export function useGetPaperExecQuality<TData = Awaited<ReturnType<typeof getPaperExecQuality>>, TError = ErrorType<unknown>>(
+ params?: GetPaperExecQualityParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperExecQuality>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPaperExecQualityQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPaperEquityCurveUrl = () => {
+
+
+
+
+  return `/api/paper/equity-curve`
+}
+
+/**
+ * @summary Get paper trading equity curve
+ */
+export const getPaperEquityCurve = async ( options?: RequestInit): Promise<PaperEquityCurve> => {
+
+  return customFetch<PaperEquityCurve>(getGetPaperEquityCurveUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPaperEquityCurveQueryKey = () => {
+    return [
+    `/api/paper/equity-curve`
+    ] as const;
+    }
+
+
+export const getGetPaperEquityCurveQueryOptions = <TData = Awaited<ReturnType<typeof getPaperEquityCurve>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperEquityCurve>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPaperEquityCurveQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaperEquityCurve>>> = ({ signal }) => getPaperEquityCurve({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaperEquityCurve>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPaperEquityCurveQueryResult = NonNullable<Awaited<ReturnType<typeof getPaperEquityCurve>>>
+export type GetPaperEquityCurveQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get paper trading equity curve
+ */
+
+export function useGetPaperEquityCurve<TData = Awaited<ReturnType<typeof getPaperEquityCurve>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperEquityCurve>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPaperEquityCurveQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPaperDrawdownUrl = () => {
+
+
+
+
+  return `/api/paper/drawdown`
+}
+
+/**
+ * @summary Get paper trading drawdown analysis
+ */
+export const getPaperDrawdown = async ( options?: RequestInit): Promise<GetPaperDrawdown200> => {
+
+  return customFetch<GetPaperDrawdown200>(getGetPaperDrawdownUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPaperDrawdownQueryKey = () => {
+    return [
+    `/api/paper/drawdown`
+    ] as const;
+    }
+
+
+export const getGetPaperDrawdownQueryOptions = <TData = Awaited<ReturnType<typeof getPaperDrawdown>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperDrawdown>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPaperDrawdownQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPaperDrawdown>>> = ({ signal }) => getPaperDrawdown({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPaperDrawdown>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPaperDrawdownQueryResult = NonNullable<Awaited<ReturnType<typeof getPaperDrawdown>>>
+export type GetPaperDrawdownQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get paper trading drawdown analysis
+ */
+
+export function useGetPaperDrawdown<TData = Awaited<ReturnType<typeof getPaperDrawdown>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPaperDrawdown>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPaperDrawdownQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRunThresholdAnalysisUrl = () => {
+
+
+
+
+  return `/api/threshold/analyze`
+}
+
+/**
+ * @summary Run threshold optimization with walk-forward validation
+ */
+export const runThresholdAnalysis = async (runThresholdAnalysisBody?: RunThresholdAnalysisBody, options?: RequestInit): Promise<ThresholdResult> => {
+
+  return customFetch<ThresholdResult>(getRunThresholdAnalysisUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      runThresholdAnalysisBody,)
+  }
+);}
+
+
+
+
+export const getRunThresholdAnalysisMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runThresholdAnalysis>>, TError,{data?: BodyType<RunThresholdAnalysisBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runThresholdAnalysis>>, TError,{data?: BodyType<RunThresholdAnalysisBody>}, TContext> => {
+
+const mutationKey = ['runThresholdAnalysis'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runThresholdAnalysis>>, {data?: BodyType<RunThresholdAnalysisBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runThresholdAnalysis(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunThresholdAnalysisMutationResult = NonNullable<Awaited<ReturnType<typeof runThresholdAnalysis>>>
+    export type RunThresholdAnalysisMutationBody = BodyType<RunThresholdAnalysisBody> | undefined
+    export type RunThresholdAnalysisMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run threshold optimization with walk-forward validation
+ */
+export const useRunThresholdAnalysis = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runThresholdAnalysis>>, TError,{data?: BodyType<RunThresholdAnalysisBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runThresholdAnalysis>>,
+        TError,
+        {data?: BodyType<RunThresholdAnalysisBody>},
+        TContext
+      > => {
+      return useMutation(getRunThresholdAnalysisMutationOptions(options));
+    }
+
+export const getGetThresholdHistoryUrl = (params?: GetThresholdHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/threshold/history?${stringifiedParams}` : `/api/threshold/history`
+}
+
+/**
+ * @summary List past threshold optimization runs
+ */
+export const getThresholdHistory = async (params?: GetThresholdHistoryParams, options?: RequestInit): Promise<GetThresholdHistory200> => {
+
+  return customFetch<GetThresholdHistory200>(getGetThresholdHistoryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetThresholdHistoryQueryKey = (params?: GetThresholdHistoryParams,) => {
+    return [
+    `/api/threshold/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetThresholdHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getThresholdHistory>>, TError = ErrorType<unknown>>(params?: GetThresholdHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getThresholdHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetThresholdHistoryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getThresholdHistory>>> = ({ signal }) => getThresholdHistory(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getThresholdHistory>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetThresholdHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getThresholdHistory>>>
+export type GetThresholdHistoryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List past threshold optimization runs
+ */
+
+export function useGetThresholdHistory<TData = Awaited<ReturnType<typeof getThresholdHistory>>, TError = ErrorType<unknown>>(
+ params?: GetThresholdHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getThresholdHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetThresholdHistoryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLatestThresholdUrl = () => {
+
+
+
+
+  return `/api/threshold/latest`
+}
+
+/**
+ * @summary Get most recent threshold optimization result
+ */
+export const getLatestThreshold = async ( options?: RequestInit): Promise<ThresholdLatest> => {
+
+  return customFetch<ThresholdLatest>(getGetLatestThresholdUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLatestThresholdQueryKey = () => {
+    return [
+    `/api/threshold/latest`
+    ] as const;
+    }
+
+
+export const getGetLatestThresholdQueryOptions = <TData = Awaited<ReturnType<typeof getLatestThreshold>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLatestThreshold>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLatestThresholdQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestThreshold>>> = ({ signal }) => getLatestThreshold({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLatestThreshold>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLatestThresholdQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestThreshold>>>
+export type GetLatestThresholdQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get most recent threshold optimization result
+ */
+
+export function useGetLatestThreshold<TData = Awaited<ReturnType<typeof getLatestThreshold>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLatestThreshold>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLatestThresholdQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetPilotStatusUrl = () => {
+
+
+
+
+  return `/api/pilot/status`
+}
+
+/**
+ * @summary Get pilot mode status
+ */
+export const getPilotStatus = async ( options?: RequestInit): Promise<PilotStatus> => {
+
+  return customFetch<PilotStatus>(getGetPilotStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetPilotStatusQueryKey = () => {
+    return [
+    `/api/pilot/status`
+    ] as const;
+    }
+
+
+export const getGetPilotStatusQueryOptions = <TData = Awaited<ReturnType<typeof getPilotStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPilotStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetPilotStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getPilotStatus>>> = ({ signal }) => getPilotStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getPilotStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetPilotStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getPilotStatus>>>
+export type GetPilotStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get pilot mode status
+ */
+
+export function useGetPilotStatus<TData = Awaited<ReturnType<typeof getPilotStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getPilotStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetPilotStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getEnablePilotModeUrl = () => {
+
+
+
+
+  return `/api/pilot/enable`
+}
+
+/**
+ * @summary Enable pilot mode
+ */
+export const enablePilotMode = async (enablePilotModeBody?: EnablePilotModeBody, options?: RequestInit): Promise<EnablePilotMode200> => {
+
+  return customFetch<EnablePilotMode200>(getEnablePilotModeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      enablePilotModeBody,)
+  }
+);}
+
+
+
+
+export const getEnablePilotModeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enablePilotMode>>, TError,{data?: BodyType<EnablePilotModeBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof enablePilotMode>>, TError,{data?: BodyType<EnablePilotModeBody>}, TContext> => {
+
+const mutationKey = ['enablePilotMode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof enablePilotMode>>, {data?: BodyType<EnablePilotModeBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  enablePilotMode(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type EnablePilotModeMutationResult = NonNullable<Awaited<ReturnType<typeof enablePilotMode>>>
+    export type EnablePilotModeMutationBody = BodyType<EnablePilotModeBody> | undefined
+    export type EnablePilotModeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Enable pilot mode
+ */
+export const useEnablePilotMode = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof enablePilotMode>>, TError,{data?: BodyType<EnablePilotModeBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof enablePilotMode>>,
+        TError,
+        {data?: BodyType<EnablePilotModeBody>},
+        TContext
+      > => {
+      return useMutation(getEnablePilotModeMutationOptions(options));
+    }
+
+export const getDisablePilotModeUrl = () => {
+
+
+
+
+  return `/api/pilot/disable`
+}
+
+/**
+ * @summary Disable pilot mode
+ */
+export const disablePilotMode = async (disablePilotModeBody?: DisablePilotModeBody, options?: RequestInit): Promise<DisablePilotMode200> => {
+
+  return customFetch<DisablePilotMode200>(getDisablePilotModeUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      disablePilotModeBody,)
+  }
+);}
+
+
+
+
+export const getDisablePilotModeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disablePilotMode>>, TError,{data?: BodyType<DisablePilotModeBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof disablePilotMode>>, TError,{data?: BodyType<DisablePilotModeBody>}, TContext> => {
+
+const mutationKey = ['disablePilotMode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof disablePilotMode>>, {data?: BodyType<DisablePilotModeBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  disablePilotMode(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type DisablePilotModeMutationResult = NonNullable<Awaited<ReturnType<typeof disablePilotMode>>>
+    export type DisablePilotModeMutationBody = BodyType<DisablePilotModeBody> | undefined
+    export type DisablePilotModeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Disable pilot mode
+ */
+export const useDisablePilotMode = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof disablePilotMode>>, TError,{data?: BodyType<DisablePilotModeBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof disablePilotMode>>,
+        TError,
+        {data?: BodyType<DisablePilotModeBody>},
+        TContext
+      > => {
+      return useMutation(getDisablePilotModeMutationOptions(options));
+    }
+
+export const getClearPilotHaltUrl = () => {
+
+
+
+
+  return `/api/pilot/clear-halt`
+}
+
+/**
+ * @summary Clear pilot mode halt and reset consecutive loss counter
+ */
+export const clearPilotHalt = async ( options?: RequestInit): Promise<ClearPilotHalt200> => {
+
+  return customFetch<ClearPilotHalt200>(getClearPilotHaltUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getClearPilotHaltMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearPilotHalt>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof clearPilotHalt>>, TError,void, TContext> => {
+
+const mutationKey = ['clearPilotHalt'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof clearPilotHalt>>, void> = () => {
+
+
+          return  clearPilotHalt(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ClearPilotHaltMutationResult = NonNullable<Awaited<ReturnType<typeof clearPilotHalt>>>
+
+    export type ClearPilotHaltMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Clear pilot mode halt and reset consecutive loss counter
+ */
+export const useClearPilotHalt = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof clearPilotHalt>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof clearPilotHalt>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getClearPilotHaltMutationOptions(options));
+    }
+
+export const getGetImprovementRecommendationsUrl = () => {
+
+
+
+
+  return `/api/improvement/recommendations`
+}
+
+/**
+ * @summary Get actionable improvement recommendations (advisory only, never auto-applies)
+ */
+export const getImprovementRecommendations = async ( options?: RequestInit): Promise<GetImprovementRecommendations200> => {
+
+  return customFetch<GetImprovementRecommendations200>(getGetImprovementRecommendationsUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetImprovementRecommendationsQueryKey = () => {
+    return [
+    `/api/improvement/recommendations`
+    ] as const;
+    }
+
+
+export const getGetImprovementRecommendationsQueryOptions = <TData = Awaited<ReturnType<typeof getImprovementRecommendations>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getImprovementRecommendations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetImprovementRecommendationsQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getImprovementRecommendations>>> = ({ signal }) => getImprovementRecommendations({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getImprovementRecommendations>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetImprovementRecommendationsQueryResult = NonNullable<Awaited<ReturnType<typeof getImprovementRecommendations>>>
+export type GetImprovementRecommendationsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get actionable improvement recommendations (advisory only, never auto-applies)
+ */
+
+export function useGetImprovementRecommendations<TData = Awaited<ReturnType<typeof getImprovementRecommendations>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getImprovementRecommendations>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetImprovementRecommendationsQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGenerateImprovementReportUrl = () => {
+
+
+
+
+  return `/api/improvement/report`
+}
+
+/**
+ * @summary Generate improvement report markdown file
+ */
+export const generateImprovementReport = async ( options?: RequestInit): Promise<GenerateImprovementReport200> => {
+
+  return customFetch<GenerateImprovementReport200>(getGenerateImprovementReportUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getGenerateImprovementReportMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateImprovementReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof generateImprovementReport>>, TError,void, TContext> => {
+
+const mutationKey = ['generateImprovementReport'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof generateImprovementReport>>, void> = () => {
+
+
+          return  generateImprovementReport(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type GenerateImprovementReportMutationResult = NonNullable<Awaited<ReturnType<typeof generateImprovementReport>>>
+
+    export type GenerateImprovementReportMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Generate improvement report markdown file
+ */
+export const useGenerateImprovementReport = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof generateImprovementReport>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof generateImprovementReport>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getGenerateImprovementReportMutationOptions(options));
     }
 

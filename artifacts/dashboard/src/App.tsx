@@ -28,6 +28,11 @@ const LiveJournal = lazy(() => import("@/pages/live-journal"));
 const ReadinessChecklist = lazy(() => import("@/pages/readiness-checklist"));
 const Robustness = lazy(() => import("@/pages/robustness"));
 const TraderIntelligence = lazy(() => import("@/pages/trader-intelligence"));
+const PaperTrading = lazy(() => import("@/pages/paper-trading"));
+const Comparison = lazy(() => import("@/pages/comparison"));
+const ThresholdOptimization = lazy(() => import("@/pages/threshold"));
+const PilotMode = lazy(() => import("@/pages/pilot"));
+const ImprovementDashboard = lazy(() => import("@/pages/improvement"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -73,6 +78,11 @@ function Router() {
           <Route path="/readiness-checklist" component={ReadinessChecklist} />
           <Route path="/robustness" component={Robustness} />
           <Route path="/trader-intelligence" component={TraderIntelligence} />
+          <Route path="/paper-trading" component={PaperTrading} />
+          <Route path="/comparison" component={Comparison} />
+          <Route path="/threshold" component={ThresholdOptimization} />
+          <Route path="/pilot" component={PilotMode} />
+          <Route path="/improvement" component={ImprovementDashboard} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
