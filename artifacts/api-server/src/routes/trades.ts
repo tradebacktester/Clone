@@ -96,6 +96,33 @@ router.get("/trades/:id", async (req, res): Promise<void> => {
   res.json(GetTradeResponse.parse(mapTrade(trade)));
 });
 
+router.get("/trades/:id/explanation", async (req, res): Promise<void> => {
+  const params = GetTradeParams.safeParse(req.params);
+  if (!params.success) {
+    res.status(400).json({ error: params.error.message });
+    return;
+  }
+
+  const [trade] = await db
+    .select({ explanation: tradesTable.explanation, id: tradesTable.id, pair: tradesTable.pair, direction: tradesTable.direction, openedAt: tradesTable.openedAt })
+    .from(tradesTable)
+    .where(eq(tradesTable.id, params.data.id));
+
+  if (!trade) {
+    res.status(404).json({ error: "Trade not found" });
+    return;
+  }
+
+  if (!trade.explanation) {
+    res.status(404).json({
+      error: "No explanation available for this trade. It was either executed before the explanation engine was active, or lacked sufficient analysis data at entry time.",
+    });
+    return;
+  }
+
+  res.json(trade.explanation);
+});
+
 router.post("/trades/:id/close", async (req, res): Promise<void> => {
   const params = CloseTradeParams.safeParse(req.params);
   if (!params.success) {

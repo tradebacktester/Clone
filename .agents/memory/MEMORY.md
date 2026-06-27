@@ -9,3 +9,4 @@
 - [Market Data Provider Architecture](market-data-provider.md) — pluggable provider system; backtest engine uses registry not synthetic data; DB schema export, dependency, and BiasType conflict quirks documented.
 - [Live Trading Readiness Framework](live-readiness-framework.md) — 8-component safety layer; paper→demo→live gate logic, broker safety config, readiness checklist thresholds, recovery engine startup flow.
 - [Robustness Framework](robustness-framework.md) — 7-engine stress-testing suite; route path prefix gotcha, execution-stress seed fix, report generator export path.
+- [5-Part Audit](audit-findings.md) — code/security/performance/explainability/production-readiness audit; key fixes applied; critical blockers documented.

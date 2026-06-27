@@ -3,29 +3,31 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Layout } from "@/components/layout";
-import Dashboard from "@/pages/dashboard";
-import Trades from "@/pages/trades";
-import Analytics from "@/pages/analytics";
-import Market from "@/pages/market";
-import Regime from "@/pages/regime";
-import MonteCarlo from "@/pages/montecarlo";
-import Learning from "@/pages/learning";
-import Backtest from "@/pages/backtest";
-import Settings from "@/pages/settings";
-import Quality from "@/pages/quality";
-import Memory from "@/pages/memory";
-import Supervisor from "@/pages/supervisor";
-import Insights from "@/pages/insights";
-import Reports from "@/pages/reports";
-import TimePerformance from "@/pages/time-performance";
-import Replay from "@/pages/replay";
-import Historical from "@/pages/historical";
-import ProductionReadiness from "@/pages/production-readiness";
-import DeploymentManager from "@/pages/deployment";
-import LiveJournal from "@/pages/live-journal";
-import ReadinessChecklist from "@/pages/readiness-checklist";
-import Robustness from "@/pages/robustness";
-import NotFound from "@/pages/not-found";
+import { lazy, Suspense } from "react";
+
+const Dashboard = lazy(() => import("@/pages/dashboard"));
+const Trades = lazy(() => import("@/pages/trades"));
+const Analytics = lazy(() => import("@/pages/analytics"));
+const Market = lazy(() => import("@/pages/market"));
+const Regime = lazy(() => import("@/pages/regime"));
+const MonteCarlo = lazy(() => import("@/pages/montecarlo"));
+const Learning = lazy(() => import("@/pages/learning"));
+const Backtest = lazy(() => import("@/pages/backtest"));
+const Settings = lazy(() => import("@/pages/settings"));
+const Quality = lazy(() => import("@/pages/quality"));
+const Memory = lazy(() => import("@/pages/memory"));
+const Supervisor = lazy(() => import("@/pages/supervisor"));
+const Insights = lazy(() => import("@/pages/insights"));
+const Reports = lazy(() => import("@/pages/reports"));
+const TimePerformance = lazy(() => import("@/pages/time-performance"));
+const Replay = lazy(() => import("@/pages/replay"));
+const Historical = lazy(() => import("@/pages/historical"));
+const ProductionReadiness = lazy(() => import("@/pages/production-readiness"));
+const DeploymentManager = lazy(() => import("@/pages/deployment"));
+const LiveJournal = lazy(() => import("@/pages/live-journal"));
+const ReadinessChecklist = lazy(() => import("@/pages/readiness-checklist"));
+const Robustness = lazy(() => import("@/pages/robustness"));
+const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -35,34 +37,44 @@ const queryClient = new QueryClient({
   }
 });
 
+function PageLoader() {
+  return (
+    <div className="flex-1 flex items-center justify-center bg-background">
+      <div className="text-muted-foreground font-mono text-sm animate-pulse">Loading…</div>
+    </div>
+  );
+}
+
 function Router() {
   return (
     <Layout>
-      <Switch>
-        <Route path="/" component={Dashboard} />
-        <Route path="/trades" component={Trades} />
-        <Route path="/analytics" component={Analytics} />
-        <Route path="/market" component={Market} />
-        <Route path="/regime" component={Regime} />
-        <Route path="/monte-carlo" component={MonteCarlo} />
-        <Route path="/learning" component={Learning} />
-        <Route path="/backtest" component={Backtest} />
-        <Route path="/quality" component={Quality} />
-        <Route path="/memory" component={Memory} />
-        <Route path="/supervisor" component={Supervisor} />
-        <Route path="/insights" component={Insights} />
-        <Route path="/reports" component={Reports} />
-        <Route path="/time-performance" component={TimePerformance} />
-        <Route path="/replay" component={Replay} />
-        <Route path="/historical" component={Historical} />
-        <Route path="/production-readiness" component={ProductionReadiness} />
-        <Route path="/deployment" component={DeploymentManager} />
-        <Route path="/live-journal" component={LiveJournal} />
-        <Route path="/readiness-checklist" component={ReadinessChecklist} />
-        <Route path="/robustness" component={Robustness} />
-        <Route path="/settings" component={Settings} />
-        <Route component={NotFound} />
-      </Switch>
+      <Suspense fallback={<PageLoader />}>
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/trades" component={Trades} />
+          <Route path="/analytics" component={Analytics} />
+          <Route path="/market" component={Market} />
+          <Route path="/regime" component={Regime} />
+          <Route path="/monte-carlo" component={MonteCarlo} />
+          <Route path="/learning" component={Learning} />
+          <Route path="/backtest" component={Backtest} />
+          <Route path="/quality" component={Quality} />
+          <Route path="/memory" component={Memory} />
+          <Route path="/supervisor" component={Supervisor} />
+          <Route path="/insights" component={Insights} />
+          <Route path="/reports" component={Reports} />
+          <Route path="/time-performance" component={TimePerformance} />
+          <Route path="/replay" component={Replay} />
+          <Route path="/historical" component={Historical} />
+          <Route path="/production-readiness" component={ProductionReadiness} />
+          <Route path="/deployment" component={DeploymentManager} />
+          <Route path="/live-journal" component={LiveJournal} />
+          <Route path="/readiness-checklist" component={ReadinessChecklist} />
+          <Route path="/robustness" component={Robustness} />
+          <Route path="/settings" component={Settings} />
+          <Route component={NotFound} />
+        </Switch>
+      </Suspense>
     </Layout>
   );
 }

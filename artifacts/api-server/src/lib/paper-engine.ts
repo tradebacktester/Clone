@@ -199,7 +199,7 @@ export async function executePaperSignals(
   const mtfAlignment = getMtfAlignment(pair, signal.direction);
   if (mtfAlignment.alignedCount < 2) {
     logger.info({ pair, mtfScore: mtfAlignment.score, alignedCount: mtfAlignment.alignedCount }, "V2 MTF gate: insufficient alignment — skipping signal");
-    recordMissedOpportunity(signal, "below_confidence", session, null).catch(() => {});
+    recordMissedOpportunity(signal, "mtf_insufficient", session, null).catch(() => {});
     return;
   }
 
@@ -210,7 +210,7 @@ export async function executePaperSignals(
     tqiResult = computeTqi(signal, analysis, mtfAlignment.score);
     if (!tqiResult.tradeable) {
       logger.info({ pair, tqi: tqiResult.tqi, grade: tqiResult.grade }, "V2 TQI gate: quality below threshold — skipping signal");
-      recordMissedOpportunity(signal, "below_confidence", session, null).catch(() => {});
+      recordMissedOpportunity(signal, "tqi_below_threshold", session, null).catch(() => {});
       return;
     }
   }
@@ -223,7 +223,7 @@ export async function executePaperSignals(
   );
   if (!corrCheck.allowed) {
     logger.info({ pair, reason: corrCheck.reason }, "V2 correlation gate: overexposure — skipping signal");
-    recordMissedOpportunity(signal, "pair_already_open", session, null).catch(() => {});
+    recordMissedOpportunity(signal, "correlation_blocked", session, null).catch(() => {});
     return;
   }
 
