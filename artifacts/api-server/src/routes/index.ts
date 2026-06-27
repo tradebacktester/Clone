@@ -18,6 +18,7 @@ import v2Router from "./v2";
 import reportsRouter from "./reports";
 import replayRouter from "./replay";
 import historicalRouter from "./historical";
+import productionReadinessRouter from "./production-readiness";
 
 const router: IRouter = Router();
 
@@ -40,5 +41,6 @@ router.use(v2Router);
 router.use(reportsRouter);
 router.use(replayRouter);
 router.use(historicalRouter);
+router.use(productionReadinessRouter);
 
 export default router;

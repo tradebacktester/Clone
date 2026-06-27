@@ -1,5 +1,7 @@
 export * from "./types.js";
 export * from "./data/fetcher.js";
+export { startPipeline, getPipelineStatus, getLatestResult, loadLatestResultFromDisk } from "./production-readiness/index.js";
+export type { PipelineResult, PipelineStatus, StageResult, CategoryScores, Finding } from "./production-readiness/index.js";
 export type { IMarketDataProvider, FetchResult, CacheStatus, DateRange, HistoricalCandle } from "./historical/index.js";
 export { BAR_MS, expectedBarCount, emptyResult } from "./historical/index.js";
 export { YahooFinanceProvider, DukascopyProvider, HistDataProvider, OANDAProvider, MT5CsvProvider, LocalCsvProvider, ProviderRegistry, createDefaultRegistry } from "./historical/index.js";

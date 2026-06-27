@@ -18,6 +18,7 @@ import {
   Clock,
   Rewind,
   Database,
+  ShieldAlert,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -39,6 +40,7 @@ export function NavSidebar() {
     { href: "/learning", label: "Learning", icon: BrainCircuit },
     { href: "/replay", label: "Replay", icon: Rewind },
     { href: "/historical", label: "Historical", icon: Database },
+    { href: "/production-readiness", label: "Prod. Readiness", icon: ShieldAlert },
     { href: "/backtest", label: "Backtest", icon: History },
     { href: "/settings", label: "Settings", icon: Settings },
   ];
