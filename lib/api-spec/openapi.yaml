@@ -1417,6 +1417,226 @@ paths:
         "404":
           description: No robustness result available
 
+  # ── Paper Trading Config & Quality ──────────────────────────────────────────
+  /paper/config:
+    get:
+      operationId: getPaperExecConfig
+      summary: Get per-pair paper execution config (spread, slippage, commission)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PaperExecConfig"
+    put:
+      operationId: upsertPaperExecConfig
+      summary: Create or update paper execution config for a pair
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaperExecConfigInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaperExecConfig"
+
+  /paper/quality:
+    get:
+      operationId: getExecQuality
+      summary: Get execution quality metrics and log
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ExecQualitySummary"
+
+  # ── Threshold Optimizer ───────────────────────────────────────────────────
+  /threshold-optimizer/run:
+    post:
+      operationId: runThresholdOptimizer
+      summary: Analyze historical trades and find optimal score thresholds with walk-forward validation
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ThresholdOptimizerInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThresholdRunSummary"
+
+  /threshold-optimizer/results:
+    get:
+      operationId: listThresholdRuns
+      summary: List all threshold optimization runs
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ThresholdRunSummary"
+
+  /threshold-optimizer/results/latest:
+    get:
+      operationId: getLatestThresholdRun
+      summary: Get the most recent threshold optimization result
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThresholdRunFull"
+        "404":
+          description: No runs yet
+
+  # ── Pilot Mode ────────────────────────────────────────────────────────────
+  /pilot/config:
+    get:
+      operationId: getPilotConfig
+      summary: Get Pilot Mode configuration and status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PilotConfig"
+    put:
+      operationId: updatePilotConfig
+      summary: Update Pilot Mode settings (when not running)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PilotConfigInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PilotConfig"
+
+  /pilot/start:
+    post:
+      operationId: startPilotMode
+      summary: Start Pilot Mode (requires certification pass)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PilotConfig"
+        "400":
+          description: Cannot start (not certified or already running)
+
+  /pilot/stop:
+    post:
+      operationId: stopPilotMode
+      summary: Stop Pilot Mode
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PilotConfig"
+
+  /pilot/events:
+    get:
+      operationId: listPilotEvents
+      summary: Get Pilot Mode event log
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 100
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PilotEvent"
+
+  # ── Continuous Improvement ────────────────────────────────────────────────
+  /improvement/summary:
+    get:
+      operationId: getImprovementSummary
+      summary: Consolidated improvement analytics — monthly trends, drift, calibration
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ImprovementSummary"
+
+  /improvement/confidence-calibration:
+    get:
+      operationId: getConfidenceCalibration
+      summary: Compare trader confidence vs actual outcomes (from Trader Intelligence layer)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConfidenceCalibration"
+
+  /improvement/strategy-drift:
+    get:
+      operationId: getStrategyDrift
+      summary: Detect drift — rolling vs all-time win rate and profit factor
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyDrift"
+
+  /improvement/comparison-stats:
+    get:
+      operationId: getComparisonStats
+      summary: Enhanced Manual vs Bot comparison with false positive/negative rates
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ComparisonStats"
+
   # ── Trader Intelligence (Vasu Decision Model) ─────────────────────────────
   /ti/decisions:
     get:

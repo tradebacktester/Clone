@@ -14,3 +14,6 @@ export * from "./historical";
 export * from "./readiness";
 export * from "./robustness";
 export * from "./trader-intelligence";
+export * from "./optimizer";
+export * from "./pilot";
+export * from "./paper-config";
