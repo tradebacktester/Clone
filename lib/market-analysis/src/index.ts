@@ -39,7 +39,47 @@ export * from "./market_regime/adaptive_weights.js";
 export * from "./backtest/montecarlo.js";
 export * from "./backtest/walkforward.js";
 export * from "./replay/index.js";
-export * from "./robustness/index.js";
+export type {
+  SimTrade,
+  SimStats,
+  SensitivityLevel,
+  ParameterVariation,
+  ParameterSensitivityResult,
+  SensitivityAnalysisResult,
+  MarketCondition,
+  MarketStressScenario,
+  MarketStressResult,
+  ExecutionImperfection,
+  ExecutionStressScenario,
+  ExecutionStressResult,
+  LosingStreakAnalysis,
+  DrawdownRecovery,
+  RiskStressResult,
+  WFRobustnessResult,
+  OOSSplit,
+  OOSResult,
+  ConfidenceStabilityResult,
+  RobustnessScoreBreakdown,
+  RobustnessScore,
+  RobustnessPipelineConfig,
+  RobustnessPipelineResult,
+  PipelineStatus as RobustnessPipelineStatus,
+} from "./robustness/types.js";
+export { runSimulation, runMonteCarlo as runRobustnessMonteCarlo } from "./robustness/simulator.js";
+export { MARKET_CONDITION_PROFILES, ALL_CONDITIONS } from "./robustness/candle-gen.js";
+export { runParameterSensitivity } from "./robustness/parameter-sensitivity.js";
+export { runMarketStressTests } from "./robustness/market-stress.js";
+export { runExecutionStressTests } from "./robustness/execution-stress.js";
+export { runRiskStressTests } from "./robustness/risk-stress.js";
+export { runWalkForwardRobustness } from "./robustness/walk-forward-robustness.js";
+export { runOOSValidation } from "./robustness/out-of-sample.js";
+export { runConfidenceStability } from "./robustness/confidence-stability.js";
+export { computeRobustnessScore } from "./robustness/robustness-score.js";
+export {
+  runRobustnessPipeline,
+  getRobustnessPipelineStatus,
+  getLatestRobustnessResult,
+} from "./robustness/pipeline.js";
 
 import type { Pair, Timeframe, AnalysisResult } from "./types.js";
 import { fetchCandles } from "./data/fetcher.js";

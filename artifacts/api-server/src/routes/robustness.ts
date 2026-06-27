@@ -1,6 +1,5 @@
 import { Router } from "express";
-import { db } from "../db.js";
-import { robustnessResultsTable } from "@workspace/db";
+import { db, robustnessResultsTable } from "@workspace/db";
 import { desc, eq } from "drizzle-orm";
 import {
   runRobustnessPipeline,
