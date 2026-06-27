@@ -1408,6 +1408,206 @@ export interface RiskSettingsInput {
   breakEvenAt?: number;
 }
 
+export type DeploymentStatusCurrentMode = typeof DeploymentStatusCurrentMode[keyof typeof DeploymentStatusCurrentMode];
+
+
+export const DeploymentStatusCurrentMode = {
+  paper: 'paper',
+  demo: 'demo',
+  live: 'live',
+} as const;
+
+export interface DeploymentStatus {
+  currentMode: DeploymentStatusCurrentMode;
+  liveEnabled: boolean;
+  running: boolean;
+  readinessScore: number | null;
+  brokerAccountsConfigured: number;
+  demoAccountsConfigured: number;
+  liveAccountsConfigured: number;
+  canSwitchToDemo: boolean;
+  canSwitchToLive: boolean;
+  blockers: string[];
+  warnings: string[];
+}
+
+export interface ModeTransitionResult {
+  success: boolean;
+  previousMode: string;
+  newMode: string;
+  message: string;
+  blockers: string[];
+}
+
+export interface BrokerSafetyConfig {
+  maxSpreadPips: number;
+  maxSlippagePips: number;
+  connectionTimeoutMs: number;
+  maxRetries: number;
+  retryDelayMs: number;
+  partialFillThresholdPct: number;
+  reconciliationIntervalSec: number;
+  enableSpreadFilter: boolean;
+  enableSlippageProtection: boolean;
+  enableConnectionMonitor: boolean;
+  enableAutoRetry: boolean;
+  enablePartialFillHandling: boolean;
+  enableReconciliation: boolean;
+  updatedAt: string;
+}
+
+export type ConnectionHealthStatus = typeof ConnectionHealthStatus[keyof typeof ConnectionHealthStatus];
+
+
+export const ConnectionHealthStatus = {
+  connected: 'connected',
+  degraded: 'degraded',
+  disconnected: 'disconnected',
+  unknown: 'unknown',
+} as const;
+
+export interface ConnectionHealth {
+  status: ConnectionHealthStatus;
+  latencyMs: number | null;
+  lastChecked: string;
+  consecutiveFailures: number;
+  message: string;
+}
+
+export type ReconciliationResultDiscrepanciesItem = {
+  type?: string;
+  detail?: string;
+};
+
+export interface ReconciliationResult {
+  localPositions: number;
+  brokerPositions: number;
+  discrepancies: ReconciliationResultDiscrepanciesItem[];
+  reconciled: boolean;
+  actionsTaken: string[];
+}
+
+export type HealthMetricStatus = typeof HealthMetricStatus[keyof typeof HealthMetricStatus];
+
+
+export const HealthMetricStatus = {
+  healthy: 'healthy',
+  degraded: 'degraded',
+  critical: 'critical',
+  insufficient_data: 'insufficient_data',
+} as const;
+
+export interface HealthMetric {
+  name: string;
+  value: number | null;
+  status: HealthMetricStatus;
+  message: string;
+  threshold?: number | null;
+}
+
+export type StrategyHealthReportStatus = typeof StrategyHealthReportStatus[keyof typeof StrategyHealthReportStatus];
+
+
+export const StrategyHealthReportStatus = {
+  healthy: 'healthy',
+  degraded: 'degraded',
+  critical: 'critical',
+} as const;
+
+export interface StrategyHealthReport {
+  overallScore: number;
+  status: StrategyHealthReportStatus;
+  metrics: HealthMetric[];
+  alerts: string[];
+  snapshotAt: string;
+  totalTrades: number;
+  openTrades: number;
+}
+
+export interface StrategyHealthSnapshot {
+  id: number;
+  snapshotAt: string;
+  winRateRolling20?: number | null;
+  profitFactorRolling30?: number | null;
+  maxDrawdownPct?: number | null;
+  signalFrequencyPerDay?: number | null;
+  dataQualityScore?: number | null;
+  regimeStabilityScore?: number | null;
+  overallHealthScore?: number | null;
+  totalTrades: number;
+  openTrades: number;
+  alertCount: number;
+  mode: string;
+}
+
+export interface RecoveryLogEntry {
+  id: number;
+  event: string;
+  success: boolean;
+  details?: unknown | null;
+  error?: string | null;
+  createdAt: string;
+}
+
+export type ChecklistItemCategory = typeof ChecklistItemCategory[keyof typeof ChecklistItemCategory];
+
+
+export const ChecklistItemCategory = {
+  safety: 'safety',
+  strategy: 'strategy',
+  infrastructure: 'infrastructure',
+  risk: 'risk',
+  validation: 'validation',
+} as const;
+
+export interface ChecklistItem {
+  id: string;
+  name: string;
+  category: ChecklistItemCategory;
+  required: boolean;
+  passed: boolean;
+  message: string;
+  details?: string | null;
+  recommendation?: string | null;
+}
+
+export interface ChecklistResult {
+  overallPassed: boolean;
+  readinessScore: number;
+  items: ChecklistItem[];
+  blockers: string[];
+  warnings: string[];
+  recommendation: string;
+  canEnableLive: boolean;
+  runAt: string;
+}
+
+export interface LiveJournalEntry {
+  id: number;
+  tradeId?: number | null;
+  pair: string;
+  direction: string;
+  entryReason?: string | null;
+  exitReason?: string | null;
+  ruleEvaluation?: unknown | null;
+  confidenceScores?: unknown | null;
+  marketRegime?: string | null;
+  regimeConfidence?: number | null;
+  brokerExecution?: unknown | null;
+  screenshots?: unknown | null;
+  notes?: string | null;
+  mode: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface LiveJournalList {
+  entries: LiveJournalEntry[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
 export type ListTradesParams = {
 status?: ListTradesStatus;
 pair?: string;
@@ -1520,5 +1720,79 @@ export const ListReportsType = {
 export type GetNewsEventsParams = {
 pair?: string;
 hours?: number;
+};
+
+export type SwitchDeploymentModeBodyMode = typeof SwitchDeploymentModeBodyMode[keyof typeof SwitchDeploymentModeBodyMode];
+
+
+export const SwitchDeploymentModeBodyMode = {
+  paper: 'paper',
+  demo: 'demo',
+  live: 'live',
+} as const;
+
+export type SwitchDeploymentModeBody = {
+  mode: SwitchDeploymentModeBodyMode;
+};
+
+export type SetLiveGateBody = {
+  enabled: boolean;
+};
+
+export type SetLiveGate200 = {
+  success?: boolean;
+  liveEnabled?: boolean;
+};
+
+export type GetStrategyHealthSnapshotsParams = {
+limit?: number;
+};
+
+export type GetRecoveryLogParams = {
+limit?: number;
+};
+
+export type RunReadinessChecklistBody = {
+  forLive?: boolean;
+};
+
+export type GetChecklistHistoryParams = {
+limit?: number;
+};
+
+export type GetLiveJournalParams = {
+limit?: number;
+offset?: number;
+pair?: string;
+mode?: string;
+};
+
+export type CreateLiveJournalEntryBodyRuleEvaluation = { [key: string]: unknown };
+
+export type CreateLiveJournalEntryBodyConfidenceScores = { [key: string]: unknown };
+
+export type CreateLiveJournalEntryBodyBrokerExecution = { [key: string]: unknown };
+
+export type CreateLiveJournalEntryBody = {
+  pair: string;
+  direction: string;
+  tradeId?: number;
+  entryReason?: string;
+  ruleEvaluation?: CreateLiveJournalEntryBodyRuleEvaluation;
+  confidenceScores?: CreateLiveJournalEntryBodyConfidenceScores;
+  marketRegime?: string;
+  regimeConfidence?: number;
+  brokerExecution?: CreateLiveJournalEntryBodyBrokerExecution;
+  notes?: string;
+  mode?: string;
+};
+
+export type UpdateLiveJournalEntryBodyBrokerExecution = { [key: string]: unknown };
+
+export type UpdateLiveJournalEntryBody = {
+  entryReason?: string;
+  exitReason?: string;
+  notes?: string;
+  brokerExecution?: UpdateLiveJournalEntryBodyBrokerExecution;
 };
 

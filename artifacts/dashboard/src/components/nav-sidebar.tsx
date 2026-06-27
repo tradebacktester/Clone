@@ -19,6 +19,9 @@ import {
   Rewind,
   Database,
   ShieldAlert,
+  Server,
+  BookOpen,
+  ClipboardCheck,
 } from "lucide-react";
 
 export function NavSidebar() {
@@ -41,6 +44,9 @@ export function NavSidebar() {
     { href: "/replay", label: "Replay", icon: Rewind },
     { href: "/historical", label: "Historical", icon: Database },
     { href: "/production-readiness", label: "Prod. Readiness", icon: ShieldAlert },
+    { href: "/deployment", label: "Deployment", icon: Server },
+    { href: "/readiness-checklist", label: "Live Readiness", icon: ClipboardCheck },
+    { href: "/live-journal", label: "Live Journal", icon: BookOpen },
     { href: "/backtest", label: "Backtest", icon: History },
     { href: "/settings", label: "Settings", icon: Settings },
   ];

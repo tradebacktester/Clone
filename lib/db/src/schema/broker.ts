@@ -11,7 +11,11 @@ export const brokerAccountsTable = pgTable("broker_accounts", {
   apiSecret: text("api_secret"),
   active: boolean("active").notNull().default(true),
   paperTrading: boolean("paper_trading").notNull().default(true),
+  isDemo: boolean("is_demo").notNull().default(true),
   balance: numeric("balance", { precision: 12, scale: 2 }),
+  connectionHealth: text("connection_health").notNull().default("unknown"),
+  lastConnectedAt: timestamp("last_connected_at", { withTimezone: true }),
+  maxSpreadPips: numeric("max_spread_pips", { precision: 6, scale: 2 }).default("3.0"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });
 

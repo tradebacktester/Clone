@@ -1011,6 +1011,326 @@ paths:
               schema:
                 $ref: "#/components/schemas/RiskSettings"
 
+  # ── Deployment Manager ───────────────────────────────────────────────────
+  /deployment/status:
+    get:
+      operationId: getDeploymentStatus
+      summary: Get deployment mode, readiness score and live gate status
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeploymentStatus"
+
+  /deployment/mode:
+    put:
+      operationId: switchDeploymentMode
+      summary: Switch deployment mode (paper / demo / live)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [mode]
+              properties:
+                mode:
+                  type: string
+                  enum: [paper, demo, live]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ModeTransitionResult"
+
+  /deployment/live-gate:
+    put:
+      operationId: setLiveGate
+      summary: Enable or disable the live trading gate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [enabled]
+              properties:
+                enabled:
+                  type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  liveEnabled:
+                    type: boolean
+
+  /deployment/safety-config:
+    get:
+      operationId: getSafetyConfig
+      summary: Get broker safety layer configuration
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerSafetyConfig"
+    put:
+      operationId: updateSafetyConfig
+      summary: Update broker safety layer configuration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BrokerSafetyConfig"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BrokerSafetyConfig"
+
+  /deployment/connection-health:
+    get:
+      operationId: getConnectionHealth
+      summary: Check broker connection health
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConnectionHealth"
+
+  /deployment/reconcile:
+    post:
+      operationId: reconcilePositions
+      summary: Manually trigger position reconciliation with broker
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ReconciliationResult"
+
+  /deployment/strategy-health:
+    get:
+      operationId: getStrategyHealth
+      summary: Run a live strategy health check and return report
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StrategyHealthReport"
+
+  /deployment/strategy-health/snapshots:
+    get:
+      operationId: getStrategyHealthSnapshots
+      summary: Get historical strategy health snapshots
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 48
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/StrategyHealthSnapshot"
+
+  /deployment/recovery-log:
+    get:
+      operationId: getRecoveryLog
+      summary: Get startup recovery event log
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/RecoveryLogEntry"
+
+  # ── Readiness Checklist ───────────────────────────────────────────────────
+  /readiness/checklist/latest:
+    get:
+      operationId: getLatestChecklistResult
+      summary: Get latest readiness checklist run result
+      responses:
+        "200":
+          description: OK
+
+  /readiness/checklist/run:
+    post:
+      operationId: runReadinessChecklist
+      summary: Run the live trading readiness checklist
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                forLive:
+                  type: boolean
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChecklistResult"
+
+  /readiness/checklist/history:
+    get:
+      operationId: getChecklistHistory
+      summary: Get readiness checklist run history
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+      responses:
+        "200":
+          description: OK
+
+  # ── Live Journal ──────────────────────────────────────────────────────────
+  /live-journal:
+    get:
+      operationId: getLiveJournal
+      summary: List live trade journal entries
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 50
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+        - in: query
+          name: pair
+          schema:
+            type: string
+        - in: query
+          name: mode
+          schema:
+            type: string
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LiveJournalList"
+    post:
+      operationId: createLiveJournalEntry
+      summary: Create a live trade journal entry
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [pair, direction]
+              properties:
+                pair:
+                  type: string
+                direction:
+                  type: string
+                tradeId:
+                  type: integer
+                entryReason:
+                  type: string
+                ruleEvaluation:
+                  type: object
+                confidenceScores:
+                  type: object
+                marketRegime:
+                  type: string
+                regimeConfidence:
+                  type: number
+                brokerExecution:
+                  type: object
+                notes:
+                  type: string
+                mode:
+                  type: string
+      responses:
+        "201":
+          description: Created
+
+  /live-journal/{id}:
+    get:
+      operationId: getLiveJournalEntry
+      summary: Get a single live journal entry with associated trade data
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+    put:
+      operationId: updateLiveJournalEntry
+      summary: Update notes / execution details on a journal entry
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                entryReason:
+                  type: string
+                exitReason:
+                  type: string
+                notes:
+                  type: string
+                brokerExecution:
+                  type: object
+      responses:
+        "200":
+          description: OK
+
 components:
   schemas:
 
@@ -3198,3 +3518,335 @@ components:
           type: number
         breakEvenAt:
           type: number
+
+    # ── Deployment / Readiness ────────────────────────────────────────────────
+    DeploymentStatus:
+      type: object
+      required: [currentMode, liveEnabled, running, readinessScore, brokerAccountsConfigured, demoAccountsConfigured, liveAccountsConfigured, canSwitchToDemo, canSwitchToLive, blockers, warnings]
+      properties:
+        currentMode:
+          type: string
+          enum: [paper, demo, live]
+        liveEnabled:
+          type: boolean
+        running:
+          type: boolean
+        readinessScore:
+          type: number
+          nullable: true
+        brokerAccountsConfigured:
+          type: integer
+        demoAccountsConfigured:
+          type: integer
+        liveAccountsConfigured:
+          type: integer
+        canSwitchToDemo:
+          type: boolean
+        canSwitchToLive:
+          type: boolean
+        blockers:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+
+    ModeTransitionResult:
+      type: object
+      required: [success, previousMode, newMode, message, blockers]
+      properties:
+        success:
+          type: boolean
+        previousMode:
+          type: string
+        newMode:
+          type: string
+        message:
+          type: string
+        blockers:
+          type: array
+          items:
+            type: string
+
+    BrokerSafetyConfig:
+      type: object
+      required: [maxSpreadPips, maxSlippagePips, connectionTimeoutMs, maxRetries, retryDelayMs, partialFillThresholdPct, reconciliationIntervalSec, enableSpreadFilter, enableSlippageProtection, enableConnectionMonitor, enableAutoRetry, enablePartialFillHandling, enableReconciliation, updatedAt]
+      properties:
+        maxSpreadPips:
+          type: number
+        maxSlippagePips:
+          type: number
+        connectionTimeoutMs:
+          type: integer
+        maxRetries:
+          type: integer
+        retryDelayMs:
+          type: integer
+        partialFillThresholdPct:
+          type: number
+        reconciliationIntervalSec:
+          type: integer
+        enableSpreadFilter:
+          type: boolean
+        enableSlippageProtection:
+          type: boolean
+        enableConnectionMonitor:
+          type: boolean
+        enableAutoRetry:
+          type: boolean
+        enablePartialFillHandling:
+          type: boolean
+        enableReconciliation:
+          type: boolean
+        updatedAt:
+          type: string
+
+    ConnectionHealth:
+      type: object
+      required: [status, latencyMs, lastChecked, consecutiveFailures, message]
+      properties:
+        status:
+          type: string
+          enum: [connected, degraded, disconnected, unknown]
+        latencyMs:
+          type: number
+          nullable: true
+        lastChecked:
+          type: string
+        consecutiveFailures:
+          type: integer
+        message:
+          type: string
+
+    ReconciliationResult:
+      type: object
+      required: [localPositions, brokerPositions, discrepancies, reconciled, actionsTaken]
+      properties:
+        localPositions:
+          type: integer
+        brokerPositions:
+          type: integer
+        discrepancies:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              detail:
+                type: string
+        reconciled:
+          type: boolean
+        actionsTaken:
+          type: array
+          items:
+            type: string
+
+    HealthMetric:
+      type: object
+      required: [name, value, status, message]
+      properties:
+        name:
+          type: string
+        value:
+          type: number
+          nullable: true
+        status:
+          type: string
+          enum: [healthy, degraded, critical, insufficient_data]
+        message:
+          type: string
+        threshold:
+          type: number
+          nullable: true
+
+    StrategyHealthReport:
+      type: object
+      required: [overallScore, status, metrics, alerts, snapshotAt, totalTrades, openTrades]
+      properties:
+        overallScore:
+          type: number
+        status:
+          type: string
+          enum: [healthy, degraded, critical]
+        metrics:
+          type: array
+          items:
+            $ref: "#/components/schemas/HealthMetric"
+        alerts:
+          type: array
+          items:
+            type: string
+        snapshotAt:
+          type: string
+        totalTrades:
+          type: integer
+        openTrades:
+          type: integer
+
+    StrategyHealthSnapshot:
+      type: object
+      required: [id, snapshotAt, totalTrades, openTrades, alertCount, mode]
+      properties:
+        id:
+          type: integer
+        snapshotAt:
+          type: string
+        winRateRolling20:
+          type: number
+          nullable: true
+        profitFactorRolling30:
+          type: number
+          nullable: true
+        maxDrawdownPct:
+          type: number
+          nullable: true
+        signalFrequencyPerDay:
+          type: number
+          nullable: true
+        dataQualityScore:
+          type: number
+          nullable: true
+        regimeStabilityScore:
+          type: number
+          nullable: true
+        overallHealthScore:
+          type: number
+          nullable: true
+        totalTrades:
+          type: integer
+        openTrades:
+          type: integer
+        alertCount:
+          type: integer
+        mode:
+          type: string
+
+    RecoveryLogEntry:
+      type: object
+      required: [id, event, success, createdAt]
+      properties:
+        id:
+          type: integer
+        event:
+          type: string
+        success:
+          type: boolean
+        details:
+          nullable: true
+        error:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+
+    ChecklistItem:
+      type: object
+      required: [id, name, category, required, passed, message]
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        category:
+          type: string
+          enum: [safety, strategy, infrastructure, risk, validation]
+        required:
+          type: boolean
+        passed:
+          type: boolean
+        message:
+          type: string
+        details:
+          type: string
+          nullable: true
+        recommendation:
+          type: string
+          nullable: true
+
+    ChecklistResult:
+      type: object
+      required: [overallPassed, readinessScore, items, blockers, warnings, recommendation, canEnableLive, runAt]
+      properties:
+        overallPassed:
+          type: boolean
+        readinessScore:
+          type: number
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ChecklistItem"
+        blockers:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        recommendation:
+          type: string
+        canEnableLive:
+          type: boolean
+        runAt:
+          type: string
+
+    LiveJournalEntry:
+      type: object
+      required: [id, pair, direction, mode, createdAt, updatedAt]
+      properties:
+        id:
+          type: integer
+        tradeId:
+          type: integer
+          nullable: true
+        pair:
+          type: string
+        direction:
+          type: string
+        entryReason:
+          type: string
+          nullable: true
+        exitReason:
+          type: string
+          nullable: true
+        ruleEvaluation:
+          nullable: true
+        confidenceScores:
+          nullable: true
+        marketRegime:
+          type: string
+          nullable: true
+        regimeConfidence:
+          type: number
+          nullable: true
+        brokerExecution:
+          nullable: true
+        screenshots:
+          nullable: true
+        notes:
+          type: string
+          nullable: true
+        mode:
+          type: string
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+
+    LiveJournalList:
+      type: object
+      required: [entries, total, limit, offset]
+      properties:
+        entries:
+          type: array
+          items:
+            $ref: "#/components/schemas/LiveJournalEntry"
+        total:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer

@@ -7,3 +7,4 @@
 - [V2 Engine Suite](v2-engines.md) — MTF/TQI/dynamic-sizing/correlation/explanation/report engines; tsx test runner path; paper-engine V2 gate order; 68 tests pass.
 - [Replay Engine](replay-engine.md) — strategy validation & replay framework; zone detection gotcha, phase-based candle generator, test paths, bias detection.
 - [Market Data Provider Architecture](market-data-provider.md) — pluggable provider system; backtest engine uses registry not synthetic data; DB schema export, dependency, and BiasType conflict quirks documented.
+- [Live Trading Readiness Framework](live-readiness-framework.md) — 8-component safety layer; paper→demo→live gate logic, broker safety config, readiness checklist thresholds, recovery engine startup flow.

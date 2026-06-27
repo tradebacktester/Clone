@@ -21,6 +21,9 @@ import TimePerformance from "@/pages/time-performance";
 import Replay from "@/pages/replay";
 import Historical from "@/pages/historical";
 import ProductionReadiness from "@/pages/production-readiness";
+import DeploymentManager from "@/pages/deployment";
+import LiveJournal from "@/pages/live-journal";
+import ReadinessChecklist from "@/pages/readiness-checklist";
 import NotFound from "@/pages/not-found";
 
 const queryClient = new QueryClient({
@@ -52,6 +55,9 @@ function Router() {
         <Route path="/replay" component={Replay} />
         <Route path="/historical" component={Historical} />
         <Route path="/production-readiness" component={ProductionReadiness} />
+        <Route path="/deployment" component={DeploymentManager} />
+        <Route path="/live-journal" component={LiveJournal} />
+        <Route path="/readiness-checklist" component={ReadinessChecklist} />
         <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>

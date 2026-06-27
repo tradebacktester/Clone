@@ -19,6 +19,9 @@ import reportsRouter from "./reports";
 import replayRouter from "./replay";
 import historicalRouter from "./historical";
 import productionReadinessRouter from "./production-readiness";
+import deploymentRouter from "./deployment";
+import readinessChecklistRouter from "./readiness-checklist";
+import liveJournalRouter from "./live-journal";
 
 const router: IRouter = Router();
 
@@ -42,5 +45,8 @@ router.use(reportsRouter);
 router.use(replayRouter);
 router.use(historicalRouter);
 router.use(productionReadinessRouter);
+router.use(deploymentRouter);
+router.use(readinessChecklistRouter);
+router.use(liveJournalRouter);
 
 export default router;

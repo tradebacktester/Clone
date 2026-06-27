@@ -32,15 +32,22 @@ import type {
   BotStatus,
   BrokerAccount,
   BrokerAccountInput,
+  BrokerSafetyConfig,
+  ChecklistResult,
   ConfidenceProfile,
+  ConnectionHealth,
   CorrelationStatus,
+  CreateLiveJournalEntryBody,
+  DeploymentStatus,
   DrawdownPoint,
   EmergencyStopResponse,
   EquityPoint,
   ExecutionLogResponse,
   GenerateReportInput,
+  GetChecklistHistoryParams,
   GetEquityCurveParams,
   GetExecutionLogParams,
+  GetLiveJournalParams,
   GetMarketZonesParams,
   GetMemoryTradesParams,
   GetMissedOpportunitiesParams,
@@ -49,24 +56,30 @@ import type {
   GetNewsEventsParams,
   GetNewsEventsResponse,
   GetNewsStatusResponse,
+  GetRecoveryLogParams,
+  GetStrategyHealthSnapshotsParams,
   GetSupervisorAlertsParams,
   GetTimePerformanceParams,
   HealthStatus,
   LearningStats,
   ListReportsParams,
   ListTradesParams,
+  LiveJournalList,
   LiveModeInput,
   LiveModeResponse,
   MarketRegime,
   MarketZone,
   MemorySummary,
   MissedOpportunity,
+  ModeTransitionResult,
   MonteCarloRequest,
   MonteCarloResult,
   MonthlyPnl,
   MtfAlignment,
   PaperPerformance,
   PaperPositions,
+  ReconciliationResult,
+  RecoveryLogEntry,
   RegimeAnalyticsResponse,
   RegimeWeightEntry,
   ReportDetail,
@@ -74,9 +87,15 @@ import type {
   RiskSettings,
   RiskSettingsInput,
   RuleAdherenceResponse,
+  RunReadinessChecklistBody,
+  SetLiveGate200,
+  SetLiveGateBody,
   SetupScore,
+  StrategyHealthReport,
+  StrategyHealthSnapshot,
   SupervisorAlert,
   SupervisorStatus,
+  SwitchDeploymentModeBody,
   TimePerformanceResponse,
   TopSetups,
   TqiResult,
@@ -86,6 +105,7 @@ import type {
   TradeList,
   TradeMemoryRecord,
   TradeSignal,
+  UpdateLiveJournalEntryBody,
   WalkForwardInput,
   WalkForwardResult,
   WinRateBreakdown
@@ -4764,5 +4784,1300 @@ export const useUpdateRiskSettings = <TError = ErrorType<unknown>,
         TContext
       > => {
       return useMutation(getUpdateRiskSettingsMutationOptions(options));
+    }
+
+export const getGetDeploymentStatusUrl = () => {
+
+
+
+
+  return `/api/deployment/status`
+}
+
+/**
+ * @summary Get deployment mode, readiness score and live gate status
+ */
+export const getDeploymentStatus = async ( options?: RequestInit): Promise<DeploymentStatus> => {
+
+  return customFetch<DeploymentStatus>(getGetDeploymentStatusUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetDeploymentStatusQueryKey = () => {
+    return [
+    `/api/deployment/status`
+    ] as const;
+    }
+
+
+export const getGetDeploymentStatusQueryOptions = <TData = Awaited<ReturnType<typeof getDeploymentStatus>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeploymentStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetDeploymentStatusQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getDeploymentStatus>>> = ({ signal }) => getDeploymentStatus({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getDeploymentStatus>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetDeploymentStatusQueryResult = NonNullable<Awaited<ReturnType<typeof getDeploymentStatus>>>
+export type GetDeploymentStatusQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get deployment mode, readiness score and live gate status
+ */
+
+export function useGetDeploymentStatus<TData = Awaited<ReturnType<typeof getDeploymentStatus>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getDeploymentStatus>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetDeploymentStatusQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getSwitchDeploymentModeUrl = () => {
+
+
+
+
+  return `/api/deployment/mode`
+}
+
+/**
+ * @summary Switch deployment mode (paper / demo / live)
+ */
+export const switchDeploymentMode = async (switchDeploymentModeBody: SwitchDeploymentModeBody, options?: RequestInit): Promise<ModeTransitionResult> => {
+
+  return customFetch<ModeTransitionResult>(getSwitchDeploymentModeUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      switchDeploymentModeBody,)
+  }
+);}
+
+
+
+
+export const getSwitchDeploymentModeMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof switchDeploymentMode>>, TError,{data: BodyType<SwitchDeploymentModeBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof switchDeploymentMode>>, TError,{data: BodyType<SwitchDeploymentModeBody>}, TContext> => {
+
+const mutationKey = ['switchDeploymentMode'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof switchDeploymentMode>>, {data: BodyType<SwitchDeploymentModeBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  switchDeploymentMode(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SwitchDeploymentModeMutationResult = NonNullable<Awaited<ReturnType<typeof switchDeploymentMode>>>
+    export type SwitchDeploymentModeMutationBody = BodyType<SwitchDeploymentModeBody>
+    export type SwitchDeploymentModeMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Switch deployment mode (paper / demo / live)
+ */
+export const useSwitchDeploymentMode = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof switchDeploymentMode>>, TError,{data: BodyType<SwitchDeploymentModeBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof switchDeploymentMode>>,
+        TError,
+        {data: BodyType<SwitchDeploymentModeBody>},
+        TContext
+      > => {
+      return useMutation(getSwitchDeploymentModeMutationOptions(options));
+    }
+
+export const getSetLiveGateUrl = () => {
+
+
+
+
+  return `/api/deployment/live-gate`
+}
+
+/**
+ * @summary Enable or disable the live trading gate
+ */
+export const setLiveGate = async (setLiveGateBody: SetLiveGateBody, options?: RequestInit): Promise<SetLiveGate200> => {
+
+  return customFetch<SetLiveGate200>(getSetLiveGateUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      setLiveGateBody,)
+  }
+);}
+
+
+
+
+export const getSetLiveGateMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setLiveGate>>, TError,{data: BodyType<SetLiveGateBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof setLiveGate>>, TError,{data: BodyType<SetLiveGateBody>}, TContext> => {
+
+const mutationKey = ['setLiveGate'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof setLiveGate>>, {data: BodyType<SetLiveGateBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  setLiveGate(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type SetLiveGateMutationResult = NonNullable<Awaited<ReturnType<typeof setLiveGate>>>
+    export type SetLiveGateMutationBody = BodyType<SetLiveGateBody>
+    export type SetLiveGateMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Enable or disable the live trading gate
+ */
+export const useSetLiveGate = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof setLiveGate>>, TError,{data: BodyType<SetLiveGateBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof setLiveGate>>,
+        TError,
+        {data: BodyType<SetLiveGateBody>},
+        TContext
+      > => {
+      return useMutation(getSetLiveGateMutationOptions(options));
+    }
+
+export const getGetSafetyConfigUrl = () => {
+
+
+
+
+  return `/api/deployment/safety-config`
+}
+
+/**
+ * @summary Get broker safety layer configuration
+ */
+export const getSafetyConfig = async ( options?: RequestInit): Promise<BrokerSafetyConfig> => {
+
+  return customFetch<BrokerSafetyConfig>(getGetSafetyConfigUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetSafetyConfigQueryKey = () => {
+    return [
+    `/api/deployment/safety-config`
+    ] as const;
+    }
+
+
+export const getGetSafetyConfigQueryOptions = <TData = Awaited<ReturnType<typeof getSafetyConfig>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSafetyConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetSafetyConfigQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getSafetyConfig>>> = ({ signal }) => getSafetyConfig({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getSafetyConfig>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetSafetyConfigQueryResult = NonNullable<Awaited<ReturnType<typeof getSafetyConfig>>>
+export type GetSafetyConfigQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get broker safety layer configuration
+ */
+
+export function useGetSafetyConfig<TData = Awaited<ReturnType<typeof getSafetyConfig>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getSafetyConfig>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetSafetyConfigQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateSafetyConfigUrl = () => {
+
+
+
+
+  return `/api/deployment/safety-config`
+}
+
+/**
+ * @summary Update broker safety layer configuration
+ */
+export const updateSafetyConfig = async (brokerSafetyConfig: BrokerSafetyConfig, options?: RequestInit): Promise<BrokerSafetyConfig> => {
+
+  return customFetch<BrokerSafetyConfig>(getUpdateSafetyConfigUrl(),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      brokerSafetyConfig,)
+  }
+);}
+
+
+
+
+export const getUpdateSafetyConfigMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSafetyConfig>>, TError,{data: BodyType<BrokerSafetyConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateSafetyConfig>>, TError,{data: BodyType<BrokerSafetyConfig>}, TContext> => {
+
+const mutationKey = ['updateSafetyConfig'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateSafetyConfig>>, {data: BodyType<BrokerSafetyConfig>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  updateSafetyConfig(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateSafetyConfigMutationResult = NonNullable<Awaited<ReturnType<typeof updateSafetyConfig>>>
+    export type UpdateSafetyConfigMutationBody = BodyType<BrokerSafetyConfig>
+    export type UpdateSafetyConfigMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update broker safety layer configuration
+ */
+export const useUpdateSafetyConfig = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateSafetyConfig>>, TError,{data: BodyType<BrokerSafetyConfig>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateSafetyConfig>>,
+        TError,
+        {data: BodyType<BrokerSafetyConfig>},
+        TContext
+      > => {
+      return useMutation(getUpdateSafetyConfigMutationOptions(options));
+    }
+
+export const getGetConnectionHealthUrl = () => {
+
+
+
+
+  return `/api/deployment/connection-health`
+}
+
+/**
+ * @summary Check broker connection health
+ */
+export const getConnectionHealth = async ( options?: RequestInit): Promise<ConnectionHealth> => {
+
+  return customFetch<ConnectionHealth>(getGetConnectionHealthUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetConnectionHealthQueryKey = () => {
+    return [
+    `/api/deployment/connection-health`
+    ] as const;
+    }
+
+
+export const getGetConnectionHealthQueryOptions = <TData = Awaited<ReturnType<typeof getConnectionHealth>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getConnectionHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetConnectionHealthQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getConnectionHealth>>> = ({ signal }) => getConnectionHealth({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getConnectionHealth>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetConnectionHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getConnectionHealth>>>
+export type GetConnectionHealthQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Check broker connection health
+ */
+
+export function useGetConnectionHealth<TData = Awaited<ReturnType<typeof getConnectionHealth>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getConnectionHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetConnectionHealthQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getReconcilePositionsUrl = () => {
+
+
+
+
+  return `/api/deployment/reconcile`
+}
+
+/**
+ * @summary Manually trigger position reconciliation with broker
+ */
+export const reconcilePositions = async ( options?: RequestInit): Promise<ReconciliationResult> => {
+
+  return customFetch<ReconciliationResult>(getReconcilePositionsUrl(),
+  {
+    ...options,
+    method: 'POST'
+
+
+  }
+);}
+
+
+
+
+export const getReconcilePositionsMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reconcilePositions>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof reconcilePositions>>, TError,void, TContext> => {
+
+const mutationKey = ['reconcilePositions'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof reconcilePositions>>, void> = () => {
+
+
+          return  reconcilePositions(requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ReconcilePositionsMutationResult = NonNullable<Awaited<ReturnType<typeof reconcilePositions>>>
+
+    export type ReconcilePositionsMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Manually trigger position reconciliation with broker
+ */
+export const useReconcilePositions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof reconcilePositions>>, TError,void, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof reconcilePositions>>,
+        TError,
+        void,
+        TContext
+      > => {
+      return useMutation(getReconcilePositionsMutationOptions(options));
+    }
+
+export const getGetStrategyHealthUrl = () => {
+
+
+
+
+  return `/api/deployment/strategy-health`
+}
+
+/**
+ * @summary Run a live strategy health check and return report
+ */
+export const getStrategyHealth = async ( options?: RequestInit): Promise<StrategyHealthReport> => {
+
+  return customFetch<StrategyHealthReport>(getGetStrategyHealthUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStrategyHealthQueryKey = () => {
+    return [
+    `/api/deployment/strategy-health`
+    ] as const;
+    }
+
+
+export const getGetStrategyHealthQueryOptions = <TData = Awaited<ReturnType<typeof getStrategyHealth>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStrategyHealthQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategyHealth>>> = ({ signal }) => getStrategyHealth({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStrategyHealth>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStrategyHealthQueryResult = NonNullable<Awaited<ReturnType<typeof getStrategyHealth>>>
+export type GetStrategyHealthQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Run a live strategy health check and return report
+ */
+
+export function useGetStrategyHealth<TData = Awaited<ReturnType<typeof getStrategyHealth>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyHealth>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStrategyHealthQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetStrategyHealthSnapshotsUrl = (params?: GetStrategyHealthSnapshotsParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/deployment/strategy-health/snapshots?${stringifiedParams}` : `/api/deployment/strategy-health/snapshots`
+}
+
+/**
+ * @summary Get historical strategy health snapshots
+ */
+export const getStrategyHealthSnapshots = async (params?: GetStrategyHealthSnapshotsParams, options?: RequestInit): Promise<StrategyHealthSnapshot[]> => {
+
+  return customFetch<StrategyHealthSnapshot[]>(getGetStrategyHealthSnapshotsUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetStrategyHealthSnapshotsQueryKey = (params?: GetStrategyHealthSnapshotsParams,) => {
+    return [
+    `/api/deployment/strategy-health/snapshots`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetStrategyHealthSnapshotsQueryOptions = <TData = Awaited<ReturnType<typeof getStrategyHealthSnapshots>>, TError = ErrorType<unknown>>(params?: GetStrategyHealthSnapshotsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyHealthSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetStrategyHealthSnapshotsQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getStrategyHealthSnapshots>>> = ({ signal }) => getStrategyHealthSnapshots(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getStrategyHealthSnapshots>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetStrategyHealthSnapshotsQueryResult = NonNullable<Awaited<ReturnType<typeof getStrategyHealthSnapshots>>>
+export type GetStrategyHealthSnapshotsQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get historical strategy health snapshots
+ */
+
+export function useGetStrategyHealthSnapshots<TData = Awaited<ReturnType<typeof getStrategyHealthSnapshots>>, TError = ErrorType<unknown>>(
+ params?: GetStrategyHealthSnapshotsParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getStrategyHealthSnapshots>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetStrategyHealthSnapshotsQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetRecoveryLogUrl = (params?: GetRecoveryLogParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/deployment/recovery-log?${stringifiedParams}` : `/api/deployment/recovery-log`
+}
+
+/**
+ * @summary Get startup recovery event log
+ */
+export const getRecoveryLog = async (params?: GetRecoveryLogParams, options?: RequestInit): Promise<RecoveryLogEntry[]> => {
+
+  return customFetch<RecoveryLogEntry[]>(getGetRecoveryLogUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetRecoveryLogQueryKey = (params?: GetRecoveryLogParams,) => {
+    return [
+    `/api/deployment/recovery-log`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetRecoveryLogQueryOptions = <TData = Awaited<ReturnType<typeof getRecoveryLog>>, TError = ErrorType<unknown>>(params?: GetRecoveryLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecoveryLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetRecoveryLogQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getRecoveryLog>>> = ({ signal }) => getRecoveryLog(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getRecoveryLog>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetRecoveryLogQueryResult = NonNullable<Awaited<ReturnType<typeof getRecoveryLog>>>
+export type GetRecoveryLogQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get startup recovery event log
+ */
+
+export function useGetRecoveryLog<TData = Awaited<ReturnType<typeof getRecoveryLog>>, TError = ErrorType<unknown>>(
+ params?: GetRecoveryLogParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getRecoveryLog>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetRecoveryLogQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLatestChecklistResultUrl = () => {
+
+
+
+
+  return `/api/readiness/checklist/latest`
+}
+
+/**
+ * @summary Get latest readiness checklist run result
+ */
+export const getLatestChecklistResult = async ( options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetLatestChecklistResultUrl(),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLatestChecklistResultQueryKey = () => {
+    return [
+    `/api/readiness/checklist/latest`
+    ] as const;
+    }
+
+
+export const getGetLatestChecklistResultQueryOptions = <TData = Awaited<ReturnType<typeof getLatestChecklistResult>>, TError = ErrorType<unknown>>( options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLatestChecklistResult>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLatestChecklistResultQueryKey();
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLatestChecklistResult>>> = ({ signal }) => getLatestChecklistResult({ signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLatestChecklistResult>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLatestChecklistResultQueryResult = NonNullable<Awaited<ReturnType<typeof getLatestChecklistResult>>>
+export type GetLatestChecklistResultQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get latest readiness checklist run result
+ */
+
+export function useGetLatestChecklistResult<TData = Awaited<ReturnType<typeof getLatestChecklistResult>>, TError = ErrorType<unknown>>(
+  options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLatestChecklistResult>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLatestChecklistResultQueryOptions(options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getRunReadinessChecklistUrl = () => {
+
+
+
+
+  return `/api/readiness/checklist/run`
+}
+
+/**
+ * @summary Run the live trading readiness checklist
+ */
+export const runReadinessChecklist = async (runReadinessChecklistBody?: RunReadinessChecklistBody, options?: RequestInit): Promise<ChecklistResult> => {
+
+  return customFetch<ChecklistResult>(getRunReadinessChecklistUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      runReadinessChecklistBody,)
+  }
+);}
+
+
+
+
+export const getRunReadinessChecklistMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runReadinessChecklist>>, TError,{data?: BodyType<RunReadinessChecklistBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof runReadinessChecklist>>, TError,{data?: BodyType<RunReadinessChecklistBody>}, TContext> => {
+
+const mutationKey = ['runReadinessChecklist'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof runReadinessChecklist>>, {data?: BodyType<RunReadinessChecklistBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  runReadinessChecklist(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type RunReadinessChecklistMutationResult = NonNullable<Awaited<ReturnType<typeof runReadinessChecklist>>>
+    export type RunReadinessChecklistMutationBody = BodyType<RunReadinessChecklistBody> | undefined
+    export type RunReadinessChecklistMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Run the live trading readiness checklist
+ */
+export const useRunReadinessChecklist = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof runReadinessChecklist>>, TError,{data?: BodyType<RunReadinessChecklistBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof runReadinessChecklist>>,
+        TError,
+        {data?: BodyType<RunReadinessChecklistBody>},
+        TContext
+      > => {
+      return useMutation(getRunReadinessChecklistMutationOptions(options));
+    }
+
+export const getGetChecklistHistoryUrl = (params?: GetChecklistHistoryParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/readiness/checklist/history?${stringifiedParams}` : `/api/readiness/checklist/history`
+}
+
+/**
+ * @summary Get readiness checklist run history
+ */
+export const getChecklistHistory = async (params?: GetChecklistHistoryParams, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetChecklistHistoryUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetChecklistHistoryQueryKey = (params?: GetChecklistHistoryParams,) => {
+    return [
+    `/api/readiness/checklist/history`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetChecklistHistoryQueryOptions = <TData = Awaited<ReturnType<typeof getChecklistHistory>>, TError = ErrorType<unknown>>(params?: GetChecklistHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getChecklistHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetChecklistHistoryQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getChecklistHistory>>> = ({ signal }) => getChecklistHistory(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getChecklistHistory>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetChecklistHistoryQueryResult = NonNullable<Awaited<ReturnType<typeof getChecklistHistory>>>
+export type GetChecklistHistoryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get readiness checklist run history
+ */
+
+export function useGetChecklistHistory<TData = Awaited<ReturnType<typeof getChecklistHistory>>, TError = ErrorType<unknown>>(
+ params?: GetChecklistHistoryParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getChecklistHistory>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetChecklistHistoryQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getGetLiveJournalUrl = (params?: GetLiveJournalParams,) => {
+  const normalizedParams = new URLSearchParams();
+
+  Object.entries(params || {}).forEach(([key, value]) => {
+
+    if (value !== undefined) {
+      normalizedParams.append(key, value === null ? 'null' : value.toString())
+    }
+  });
+
+  const stringifiedParams = normalizedParams.toString();
+
+  return stringifiedParams.length > 0 ? `/api/live-journal?${stringifiedParams}` : `/api/live-journal`
+}
+
+/**
+ * @summary List live trade journal entries
+ */
+export const getLiveJournal = async (params?: GetLiveJournalParams, options?: RequestInit): Promise<LiveJournalList> => {
+
+  return customFetch<LiveJournalList>(getGetLiveJournalUrl(params),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLiveJournalQueryKey = (params?: GetLiveJournalParams,) => {
+    return [
+    `/api/live-journal`, ...(params ? [params] : [])
+    ] as const;
+    }
+
+
+export const getGetLiveJournalQueryOptions = <TData = Awaited<ReturnType<typeof getLiveJournal>>, TError = ErrorType<unknown>>(params?: GetLiveJournalParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLiveJournal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLiveJournalQueryKey(params);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLiveJournal>>> = ({ signal }) => getLiveJournal(params, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLiveJournal>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLiveJournalQueryResult = NonNullable<Awaited<ReturnType<typeof getLiveJournal>>>
+export type GetLiveJournalQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary List live trade journal entries
+ */
+
+export function useGetLiveJournal<TData = Awaited<ReturnType<typeof getLiveJournal>>, TError = ErrorType<unknown>>(
+ params?: GetLiveJournalParams, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLiveJournal>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLiveJournalQueryOptions(params,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getCreateLiveJournalEntryUrl = () => {
+
+
+
+
+  return `/api/live-journal`
+}
+
+/**
+ * @summary Create a live trade journal entry
+ */
+export const createLiveJournalEntry = async (createLiveJournalEntryBody: CreateLiveJournalEntryBody, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getCreateLiveJournalEntryUrl(),
+  {
+    ...options,
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      createLiveJournalEntryBody,)
+  }
+);}
+
+
+
+
+export const getCreateLiveJournalEntryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLiveJournalEntry>>, TError,{data: BodyType<CreateLiveJournalEntryBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof createLiveJournalEntry>>, TError,{data: BodyType<CreateLiveJournalEntryBody>}, TContext> => {
+
+const mutationKey = ['createLiveJournalEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof createLiveJournalEntry>>, {data: BodyType<CreateLiveJournalEntryBody>}> = (props) => {
+          const {data} = props ?? {};
+
+          return  createLiveJournalEntry(data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type CreateLiveJournalEntryMutationResult = NonNullable<Awaited<ReturnType<typeof createLiveJournalEntry>>>
+    export type CreateLiveJournalEntryMutationBody = BodyType<CreateLiveJournalEntryBody>
+    export type CreateLiveJournalEntryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Create a live trade journal entry
+ */
+export const useCreateLiveJournalEntry = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof createLiveJournalEntry>>, TError,{data: BodyType<CreateLiveJournalEntryBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof createLiveJournalEntry>>,
+        TError,
+        {data: BodyType<CreateLiveJournalEntryBody>},
+        TContext
+      > => {
+      return useMutation(getCreateLiveJournalEntryMutationOptions(options));
+    }
+
+export const getGetLiveJournalEntryUrl = (id: number,) => {
+
+
+
+
+  return `/api/live-journal/${id}`
+}
+
+/**
+ * @summary Get a single live journal entry with associated trade data
+ */
+export const getLiveJournalEntry = async (id: number, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getGetLiveJournalEntryUrl(id),
+  {
+    ...options,
+    method: 'GET'
+
+
+  }
+);}
+
+
+
+
+
+export const getGetLiveJournalEntryQueryKey = (id: number,) => {
+    return [
+    `/api/live-journal/${id}`
+    ] as const;
+    }
+
+
+export const getGetLiveJournalEntryQueryOptions = <TData = Awaited<ReturnType<typeof getLiveJournalEntry>>, TError = ErrorType<unknown>>(id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLiveJournalEntry>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+) => {
+
+const {query: queryOptions, request: requestOptions} = options ?? {};
+
+  const queryKey =  queryOptions?.queryKey ?? getGetLiveJournalEntryQueryKey(id);
+
+
+
+    const queryFn: QueryFunction<Awaited<ReturnType<typeof getLiveJournalEntry>>> = ({ signal }) => getLiveJournalEntry(id, { signal, ...requestOptions });
+
+
+
+
+
+   return  { queryKey, queryFn, enabled: !!(id), ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof getLiveJournalEntry>>, TError, TData> & { queryKey: QueryKey }
+}
+
+export type GetLiveJournalEntryQueryResult = NonNullable<Awaited<ReturnType<typeof getLiveJournalEntry>>>
+export type GetLiveJournalEntryQueryError = ErrorType<unknown>
+
+
+/**
+ * @summary Get a single live journal entry with associated trade data
+ */
+
+export function useGetLiveJournalEntry<TData = Awaited<ReturnType<typeof getLiveJournalEntry>>, TError = ErrorType<unknown>>(
+ id: number, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof getLiveJournalEntry>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
+
+ ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
+
+  const queryOptions = getGetLiveJournalEntryQueryOptions(id,options)
+
+  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
+
+  return { ...query, queryKey: queryOptions.queryKey };
+}
+
+
+
+
+
+
+
+export const getUpdateLiveJournalEntryUrl = (id: number,) => {
+
+
+
+
+  return `/api/live-journal/${id}`
+}
+
+/**
+ * @summary Update notes / execution details on a journal entry
+ */
+export const updateLiveJournalEntry = async (id: number,
+    updateLiveJournalEntryBody: UpdateLiveJournalEntryBody, options?: RequestInit): Promise<void> => {
+
+  return customFetch<void>(getUpdateLiveJournalEntryUrl(id),
+  {
+    ...options,
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', ...options?.headers },
+    body: JSON.stringify(
+      updateLiveJournalEntryBody,)
+  }
+);}
+
+
+
+
+export const getUpdateLiveJournalEntryMutationOptions = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLiveJournalEntry>>, TError,{id: number;data: BodyType<UpdateLiveJournalEntryBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof updateLiveJournalEntry>>, TError,{id: number;data: BodyType<UpdateLiveJournalEntryBody>}, TContext> => {
+
+const mutationKey = ['updateLiveJournalEntry'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
+
+
+
+
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof updateLiveJournalEntry>>, {id: number;data: BodyType<UpdateLiveJournalEntryBody>}> = (props) => {
+          const {id,data} = props ?? {};
+
+          return  updateLiveJournalEntry(id,data,requestOptions)
+        }
+
+
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type UpdateLiveJournalEntryMutationResult = NonNullable<Awaited<ReturnType<typeof updateLiveJournalEntry>>>
+    export type UpdateLiveJournalEntryMutationBody = BodyType<UpdateLiveJournalEntryBody>
+    export type UpdateLiveJournalEntryMutationError = ErrorType<unknown>
+
+    /**
+ * @summary Update notes / execution details on a journal entry
+ */
+export const useUpdateLiveJournalEntry = <TError = ErrorType<unknown>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof updateLiveJournalEntry>>, TError,{id: number;data: BodyType<UpdateLiveJournalEntryBody>}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof updateLiveJournalEntry>>,
+        TError,
+        {id: number;data: BodyType<UpdateLiveJournalEntryBody>},
+        TContext
+      > => {
+      return useMutation(getUpdateLiveJournalEntryMutationOptions(options));
     }
 

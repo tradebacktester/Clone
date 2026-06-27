@@ -24,6 +24,10 @@ export const botStateTable = pgTable("bot_state", {
   haltedDueToRisk: boolean("halted_due_to_risk").notNull().default(false),
   emergencyStop: boolean("emergency_stop").notNull().default(false),
   liveEnabled: boolean("live_enabled").notNull().default(false),
+  brokerMode: text("broker_mode").notNull().default("paper"),
+  readinessScore: numeric("readiness_score", { precision: 5, scale: 2 }),
+  lastRecoveryAt: timestamp("last_recovery_at", { withTimezone: true }),
+  recoveryPositionsRestored: numeric("recovery_positions_restored", { precision: 5, scale: 0 }).default("0"),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
 });
 

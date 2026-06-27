@@ -1904,3 +1904,328 @@ export const UpdateRiskSettingsResponse = zod.object({
 })
 
 
+/**
+ * @summary Get deployment mode, readiness score and live gate status
+ */
+export const GetDeploymentStatusResponse = zod.object({
+  "currentMode": zod.enum(['paper', 'demo', 'live']),
+  "liveEnabled": zod.boolean(),
+  "running": zod.boolean(),
+  "readinessScore": zod.number().nullable(),
+  "brokerAccountsConfigured": zod.number(),
+  "demoAccountsConfigured": zod.number(),
+  "liveAccountsConfigured": zod.number(),
+  "canSwitchToDemo": zod.boolean(),
+  "canSwitchToLive": zod.boolean(),
+  "blockers": zod.array(zod.string()),
+  "warnings": zod.array(zod.string())
+})
+
+
+/**
+ * @summary Switch deployment mode (paper / demo / live)
+ */
+export const SwitchDeploymentModeBody = zod.object({
+  "mode": zod.enum(['paper', 'demo', 'live'])
+})
+
+export const SwitchDeploymentModeResponse = zod.object({
+  "success": zod.boolean(),
+  "previousMode": zod.string(),
+  "newMode": zod.string(),
+  "message": zod.string(),
+  "blockers": zod.array(zod.string())
+})
+
+
+/**
+ * @summary Enable or disable the live trading gate
+ */
+export const SetLiveGateBody = zod.object({
+  "enabled": zod.boolean()
+})
+
+export const SetLiveGateResponse = zod.object({
+  "success": zod.boolean().optional(),
+  "liveEnabled": zod.boolean().optional()
+})
+
+
+/**
+ * @summary Get broker safety layer configuration
+ */
+export const GetSafetyConfigResponse = zod.object({
+  "maxSpreadPips": zod.number(),
+  "maxSlippagePips": zod.number(),
+  "connectionTimeoutMs": zod.number(),
+  "maxRetries": zod.number(),
+  "retryDelayMs": zod.number(),
+  "partialFillThresholdPct": zod.number(),
+  "reconciliationIntervalSec": zod.number(),
+  "enableSpreadFilter": zod.boolean(),
+  "enableSlippageProtection": zod.boolean(),
+  "enableConnectionMonitor": zod.boolean(),
+  "enableAutoRetry": zod.boolean(),
+  "enablePartialFillHandling": zod.boolean(),
+  "enableReconciliation": zod.boolean(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Update broker safety layer configuration
+ */
+export const UpdateSafetyConfigBody = zod.object({
+  "maxSpreadPips": zod.number(),
+  "maxSlippagePips": zod.number(),
+  "connectionTimeoutMs": zod.number(),
+  "maxRetries": zod.number(),
+  "retryDelayMs": zod.number(),
+  "partialFillThresholdPct": zod.number(),
+  "reconciliationIntervalSec": zod.number(),
+  "enableSpreadFilter": zod.boolean(),
+  "enableSlippageProtection": zod.boolean(),
+  "enableConnectionMonitor": zod.boolean(),
+  "enableAutoRetry": zod.boolean(),
+  "enablePartialFillHandling": zod.boolean(),
+  "enableReconciliation": zod.boolean(),
+  "updatedAt": zod.string()
+})
+
+export const UpdateSafetyConfigResponse = zod.object({
+  "maxSpreadPips": zod.number(),
+  "maxSlippagePips": zod.number(),
+  "connectionTimeoutMs": zod.number(),
+  "maxRetries": zod.number(),
+  "retryDelayMs": zod.number(),
+  "partialFillThresholdPct": zod.number(),
+  "reconciliationIntervalSec": zod.number(),
+  "enableSpreadFilter": zod.boolean(),
+  "enableSlippageProtection": zod.boolean(),
+  "enableConnectionMonitor": zod.boolean(),
+  "enableAutoRetry": zod.boolean(),
+  "enablePartialFillHandling": zod.boolean(),
+  "enableReconciliation": zod.boolean(),
+  "updatedAt": zod.string()
+})
+
+
+/**
+ * @summary Check broker connection health
+ */
+export const GetConnectionHealthResponse = zod.object({
+  "status": zod.enum(['connected', 'degraded', 'disconnected', 'unknown']),
+  "latencyMs": zod.number().nullable(),
+  "lastChecked": zod.string(),
+  "consecutiveFailures": zod.number(),
+  "message": zod.string()
+})
+
+
+/**
+ * @summary Manually trigger position reconciliation with broker
+ */
+export const ReconcilePositionsResponse = zod.object({
+  "localPositions": zod.number(),
+  "brokerPositions": zod.number(),
+  "discrepancies": zod.array(zod.object({
+  "type": zod.string().optional(),
+  "detail": zod.string().optional()
+})),
+  "reconciled": zod.boolean(),
+  "actionsTaken": zod.array(zod.string())
+})
+
+
+/**
+ * @summary Run a live strategy health check and return report
+ */
+export const GetStrategyHealthResponse = zod.object({
+  "overallScore": zod.number(),
+  "status": zod.enum(['healthy', 'degraded', 'critical']),
+  "metrics": zod.array(zod.object({
+  "name": zod.string(),
+  "value": zod.number().nullable(),
+  "status": zod.enum(['healthy', 'degraded', 'critical', 'insufficient_data']),
+  "message": zod.string(),
+  "threshold": zod.number().nullish()
+})),
+  "alerts": zod.array(zod.string()),
+  "snapshotAt": zod.string(),
+  "totalTrades": zod.number(),
+  "openTrades": zod.number()
+})
+
+
+/**
+ * @summary Get historical strategy health snapshots
+ */
+export const getStrategyHealthSnapshotsQueryLimitDefault = 48;
+
+export const GetStrategyHealthSnapshotsQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getStrategyHealthSnapshotsQueryLimitDefault)
+})
+
+export const GetStrategyHealthSnapshotsResponseItem = zod.object({
+  "id": zod.number(),
+  "snapshotAt": zod.string(),
+  "winRateRolling20": zod.number().nullish(),
+  "profitFactorRolling30": zod.number().nullish(),
+  "maxDrawdownPct": zod.number().nullish(),
+  "signalFrequencyPerDay": zod.number().nullish(),
+  "dataQualityScore": zod.number().nullish(),
+  "regimeStabilityScore": zod.number().nullish(),
+  "overallHealthScore": zod.number().nullish(),
+  "totalTrades": zod.number(),
+  "openTrades": zod.number(),
+  "alertCount": zod.number(),
+  "mode": zod.string()
+})
+export const GetStrategyHealthSnapshotsResponse = zod.array(GetStrategyHealthSnapshotsResponseItem)
+
+
+/**
+ * @summary Get startup recovery event log
+ */
+export const getRecoveryLogQueryLimitDefault = 50;
+
+export const GetRecoveryLogQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getRecoveryLogQueryLimitDefault)
+})
+
+export const GetRecoveryLogResponseItem = zod.object({
+  "id": zod.number(),
+  "event": zod.string(),
+  "success": zod.boolean(),
+  "details": zod.unknown().nullish(),
+  "error": zod.string().nullish(),
+  "createdAt": zod.string()
+})
+export const GetRecoveryLogResponse = zod.array(GetRecoveryLogResponseItem)
+
+
+/**
+ * @summary Run the live trading readiness checklist
+ */
+export const RunReadinessChecklistBody = zod.object({
+  "forLive": zod.boolean().optional()
+})
+
+export const RunReadinessChecklistResponse = zod.object({
+  "overallPassed": zod.boolean(),
+  "readinessScore": zod.number(),
+  "items": zod.array(zod.object({
+  "id": zod.string(),
+  "name": zod.string(),
+  "category": zod.enum(['safety', 'strategy', 'infrastructure', 'risk', 'validation']),
+  "required": zod.boolean(),
+  "passed": zod.boolean(),
+  "message": zod.string(),
+  "details": zod.string().nullish(),
+  "recommendation": zod.string().nullish()
+})),
+  "blockers": zod.array(zod.string()),
+  "warnings": zod.array(zod.string()),
+  "recommendation": zod.string(),
+  "canEnableLive": zod.boolean(),
+  "runAt": zod.string()
+})
+
+
+/**
+ * @summary Get readiness checklist run history
+ */
+export const getChecklistHistoryQueryLimitDefault = 20;
+
+export const GetChecklistHistoryQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getChecklistHistoryQueryLimitDefault)
+})
+
+
+/**
+ * @summary List live trade journal entries
+ */
+export const getLiveJournalQueryLimitDefault = 50;
+export const getLiveJournalQueryOffsetDefault = 0;
+
+export const GetLiveJournalQueryParams = zod.object({
+  "limit": zod.coerce.number().default(getLiveJournalQueryLimitDefault),
+  "offset": zod.coerce.number().default(getLiveJournalQueryOffsetDefault),
+  "pair": zod.coerce.string().optional(),
+  "mode": zod.coerce.string().optional()
+})
+
+export const GetLiveJournalResponse = zod.object({
+  "entries": zod.array(zod.object({
+  "id": zod.number(),
+  "tradeId": zod.number().nullish(),
+  "pair": zod.string(),
+  "direction": zod.string(),
+  "entryReason": zod.string().nullish(),
+  "exitReason": zod.string().nullish(),
+  "ruleEvaluation": zod.unknown().nullish(),
+  "confidenceScores": zod.unknown().nullish(),
+  "marketRegime": zod.string().nullish(),
+  "regimeConfidence": zod.number().nullish(),
+  "brokerExecution": zod.unknown().nullish(),
+  "screenshots": zod.unknown().nullish(),
+  "notes": zod.string().nullish(),
+  "mode": zod.string(),
+  "createdAt": zod.string(),
+  "updatedAt": zod.string()
+})),
+  "total": zod.number(),
+  "limit": zod.number(),
+  "offset": zod.number()
+})
+
+
+/**
+ * @summary Create a live trade journal entry
+ */
+export const CreateLiveJournalEntryBody = zod.object({
+  "pair": zod.string(),
+  "direction": zod.string(),
+  "tradeId": zod.number().optional(),
+  "entryReason": zod.string().optional(),
+  "ruleEvaluation": zod.object({
+
+}).passthrough().optional(),
+  "confidenceScores": zod.object({
+
+}).passthrough().optional(),
+  "marketRegime": zod.string().optional(),
+  "regimeConfidence": zod.number().optional(),
+  "brokerExecution": zod.object({
+
+}).passthrough().optional(),
+  "notes": zod.string().optional(),
+  "mode": zod.string().optional()
+})
+
+
+/**
+ * @summary Get a single live journal entry with associated trade data
+ */
+export const GetLiveJournalEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+
+/**
+ * @summary Update notes / execution details on a journal entry
+ */
+export const UpdateLiveJournalEntryParams = zod.object({
+  "id": zod.coerce.number()
+})
+
+export const UpdateLiveJournalEntryBody = zod.object({
+  "entryReason": zod.string().optional(),
+  "exitReason": zod.string().optional(),
+  "notes": zod.string().optional(),
+  "brokerExecution": zod.object({
+
+}).passthrough().optional()
+})
+
+
