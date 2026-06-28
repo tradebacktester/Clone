@@ -30,6 +30,7 @@ import pilotRouter from "./pilot";
 import improvementRouter from "./improvement";
 import paperWorkspaceRouter from "./paper-workspace";
 import memoryHealthRouter from "./memory-health";
+import learningEngineRouter from "./learning-engine";
 
 const router: IRouter = Router();
 
@@ -64,5 +65,6 @@ router.use(pilotRouter);
 router.use(improvementRouter);
 router.use(paperWorkspaceRouter);
 router.use(memoryHealthRouter);
+router.use(learningEngineRouter);
 
 export default router;

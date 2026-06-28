@@ -20,3 +20,4 @@ export * from "./paper-config";
 export * from "./trade-reviews";
 export * from "./signal-log";
 export * from "./memory-certification";
+export * from "./learning-engine";
