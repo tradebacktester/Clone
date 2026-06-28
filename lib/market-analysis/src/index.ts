@@ -34,7 +34,96 @@ export * from "./backtest/engine.js";
 export * from "./backtest/stats.js";
 export * from "./learning/scorer.js";
 export * from "./learning/weights.js";
-export * from "./learning/index.js";
+
+// ─── Learning Engine (selective — avoids re-exporting Pair/Session/MarketRegime
+//     which are already in ./types.js) ───────────────────────────────────────
+export type {
+  RawTradeRecord,
+  RawSkippedSetup,
+  RawManualReview,
+  ExtractedFeature,
+  ValidationIssue,
+  DataValidationResult,
+  SegmentMetrics,
+  LearningMetrics,
+  HistogramBin,
+  CorrelationResult,
+  DistributionStats,
+  StatisticalAnalysis,
+  SkippedSetupInsight,
+  ReviewInsight,
+  ConfidenceFactor,
+  SegmentConfidence,
+  ConfidenceReport,
+  RecommendationCategory,
+  LearningRecommendation,
+  LearningCycleInput,
+  LearningCycle,
+  PipelineResult,
+  TradeOutcome,
+  ZoneType,
+  AmdPattern,
+  VolatilityLevel,
+  TrendDirection,
+  CertificationLevel,
+} from "./learning/learning-core/types.js";
+export {
+  runLearningPipeline,
+  buildEmptyCycle,
+  LEARNING_ENGINE_VERSION,
+} from "./learning/learning-core/pipeline.js";
+export {
+  validateTrades,
+  toNumber as learningToNumber,
+  clamp as learningClamp,
+  safeDivide as learningSafeDivide,
+  MIN_SAMPLE_FOR_PASSED,
+  MIN_SAMPLE_FOR_DEGRADED,
+} from "./learning/learning-validation/data-validator.js";
+export {
+  extractFeatures,
+  buildFeatureSummary,
+} from "./learning/learning-analysis/feature-extractor.js";
+export type { FeatureSummary } from "./learning/learning-analysis/feature-extractor.js";
+export {
+  analyzeStatistics,
+  computeDistributions,
+  computeCorrelations,
+  analyzeSkippedSetups,
+  analyzeReviews,
+  pearson,
+  computeSkewness,
+} from "./learning/learning-analysis/statistical-analyzer.js";
+export {
+  calculateMetrics,
+  segmentBy,
+  computeDrawdown,
+  computeSharpe,
+  computeSortino,
+  buildHistogram,
+  mean as learningMean,
+  stdDev as learningStdDev,
+  median as learningMedian,
+  percentile as learningPercentile,
+  qualityBucket,
+} from "./learning/learning-metrics/metrics-calculator.js";
+export {
+  wilsonLowerBound,
+  consistencyFactor,
+  dataQualityFactor,
+  computeSegmentConfidence,
+  computeConfidenceReport,
+  confidenceTier,
+} from "./learning/learning-confidence/confidence-engine.js";
+export type { ConfidenceTier } from "./learning/learning-confidence/confidence-engine.js";
+export { historyStore } from "./learning/learning-history/history-store.js";
+export type { CycleListEntry } from "./learning/learning-history/history-store.js";
+export {
+  generateRecommendations,
+  formatCycleSummary,
+  compareCycles,
+} from "./learning/learning-reports/report-generator.js";
+export type { CycleComparison } from "./learning/learning-reports/report-generator.js";
 export * from "./market_regime/volatility_analyzer.js";
 export * from "./market_regime/trend_analyzer.js";
 export * from "./market_regime/adaptive_weights.js";

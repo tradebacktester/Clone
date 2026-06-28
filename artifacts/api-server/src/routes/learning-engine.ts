@@ -201,7 +201,7 @@ async function persistCycle(cycle: Awaited<ReturnType<typeof runLearningPipeline
 // ─── Routes ──────────────────────────────────────────────────────────────────
 
 // POST /api/learning-engine/run — trigger a learning cycle
-router.post("/api/learning-engine/run", async (req, res) => {
+router.post("/learning-engine/run", async (req, res) => {
   try {
     const body = req.body as {
       triggeredBy?: string;
@@ -252,7 +252,7 @@ router.post("/api/learning-engine/run", async (req, res) => {
 });
 
 // GET /api/learning-engine/latest — get latest cycle summary
-router.get("/api/learning-engine/latest", async (req, res) => {
+router.get("/learning-engine/latest", async (req, res) => {
   try {
     // Try in-process store first
     const cycle = historyStore.getLatest();
@@ -281,7 +281,7 @@ router.get("/api/learning-engine/latest", async (req, res) => {
 });
 
 // GET /api/learning-engine/history — list cycle history
-router.get("/api/learning-engine/history", async (req, res) => {
+router.get("/learning-engine/history", async (req, res) => {
   try {
     const limit = Math.min(Number(req.query.limit) || 20, 100);
     // In-process list first
@@ -317,7 +317,7 @@ router.get("/api/learning-engine/history", async (req, res) => {
 });
 
 // GET /api/learning-engine/cycle/:cycleId — get full cycle detail
-router.get("/api/learning-engine/cycle/:cycleId", async (req, res) => {
+router.get("/learning-engine/cycle/:cycleId", async (req, res) => {
   try {
     const { cycleId } = req.params;
 
@@ -344,7 +344,7 @@ router.get("/api/learning-engine/cycle/:cycleId", async (req, res) => {
 });
 
 // GET /api/learning-engine/compare — compare last two cycles
-router.get("/api/learning-engine/compare", async (req, res) => {
+router.get("/learning-engine/compare", async (req, res) => {
   try {
     const all = historyStore.list(2);
     if (all.length === 0) return res.json({ comparison: [], hasPrevious: false });
@@ -361,7 +361,7 @@ router.get("/api/learning-engine/compare", async (req, res) => {
 });
 
 // GET /api/learning-engine/metrics/trend — win rate + confidence over last N cycles
-router.get("/api/learning-engine/metrics/trend", async (req, res) => {
+router.get("/learning-engine/metrics/trend", async (req, res) => {
   try {
     const limit = Math.min(Number(req.query.limit) || 10, 50);
     const rows = await db
@@ -396,7 +396,7 @@ router.get("/api/learning-engine/metrics/trend", async (req, res) => {
 });
 
 // GET /api/learning-engine/features/summary — feature summary for latest cycle
-router.get("/api/learning-engine/features/summary", async (req, res) => {
+router.get("/learning-engine/features/summary", async (req, res) => {
   try {
     const cycle = historyStore.getLatest();
     if (!cycle || cycle.features.length === 0) {
@@ -417,7 +417,7 @@ router.get("/api/learning-engine/features/summary", async (req, res) => {
 });
 
 // GET /api/learning-engine/recommendations — get latest recommendations
-router.get("/api/learning-engine/recommendations", async (req, res) => {
+router.get("/learning-engine/recommendations", async (req, res) => {
   try {
     const cycle = historyStore.getLatest();
     if (cycle) return res.json({ recommendations: cycle.recommendations, cycleId: cycle.id, isAdvisoryOnly: true });
@@ -436,7 +436,7 @@ router.get("/api/learning-engine/recommendations", async (req, res) => {
 });
 
 // GET /api/learning-engine/statistics — skipped setup + review stats
-router.get("/api/learning-engine/statistics", async (req, res) => {
+router.get("/learning-engine/statistics", async (req, res) => {
   try {
     const cycle = historyStore.getLatest();
     if (cycle?.statisticalAnalysis) {
@@ -456,7 +456,7 @@ router.get("/api/learning-engine/statistics", async (req, res) => {
 });
 
 // GET /api/learning-engine/dashboard — all-in-one dashboard data
-router.get("/api/learning-engine/dashboard", async (req, res) => {
+router.get("/learning-engine/dashboard", async (req, res) => {
   try {
     const cycle = historyStore.getLatest();
 
@@ -515,7 +515,7 @@ router.get("/api/learning-engine/dashboard", async (req, res) => {
 });
 
 // GET /api/learning-engine/status — quick status check
-router.get("/api/learning-engine/status", async (req, res) => {
+router.get("/learning-engine/status", async (req, res) => {
   try {
     const cycle = historyStore.getLatest();
     const rows = await db
