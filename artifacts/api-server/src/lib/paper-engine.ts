@@ -18,6 +18,7 @@ import {
   updateSkippedSetupAftermath,
   type SkipContext,
 } from "./memory-capture-engine.js";
+import { autoPopulateContextFromTrade } from "./context-memory.js";
 import {
   logTradeOpened,
   logTradeClosed,
@@ -458,6 +459,25 @@ export async function executePaperSignals(
       },
       snapshotId,
       setupId,
+    ).catch(() => {});
+
+    // Context memory — auto-populate market + strategy context for this trade
+    autoPopulateContextFromTrade(
+      inserted.id,
+      setupId,
+      snapshotId,
+      {
+        pair,
+        direction:      signal.direction,
+        session,
+        regime,
+        newsStatus,
+        spreadPips,
+        ruleEvaluation: ruleEvaluation as Record<string, unknown>,
+        tqi:            tqiResult?.tqi,
+        mtfAligned:     mtfAlignment.aligned,
+        mtfScore:       mtfAlignment.score,
+      },
     ).catch(() => {});
 
     logTradeOpened({

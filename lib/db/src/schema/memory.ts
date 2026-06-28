@@ -395,6 +395,155 @@ export const insertTradeEventSchema = createInsertSchema(tradeEventsTable).omit(
 export type InsertTradeEvent = z.infer<typeof insertTradeEventSchema>;
 export type TradeEvent = typeof tradeEventsTable.$inferSelect;
 
+// ─── Trade Screenshots ─────────────────────────────────────────────────────
+// Visual memory — one row per screenshot per trade lifecycle stage.
+// Append-only: never update imageData. New screenshot = new row.
+
+export const tradeScreenshotsTable = pgTable("trade_screenshots", {
+  id:               uuid("id").primaryKey().defaultRandom(),
+
+  // Relational links
+  tradeId:          integer("trade_id"),
+  setupId:          uuid("setup_id"),
+  snapshotId:       uuid("snapshot_id"),
+  contextId:        uuid("context_id"),
+
+  // Stage in the trade lifecycle
+  // before_entry | entry | during_trade | break_even | partial_tp | htf_analysis | ltf_analysis | after_exit | custom
+  stage:            text("stage").notNull().default("custom"),
+
+  // Chart metadata
+  timeframe:        text("timeframe"),          // 1m | 5m | 15m | 1h | 4h | 1d
+  pair:             text("pair"),
+  theme:            text("theme").default("dark"),    // dark | light
+  resolution:       text("resolution"),               // "1920x1080"
+  chartAnnotations: jsonb("chart_annotations").$type<Record<string, unknown>>(),
+
+  // Image storage (base64-encoded)
+  imageData:        text("image_data"),               // full image
+  thumbnailData:    text("thumbnail_data"),            // small preview (~200px wide)
+  mimeType:         text("mime_type").notNull().default("image/png"),
+  sizeBytes:        integer("size_bytes"),
+  compressionRatio: numeric("compression_ratio", { precision: 5, scale: 2 }),
+
+  // Duplicate detection
+  fileHash:         text("file_hash"),                // SHA-256 of raw imageData
+
+  // User-provided context
+  notes:            text("notes"),
+  tags:             jsonb("tags").$type<string[]>(),
+
+  capturedAt:       timestamp("captured_at",   { withTimezone: true }),
+  uploadedAt:       timestamp("uploaded_at",   { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("trade_screenshots_trade_id_idx").on(t.tradeId),
+  index("trade_screenshots_stage_idx").on(t.stage),
+  index("trade_screenshots_pair_idx").on(t.pair),
+  index("trade_screenshots_file_hash_idx").on(t.fileHash),
+  index("trade_screenshots_uploaded_at_idx").on(t.uploadedAt),
+]);
+
+export const insertTradeScreenshotSchema = createInsertSchema(tradeScreenshotsTable).omit({ uploadedAt: true });
+export type InsertTradeScreenshot = z.infer<typeof insertTradeScreenshotSchema>;
+export type TradeScreenshot = typeof tradeScreenshotsTable.$inferSelect;
+
+// ─── Trade Context ──────────────────────────────────────────────────────────
+// Rich contextual memory attached to a trade. One row per trade (upsert).
+// Split into three sub-domains: market, strategy, trader.
+
+export const tradeContextTable = pgTable("trade_context", {
+  id:               uuid("id").primaryKey().defaultRandom(),
+  tradeId:          integer("trade_id").notNull().unique(),
+  setupId:          uuid("setup_id"),
+  snapshotId:       uuid("snapshot_id"),
+  strategyVersion:  text("strategy_version").notNull().default("2.0"),
+
+  // ── Market Context ───────────────────────────────────────────────────────
+  trendStrength:      numeric("trend_strength",     { precision: 5, scale: 2 }),
+  marketRegime:       text("market_regime"),
+  session:            text("session"),
+  liquidityLevel:     text("liquidity_level"),    // high | medium | low
+  spreadPips:         numeric("spread_pips",      { precision: 6, scale: 2 }),
+  volatility:         text("volatility"),         // high | medium | low
+  volatilityScore:    numeric("volatility_score", { precision: 5, scale: 2 }),
+  correlationData:    jsonb("correlation_data").$type<Record<string, number>>(),
+  newsContext:        jsonb("news_context").$type<{
+    events: Array<{ title: string; impact: string; timeUntil?: string }>;
+    overallImpact: string;
+    blockingPairs: string[];
+  }>(),
+  sessionOpenClose:   text("session_open_close"),  // open | mid | close
+  dayOfWeek:          text("day_of_week"),          // Monday ... Friday
+
+  // ── Strategy Context ─────────────────────────────────────────────────────
+  htfBias:              text("htf_bias"),           // bullish | bearish | neutral
+  premiumDiscountState: text("premium_discount_state"), // premium | discount | equilibrium
+  supplyStrength:       numeric("supply_strength",  { precision: 5, scale: 2 }),
+  demandStrength:       numeric("demand_strength",  { precision: 5, scale: 2 }),
+  liquidityScore:       numeric("liquidity_score",  { precision: 5, scale: 2 }),
+  amdStage:             text("amd_stage"),          // accumulation | manipulation | distribution
+  confirmationQuality:  numeric("confirmation_quality", { precision: 5, scale: 2 }),
+  traderIntelligenceScore: numeric("trader_intelligence_score", { precision: 5, scale: 2 }),
+  ruleEvaluationSummary:   jsonb("rule_evaluation_summary").$type<Record<string, unknown>>(),
+
+  // ── Trader Context ───────────────────────────────────────────────────────
+  manualNotes:      text("manual_notes"),
+  confidence:       integer("confidence"),           // 0-100, trader's self-rated confidence
+  emotionTag:       text("emotion_tag"),             // calm | fearful | confident | uncertain | fomo | disciplined
+  reasonAccepted:   text("reason_accepted"),
+  reasonRejected:   text("reason_rejected"),
+  lessonsLearned:   text("lessons_learned"),
+
+  // For future semantic search (placeholder for pgvector embedding)
+  searchVector:     text("search_vector"),           // concatenated text blob for future vectorisation
+
+  reviewedAt:       timestamp("reviewed_at",  { withTimezone: true }),
+  createdAt:        timestamp("created_at",   { withTimezone: true }).notNull().defaultNow(),
+  updatedAt:        timestamp("updated_at",   { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (t) => [
+  index("trade_context_trade_id_idx").on(t.tradeId),
+  index("trade_context_session_idx").on(t.session),
+  index("trade_context_regime_idx").on(t.marketRegime),
+  index("trade_context_emotion_tag_idx").on(t.emotionTag),
+  index("trade_context_day_of_week_idx").on(t.dayOfWeek),
+  index("trade_context_created_at_idx").on(t.createdAt),
+]);
+
+export const insertTradeContextSchema = createInsertSchema(tradeContextTable).omit({ createdAt: true, updatedAt: true });
+export type InsertTradeContext = z.infer<typeof insertTradeContextSchema>;
+export type TradeContext = typeof tradeContextTable.$inferSelect;
+
+// ─── Context Timeline Events ────────────────────────────────────────────────
+// Rich episodic stage log for context-aware timeline reconstruction.
+// Combines auto-events (from trading engine) + manual review events.
+
+export const contextTimelineEventsTable = pgTable("context_timeline_events", {
+  id:          serial("id").primaryKey(),
+  tradeId:     integer("trade_id"),
+  setupId:     uuid("setup_id"),
+
+  // Stage name — defines the icon/colour shown on the timeline
+  // market_scan | htf_analysis | setup_created | screenshot_saved |
+  // liquidity_sweep | amd_complete | entry | break_even | partial_tp |
+  // exit | review | lesson_learned | note_added | custom
+  stage:       text("stage").notNull(),
+  title:       text("title").notNull(),
+  description: text("description"),
+  iconType:    text("icon_type"),      // maps to frontend icon set
+  source:      text("source").notNull().default("system"),  // system | user
+
+  meta:        jsonb("meta").$type<Record<string, unknown>>(),
+  occurredAt:  timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("ctx_timeline_trade_id_idx").on(t.tradeId),
+  index("ctx_timeline_stage_idx").on(t.stage),
+  index("ctx_timeline_occurred_at_idx").on(t.occurredAt),
+]);
+
+export const insertContextTimelineEventSchema = createInsertSchema(contextTimelineEventsTable).omit({ id: true });
+export type InsertContextTimelineEvent = z.infer<typeof insertContextTimelineEventSchema>;
+export type ContextTimelineEvent = typeof contextTimelineEventsTable.$inferSelect;
+
 // ─── Memory Metadata ───────────────────────────────────────────────────────
 // Tracks the integrity and provenance of every memory record.
 // One row per stored record (any table). Enables audit and consistency checks.

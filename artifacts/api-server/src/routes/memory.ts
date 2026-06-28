@@ -24,6 +24,25 @@ import {
   getMemoryHistory,
   getTradeEvents,
 } from "../lib/memory-capture-engine.js";
+import {
+  uploadScreenshot,
+  validateScreenshot,
+  getTradeScreenshots,
+  getScreenshotImage,
+  getScreenshotThumbnail,
+  deleteScreenshot,
+  getAllScreenshots,
+  getScreenshotSummary,
+} from "../lib/visual-memory.js";
+import {
+  upsertTradeContext,
+  patchTradeContext,
+  getTradeContext,
+  getContextTimeline,
+  searchContextMemory,
+  addContextTimelineEvent,
+  recordLesson,
+} from "../lib/context-memory.js";
 
 const router: IRouter = Router();
 
@@ -332,6 +351,287 @@ router.get("/memory/history", async (req, res): Promise<void> => {
   } catch (err) {
     logger.error({ err }, "GET /memory/history error");
     res.status(500).json(apiError("Failed to retrieve memory history"));
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// VISUAL MEMORY — Screenshot Management
+// ═══════════════════════════════════════════════════════════════════════════
+
+// POST /memory/screenshots — upload a screenshot
+router.post("/memory/screenshots", async (req, res): Promise<void> => {
+  try {
+    const body = req.body as Record<string, unknown>;
+
+    const upload = {
+      tradeId:          body.tradeId    ? Number(body.tradeId)  : undefined,
+      setupId:          body.setupId    ? String(body.setupId)  : undefined,
+      snapshotId:       body.snapshotId ? String(body.snapshotId) : undefined,
+      contextId:        body.contextId  ? String(body.contextId) : undefined,
+      stage:            String(body.stage    ?? "custom"),
+      timeframe:        body.timeframe  ? String(body.timeframe) : undefined,
+      pair:             body.pair       ? String(body.pair)      : undefined,
+      theme:            (body.theme === "light" ? "light" : "dark") as "dark" | "light",
+      resolution:       body.resolution ? String(body.resolution) : undefined,
+      notes:            body.notes      ? String(body.notes)     : undefined,
+      tags:             Array.isArray(body.tags) ? body.tags as string[] : undefined,
+      chartAnnotations: typeof body.chartAnnotations === "object" ? body.chartAnnotations as Record<string, unknown> : undefined,
+      imageData:        String(body.imageData ?? ""),
+      capturedAt:       body.capturedAt ? String(body.capturedAt) : undefined,
+    };
+
+    const errors = validateScreenshot(upload);
+    if (errors.length > 0) {
+      res.status(400).json({ error: "Validation failed", details: errors });
+      return;
+    }
+
+    const result = await uploadScreenshot(upload);
+    res.status(result.isDuplicate ? 200 : 201).json(result);
+  } catch (err) {
+    logger.error({ err }, "POST /memory/screenshots error");
+    res.status(500).json(apiError("Failed to upload screenshot"));
+  }
+});
+
+// GET /memory/screenshots/gallery — all screenshots (paginated)
+router.get("/memory/screenshots/gallery", async (req, res): Promise<void> => {
+  try {
+    const q      = req.query as Record<string, string | undefined>;
+    const limit  = Math.min(parseInt(q.limit  ?? "50"),  200);
+    const offset = Math.max(parseInt(q.offset ?? "0"),     0);
+    const results = await getAllScreenshots({ pair: q.pair, stage: q.stage, timeframe: q.timeframe, limit, offset });
+    res.json({ count: results.length, screenshots: results });
+  } catch (err) {
+    logger.error({ err }, "GET /memory/screenshots/gallery error");
+    res.status(500).json(apiError("Failed to retrieve screenshot gallery"));
+  }
+});
+
+// GET /memory/screenshots/:tradeId — all screenshots for a trade (no imageData)
+router.get("/memory/screenshots/:tradeId", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId, 10);
+    if (isNaN(tradeId) || tradeId <= 0) {
+      res.status(400).json(apiError("Invalid trade ID"));
+      return;
+    }
+    const [screenshots, summary] = await Promise.all([
+      getTradeScreenshots(tradeId),
+      getScreenshotSummary(tradeId),
+    ]);
+    res.json({ tradeId, ...summary, screenshots });
+  } catch (err) {
+    logger.error({ err }, "GET /memory/screenshots/:tradeId error");
+    res.status(500).json(apiError("Failed to retrieve screenshots"));
+  }
+});
+
+// GET /memory/screenshot/:id/image — full resolution image
+router.get("/memory/screenshot/:id/image", async (req, res): Promise<void> => {
+  try {
+    const record = await getScreenshotImage(req.params.id);
+    if (!record) {
+      res.status(404).json(apiError("Screenshot not found"));
+      return;
+    }
+    res.json(record);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/screenshot/:id/image error");
+    res.status(500).json(apiError("Failed to retrieve screenshot image"));
+  }
+});
+
+// GET /memory/screenshot/:id/thumbnail — small thumbnail
+router.get("/memory/screenshot/:id/thumbnail", async (req, res): Promise<void> => {
+  try {
+    const record = await getScreenshotThumbnail(req.params.id);
+    if (!record) {
+      res.status(404).json(apiError("Screenshot not found"));
+      return;
+    }
+    res.json(record);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/screenshot/:id/thumbnail error");
+    res.status(500).json(apiError("Failed to retrieve thumbnail"));
+  }
+});
+
+// DELETE /memory/screenshots/:id — remove screenshot
+router.delete("/memory/screenshots/:id", async (req, res): Promise<void> => {
+  try {
+    const deleted = await deleteScreenshot(req.params.id);
+    if (!deleted) {
+      res.status(404).json(apiError("Screenshot not found"));
+      return;
+    }
+    res.json({ success: true, id: req.params.id });
+  } catch (err) {
+    logger.error({ err }, "DELETE /memory/screenshots/:id error");
+    res.status(500).json(apiError("Failed to delete screenshot"));
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════
+// CONTEXT MEMORY
+// ═══════════════════════════════════════════════════════════════════════════
+
+// POST /memory/context/:tradeId — create or replace context for a trade
+router.post("/memory/context/:tradeId", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId, 10);
+    if (isNaN(tradeId) || tradeId <= 0) {
+      res.status(400).json(apiError("Invalid trade ID"));
+      return;
+    }
+    const body    = req.body as Record<string, unknown>;
+    const record  = await upsertTradeContext({ tradeId, ...body as Record<string, unknown> });
+    res.status(201).json(record);
+  } catch (err) {
+    logger.error({ err }, "POST /memory/context/:tradeId error");
+    res.status(500).json(apiError("Failed to save context"));
+  }
+});
+
+// GET /memory/context/:tradeId — retrieve context for a trade
+router.get("/memory/context/:tradeId", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId, 10);
+    if (isNaN(tradeId) || tradeId <= 0) {
+      res.status(400).json(apiError("Invalid trade ID"));
+      return;
+    }
+    const record = await getTradeContext(tradeId);
+    if (!record) {
+      res.status(404).json(apiError("No context found for this trade — POST to create one"));
+      return;
+    }
+    res.json(record);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/context/:tradeId error");
+    res.status(500).json(apiError("Failed to retrieve context"));
+  }
+});
+
+// PATCH /memory/context/:tradeId — update trader notes / emotion / lessons
+router.patch("/memory/context/:tradeId", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId, 10);
+    if (isNaN(tradeId) || tradeId <= 0) {
+      res.status(400).json(apiError("Invalid trade ID"));
+      return;
+    }
+    const body   = req.body as Record<string, unknown>;
+    const patch  = {
+      manualNotes:    body.manualNotes    ? String(body.manualNotes)    : undefined,
+      confidence:     body.confidence     !== undefined ? Number(body.confidence) : undefined,
+      emotionTag:     body.emotionTag     ? String(body.emotionTag)     : undefined,
+      reasonAccepted: body.reasonAccepted ? String(body.reasonAccepted) : undefined,
+      reasonRejected: body.reasonRejected ? String(body.reasonRejected) : undefined,
+      lessonsLearned: body.lessonsLearned ? String(body.lessonsLearned) : undefined,
+      reviewedAt:     body.reviewedAt     ? new Date(String(body.reviewedAt)) : undefined,
+    };
+    const updated = await patchTradeContext(tradeId, patch);
+    if (!updated) {
+      res.status(404).json(apiError("No context found for this trade"));
+      return;
+    }
+    res.json(updated);
+  } catch (err) {
+    logger.error({ err }, "PATCH /memory/context/:tradeId error");
+    res.status(500).json(apiError("Failed to update context"));
+  }
+});
+
+// POST /memory/context/:tradeId/lesson — add a lesson learned
+router.post("/memory/context/:tradeId/lesson", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId, 10);
+    if (isNaN(tradeId) || tradeId <= 0) {
+      res.status(400).json(apiError("Invalid trade ID"));
+      return;
+    }
+    const body    = req.body as Record<string, unknown>;
+    const lesson  = String(body.lesson ?? "");
+    const emotion = body.emotion ? String(body.emotion) : undefined;
+
+    if (!lesson.trim()) {
+      res.status(400).json(apiError("lesson field is required"));
+      return;
+    }
+
+    await recordLesson(tradeId, lesson, emotion);
+    res.json({ success: true, tradeId });
+  } catch (err) {
+    logger.error({ err }, "POST /memory/context/:tradeId/lesson error");
+    res.status(500).json(apiError("Failed to record lesson"));
+  }
+});
+
+// POST /memory/context/:tradeId/event — add a manual timeline event
+router.post("/memory/context/:tradeId/event", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId, 10);
+    if (isNaN(tradeId) || tradeId <= 0) {
+      res.status(400).json(apiError("Invalid trade ID"));
+      return;
+    }
+    const body = req.body as Record<string, unknown>;
+    if (!body.stage || !body.title) {
+      res.status(400).json(apiError("stage and title are required"));
+      return;
+    }
+    await addContextTimelineEvent(
+      tradeId,
+      body.setupId ? String(body.setupId) : undefined,
+      String(body.stage),
+      String(body.title),
+      body.description ? String(body.description) : undefined,
+      typeof body.meta === "object" ? body.meta as Record<string, unknown> : undefined,
+      "user",
+    );
+    res.json({ success: true, tradeId });
+  } catch (err) {
+    logger.error({ err }, "POST /memory/context/:tradeId/event error");
+    res.status(500).json(apiError("Failed to add timeline event"));
+  }
+});
+
+// GET /memory/context-timeline/:tradeId — full rich context timeline
+router.get("/memory/context-timeline/:tradeId", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId, 10);
+    if (isNaN(tradeId) || tradeId <= 0) {
+      res.status(400).json(apiError("Invalid trade ID"));
+      return;
+    }
+    const events = await getContextTimeline(tradeId);
+    res.json({ tradeId, count: events.length, events });
+  } catch (err) {
+    logger.error({ err }, "GET /memory/context-timeline/:tradeId error");
+    res.status(500).json(apiError("Failed to retrieve context timeline"));
+  }
+});
+
+// GET /memory/context/search — search context by pair, session, regime, notes, etc.
+router.get("/memory/context/search", async (req, res): Promise<void> => {
+  try {
+    const q = req.query as Record<string, string | undefined>;
+    const results = await searchContextMemory({
+      session:    q.session,
+      regime:     q.regime,
+      notes:      q.notes,
+      emotionTag: q.emotionTag,
+      dayOfWeek:  q.dayOfWeek,
+      dateFrom:   q.dateFrom,
+      dateTo:     q.dateTo,
+      limit:      q.limit  ? Math.min(parseInt(q.limit),  200) : 50,
+      offset:     q.offset ? Math.max(parseInt(q.offset), 0)   : 0,
+    });
+    res.json(results);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/context/search error");
+    res.status(500).json(apiError("Failed to search context memory"));
   }
 });
 

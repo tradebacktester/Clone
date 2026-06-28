@@ -13,3 +13,4 @@
 - [Trader Intelligence Layer](trader-intelligence-layer.md) — Vasu Decision Model; advisory only; score-vector similarity; DB tables ti_decisions+ti_screenshots; 46 tests pass.
 - [Paper Trading Workspace](paper-workspace.md) — trade_reviews + signal_log tables added; routes under /paper/workspace/*; esbuild cannot resolve zod/v4 — use inline validation in route files instead.
 - [Memory Capture Engine](memory-capture-engine-notes.md) — auto episodic memory for all lifecycle events; blocked var scope bug in analyzer.ts; Math.floor for duration; tsx runner at node_modules/.pnpm/node_modules/.bin/tsx; 51 tests pass.
+- [Context & Visual Memory](context-visual-memory.md) — trade_screenshots/trade_context/context_timeline_events tables; SHA-256 dedup; thumbnail = truncate base64 at 50000 chars (no native sharp); 15mb Express limit on screenshot POST; autoPopulateContextFromTrade hooked into paper-engine; 37 tests pass.

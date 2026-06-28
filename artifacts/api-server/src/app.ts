@@ -68,6 +68,9 @@ app.use(globalLimiter);
 app.use(express.json({ limit: "1mb" }));
 app.use(express.urlencoded({ extended: true, limit: "1mb" }));
 
+// Screenshot uploads can be up to ~14MB (10MB image as base64 + metadata)
+app.post("/api/memory/screenshots", express.json({ limit: "15mb" }));
+
 app.post("/api/historical/upload-csv", express.json({ limit: "50mb" }));
 app.post("/api/historical/upload-csv", express.urlencoded({ extended: true, limit: "50mb" }));
 

@@ -34,6 +34,7 @@ const Comparison = lazy(() => import("@/pages/comparison"));
 const ThresholdOptimization = lazy(() => import("@/pages/threshold"));
 const PilotMode = lazy(() => import("@/pages/pilot"));
 const ImprovementDashboard = lazy(() => import("@/pages/improvement"));
+const ContextMemory = lazy(() => import("@/pages/context-memory"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -84,6 +85,7 @@ function Router() {
           <Route path="/threshold" component={ThresholdOptimization} />
           <Route path="/pilot" component={PilotMode} />
           <Route path="/improvement" component={ImprovementDashboard} />
+          <Route path="/context-memory" component={ContextMemory} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

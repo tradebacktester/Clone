@@ -28,6 +28,7 @@ import {
   Scale,
   Shield,
   Zap,
+  Camera,
   HelpCircle,
   X,
   Cpu,
@@ -66,6 +67,7 @@ const NAV_GROUPS = [
       { href: "/memory", label: "Memory", icon: Brain },
       { href: "/learning", label: "Learning", icon: BrainCircuit },
       { href: "/trader-intelligence", label: "Trader Intel.", icon: Lightbulb },
+      { href: "/context-memory", label: "Context Memory", icon: Camera },
     ],
   },
   {
