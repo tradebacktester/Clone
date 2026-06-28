@@ -29,6 +29,7 @@ import thresholdRouter from "./threshold";
 import pilotRouter from "./pilot";
 import improvementRouter from "./improvement";
 import paperWorkspaceRouter from "./paper-workspace";
+import memoryHealthRouter from "./memory-health";
 
 const router: IRouter = Router();
 
@@ -62,5 +63,6 @@ router.use(thresholdRouter);
 router.use(pilotRouter);
 router.use(improvementRouter);
 router.use(paperWorkspaceRouter);
+router.use(memoryHealthRouter);
 
 export default router;
