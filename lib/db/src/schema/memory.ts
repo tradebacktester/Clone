@@ -544,6 +544,155 @@ export const insertContextTimelineEventSchema = createInsertSchema(contextTimeli
 export type InsertContextTimelineEvent = z.infer<typeof insertContextTimelineEventSchema>;
 export type ContextTimelineEvent = typeof contextTimelineEventsTable.$inferSelect;
 
+// ─── Memory Relationship Graph ─────────────────────────────────────────────
+// Directed soft-link graph: (fromType, fromId) → relType → (toType, toId)
+// All relationship resolution is managed by RelationshipEngine — no SQL FKs.
+
+export const memoryRelationshipsTable = pgTable("memory_relationships", {
+  id:           serial("id").primaryKey(),
+
+  // Source entity
+  fromType:     text("from_type").notNull(), // snapshot | setup | trade | context | screenshot | event | review | lesson
+  fromId:       text("from_id").notNull(),   // UUID or integer serialised to text
+
+  // Target entity
+  toType:       text("to_type").notNull(),
+  toId:         text("to_id").notNull(),
+
+  // Relationship type
+  // has_snapshot | has_setup | has_trade | has_context | has_screenshot |
+  // has_event | has_review | has_lesson | followed_by | superseded_by | related_to
+  relType:      text("rel_type").notNull(),
+
+  // Optional numeric weight (reserved for future relevance scoring)
+  strength:     numeric("strength", { precision: 5, scale: 4 }).default("1.0"),
+
+  meta:         jsonb("meta").$type<Record<string, unknown>>(),
+
+  createdAt:    timestamp("created_at",  { withTimezone: true }).notNull().defaultNow(),
+  updatedAt:    timestamp("updated_at",  { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (t) => [
+  index("mem_rel_from_idx").on(t.fromType, t.fromId),
+  index("mem_rel_to_idx").on(t.toType, t.toId),
+  index("mem_rel_type_idx").on(t.relType),
+  uniqueIndex("mem_rel_unique_idx").on(t.fromType, t.fromId, t.toType, t.toId, t.relType),
+]);
+
+export const insertMemoryRelationshipSchema = createInsertSchema(memoryRelationshipsTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertMemoryRelationship = z.infer<typeof insertMemoryRelationshipSchema>;
+export type MemoryRelationship = typeof memoryRelationshipsTable.$inferSelect;
+
+// ─── Memory Relationship History ────────────────────────────────────────────
+// Append-only audit log for relationship changes.
+
+export const memoryRelationshipHistoryTable = pgTable("memory_relationship_history", {
+  id:             serial("id").primaryKey(),
+  relationshipId: integer("relationship_id"),
+  action:         text("action").notNull(),   // created | updated | deleted | repaired | orphan_removed
+  fromType:       text("from_type"),
+  fromId:         text("from_id"),
+  toType:         text("to_type"),
+  toId:           text("to_id"),
+  relType:        text("rel_type"),
+  meta:           jsonb("meta").$type<Record<string, unknown>>(),
+  occurredAt:     timestamp("occurred_at", { withTimezone: true }).notNull().defaultNow(),
+}, (t) => [
+  index("mem_rel_hist_rid_idx").on(t.relationshipId),
+  index("mem_rel_hist_at_idx").on(t.occurredAt),
+]);
+
+export const insertMemoryRelationshipHistorySchema = createInsertSchema(memoryRelationshipHistoryTable).omit({ id: true });
+export type InsertMemoryRelationshipHistory = z.infer<typeof insertMemoryRelationshipHistorySchema>;
+
+// ─── Memory Experiences ─────────────────────────────────────────────────────
+// One row per trade experience — the central index record for the graph.
+// Aggregate of trade + context + screenshots + timeline + outcome.
+// Designed to be the primary unit future AI modules request.
+
+export const memoryExperiencesTable = pgTable("memory_experiences", {
+  id:               serial("id").primaryKey(),
+  experienceId:     uuid("experience_id").notNull().unique().defaultRandom(), // stable external ID
+
+  // Core links
+  tradeId:          integer("trade_id").unique(),
+  setupId:          uuid("setup_id"),
+  snapshotId:       uuid("snapshot_id"),
+  contextId:        uuid("context_id"),
+
+  // Searchable labels (denormalised for fast compound filtering)
+  pair:             text("pair"),
+  direction:        text("direction"),
+  session:          text("session"),
+  marketRegime:     text("market_regime"),
+  amdStage:         text("amd_stage"),
+  outcome:          text("outcome"),       // win | loss | break_even | open
+  dayOfWeek:        text("day_of_week"),
+  volatility:       text("volatility"),
+  htfBias:          text("htf_bias"),
+  emotionTag:       text("emotion_tag"),
+  strategyVersion:  text("strategy_version").default("2.0"),
+
+  // Metrics (denormalised for range queries)
+  pnlPips:          numeric("pnl_pips",       { precision: 10, scale: 4 }),
+  riskReward:       numeric("risk_reward",     { precision: 8,  scale: 4 }),
+  durationMins:     integer("duration_mins"),
+  confidenceScore:  numeric("confidence_score",{ precision: 5,  scale: 2 }),
+  zoneQuality:      numeric("zone_quality",    { precision: 5,  scale: 2 }),
+  liquidityScore:   numeric("liquidity_score", { precision: 5,  scale: 2 }),
+  amdQuality:       numeric("amd_quality",     { precision: 5,  scale: 2 }),
+  spreadPips:       numeric("spread_pips",     { precision: 6,  scale: 2 }),
+  traderConfidence: integer("trader_confidence"),
+
+  // Completeness flags
+  hasContext:       boolean("has_context").default(false),
+  hasScreenshots:   boolean("has_screenshots").default(false),
+  hasReview:        boolean("has_review").default(false),
+  hasLessons:       boolean("has_lessons").default(false),
+  screenshotCount:  integer("screenshot_count").default(0),
+  eventCount:       integer("event_count").default(0),
+  relationshipCount: integer("relationship_count").default(0),
+
+  // ── AI Integration Placeholders (NOT active AI — architecture only) ──────
+  // These fields are reserved for future AI modules.
+  // Do NOT use for computation until explicitly enabled.
+  featureVector:        jsonb("feature_vector").$type<number[]>(),              // 10-dim numeric feature array
+  similarityMetadata:   jsonb("similarity_metadata").$type<{
+    nearestNeighbours:  string[];   // future: top-k experience IDs
+    similarityScores:   number[];   // future: cosine similarity scores
+    lastComputedAt:     string | null;
+  }>(),
+  embeddingPlaceholder: jsonb("embedding_placeholder").$type<{
+    model:    string | null;        // e.g. "text-embedding-3-small"
+    dims:     number | null;        // e.g. 1536
+    computed: boolean;
+    vectorId: string | null;        // external vector DB ID
+  }>(),
+
+  // Integrity
+  integrityScore:    numeric("integrity_score", { precision: 5, scale: 4 }),
+  brokenLinks:       integer("broken_links").default(0),
+  dataQualityNotes:  text("data_quality_notes"),
+  lastValidatedAt:   timestamp("last_validated_at", { withTimezone: true }),
+
+  tradeOpenedAt:    timestamp("trade_opened_at",  { withTimezone: true }),
+  tradeClosedAt:    timestamp("trade_closed_at",  { withTimezone: true }),
+  createdAt:        timestamp("created_at",        { withTimezone: true }).notNull().defaultNow(),
+  updatedAt:        timestamp("updated_at",        { withTimezone: true }).notNull().defaultNow().$onUpdate(() => new Date()),
+}, (t) => [
+  index("mem_exp_trade_id_idx").on(t.tradeId),
+  index("mem_exp_pair_idx").on(t.pair),
+  index("mem_exp_session_idx").on(t.session),
+  index("mem_exp_regime_idx").on(t.marketRegime),
+  index("mem_exp_outcome_idx").on(t.outcome),
+  index("mem_exp_emotion_idx").on(t.emotionTag),
+  index("mem_exp_day_idx").on(t.dayOfWeek),
+  index("mem_exp_created_at_idx").on(t.createdAt),
+]);
+
+export const insertMemoryExperienceSchema = createInsertSchema(memoryExperiencesTable).omit({ id: true, createdAt: true, updatedAt: true });
+export type InsertMemoryExperience = z.infer<typeof insertMemoryExperienceSchema>;
+export type MemoryExperience = typeof memoryExperiencesTable.$inferSelect;
+
 // ─── Memory Metadata ───────────────────────────────────────────────────────
 // Tracks the integrity and provenance of every memory record.
 // One row per stored record (any table). Enables audit and consistency checks.

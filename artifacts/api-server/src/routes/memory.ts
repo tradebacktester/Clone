@@ -43,6 +43,27 @@ import {
   addContextTimelineEvent,
   recordLesson,
 } from "../lib/context-memory.js";
+import {
+  getExperience,
+  getExperienceByTradeId,
+  searchExperiences,
+  getExperienceTimeline,
+  upsertExperienceRecord,
+} from "../lib/experience-builder.js";
+import {
+  getRelationshipsForEntity,
+  getAllTradeRelationships,
+  getRelationshipStats,
+  autoLinkTradeChain,
+  detectOrphanedRelationships,
+  getRelationshipHistory,
+  type EntityType,
+} from "../lib/relationship-engine.js";
+import {
+  runIntegrityCheck,
+  getMemoryStatistics,
+  runRepair,
+} from "../lib/memory-health.js";
 
 const router: IRouter = Router();
 
@@ -635,4 +656,197 @@ router.get("/memory/context/search", async (req, res): Promise<void> => {
   }
 });
 
+// ─── Experience by Experience UUID ─────────────────────────────────────────────
+router.get("/memory/experience/:id", async (req, res): Promise<void> => {
+  try {
+    const experience = await getExperience(req.params.id!);
+    if (!experience) {
+      res.status(404).json(apiNotFound("Experience not found"));
+      return;
+    }
+    res.json(experience);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/experience/:id error");
+    res.status(500).json(apiError("Failed to retrieve experience"));
+  }
+});
+
+// ─── Experience by Trade ID ─────────────────────────────────────────────────
+router.get("/memory/experience/trade/:tradeId", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId!);
+    if (isNaN(tradeId)) { res.status(400).json(apiError("Invalid tradeId")); return; }
+    const experience = await getExperienceByTradeId(tradeId);
+    if (!experience) {
+      res.status(404).json(apiNotFound("Experience not found for this trade"));
+      return;
+    }
+    res.json(experience);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/experience/trade/:tradeId error");
+    res.status(500).json(apiError("Failed to retrieve experience by trade"));
+  }
+});
+
+// ─── Experience Timeline ────────────────────────────────────────────────────
+router.get("/memory/experience/:id/timeline", async (req, res): Promise<void> => {
+  try {
+    const exp = await getExperience(req.params.id!);
+    if (!exp?.tradeId) { res.status(404).json(apiNotFound("Experience not found")); return; }
+    const timeline = await getExperienceTimeline(exp.tradeId);
+    res.json(timeline);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/experience/:id/timeline error");
+    res.status(500).json(apiError("Failed to build experience timeline"));
+  }
+});
+
+// ─── Refresh / Rebuild a Single Experience ─────────────────────────────────
+router.post("/memory/experience/trade/:tradeId/refresh", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId!);
+    if (isNaN(tradeId)) { res.status(400).json(apiError("Invalid tradeId")); return; }
+    await autoLinkTradeChain({ tradeId });
+    const record = await upsertExperienceRecord(tradeId);
+    res.json({ ok: true, tradeId, experienceId: record.experienceId });
+  } catch (err) {
+    logger.error({ err }, "POST /memory/experience/trade/:tradeId/refresh error");
+    res.status(500).json(apiError("Failed to refresh experience"));
+  }
+});
+
+// ─── List / Search Experiences ──────────────────────────────────────────────
+// Compound filter — all params are optional.
+// GET /memory/experiences?pair=EUR/USD&session=london&outcome=win&limit=20
+router.get("/memory/experiences", async (req, res): Promise<void> => {
+  try {
+    const q = req.query as Record<string, string>;
+    const opts = {
+      pair:             q.pair,
+      session:          q.session,
+      marketRegime:     q.marketRegime,
+      outcome:          q.outcome,
+      direction:        q.direction,
+      volatility:       q.volatility,
+      emotionTag:       q.emotionTag,
+      dayOfWeek:        q.dayOfWeek,
+      htfBias:          q.htfBias,
+      hasLessons:       q.hasLessons    === "true" ? true  : q.hasLessons    === "false" ? false : undefined,
+      hasScreenshots:   q.hasScreenshots=== "true" ? true  : q.hasScreenshots=== "false" ? false : undefined,
+      hasReview:        q.hasReview     === "true" ? true  : q.hasReview     === "false" ? false : undefined,
+      pnlMin:           q.pnlMin        ? parseFloat(q.pnlMin)        : undefined,
+      pnlMax:           q.pnlMax        ? parseFloat(q.pnlMax)        : undefined,
+      rrMin:            q.rrMin         ? parseFloat(q.rrMin)         : undefined,
+      rrMax:            q.rrMax         ? parseFloat(q.rrMax)         : undefined,
+      liquidityScoreMin: q.liquidityScoreMin ? parseFloat(q.liquidityScoreMin) : undefined,
+      liquidityScoreMax: q.liquidityScoreMax ? parseFloat(q.liquidityScoreMax) : undefined,
+      confidenceMin:    q.confidenceMin ? parseFloat(q.confidenceMin) : undefined,
+      confidenceMax:    q.confidenceMax ? parseFloat(q.confidenceMax) : undefined,
+      zoneQualityMin:   q.zoneQualityMin? parseFloat(q.zoneQualityMin): undefined,
+      zoneQualityMax:   q.zoneQualityMax? parseFloat(q.zoneQualityMax): undefined,
+      dateFrom:         q.dateFrom,
+      dateTo:           q.dateTo,
+      orderBy:          q.orderBy as "newest" | "oldest" | "pnl_desc" | "pnl_asc" | "rr_desc" | undefined,
+      limit:            q.limit  ? parseInt(q.limit)  : 50,
+      offset:           q.offset ? parseInt(q.offset) : 0,
+    };
+
+    const result = await searchExperiences(opts);
+    res.json(result);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/experiences error");
+    res.status(500).json(apiError("Failed to list experiences"));
+  }
+});
+
+// ─── Relationships for an Entity ───────────────────────────────────────────
+// GET /memory/relationships?type=trade&id=42
+router.get("/memory/relationships", async (req, res): Promise<void> => {
+  try {
+    const { type, id } = req.query as { type?: string; id?: string };
+    if (!type || !id) {
+      // Return graph-wide stats if no entity specified
+      const stats = await getRelationshipStats();
+      res.json(stats);
+      return;
+    }
+    const entityType = type as EntityType;
+    const result     = await getRelationshipsForEntity(entityType, id);
+    res.json(result);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/relationships error");
+    res.status(500).json(apiError("Failed to retrieve relationships"));
+  }
+});
+
+// GET /memory/relationships/trade/:tradeId — all relationships for a trade
+router.get("/memory/relationships/trade/:tradeId", async (req, res): Promise<void> => {
+  try {
+    const tradeId = parseInt(req.params.tradeId!);
+    if (isNaN(tradeId)) { res.status(400).json(apiError("Invalid tradeId")); return; }
+    const relationships = await getAllTradeRelationships(tradeId);
+    res.json({ tradeId, relationships, count: relationships.length });
+  } catch (err) {
+    logger.error({ err }, "GET /memory/relationships/trade/:tradeId error");
+    res.status(500).json(apiError("Failed to retrieve trade relationships"));
+  }
+});
+
+// ─── Memory Statistics ──────────────────────────────────────────────────────
+router.get("/memory/statistics", async (req, res): Promise<void> => {
+  try {
+    const stats = await getMemoryStatistics();
+    res.json(stats);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/statistics error");
+    res.status(500).json(apiError("Failed to compute memory statistics"));
+  }
+});
+
+// ─── Memory Health Check ─────────────────────────────────────────────────────
+router.get("/memory/health", async (req, res): Promise<void> => {
+  try {
+    const report = await runIntegrityCheck();
+    res.json(report);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/health error");
+    res.status(500).json(apiError("Failed to run memory health check"));
+  }
+});
+
+// ─── Trigger Memory Repair ───────────────────────────────────────────────────
+router.post("/memory/health/repair", async (req, res): Promise<void> => {
+  try {
+    const result = await runRepair();
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    logger.error({ err }, "POST /memory/health/repair error");
+    res.status(500).json(apiError("Failed to run memory repair"));
+  }
+});
+
+// ─── Relationship History ────────────────────────────────────────────────────
+router.get("/memory/relationships/history", async (req, res): Promise<void> => {
+  try {
+    const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+    const history = await getRelationshipHistory(limit);
+    res.json({ history, count: history.length });
+  } catch (err) {
+    logger.error({ err }, "GET /memory/relationships/history error");
+    res.status(500).json(apiError("Failed to retrieve relationship history"));
+  }
+});
+
+// ─── Orphan Detection ────────────────────────────────────────────────────────
+router.get("/memory/relationships/orphans", async (req, res): Promise<void> => {
+  try {
+    const report = await detectOrphanedRelationships();
+    res.json(report);
+  } catch (err) {
+    logger.error({ err }, "GET /memory/relationships/orphans error");
+    res.status(500).json(apiError("Failed to detect orphans"));
+  }
+});
+
 export default router;
+

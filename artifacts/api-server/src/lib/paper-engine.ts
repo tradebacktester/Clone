@@ -19,6 +19,8 @@ import {
   type SkipContext,
 } from "./memory-capture-engine.js";
 import { autoPopulateContextFromTrade } from "./context-memory.js";
+import { autoLinkTradeChain } from "./relationship-engine.js";
+import { upsertExperienceRecord } from "./experience-builder.js";
 import {
   logTradeOpened,
   logTradeClosed,
@@ -480,6 +482,11 @@ export async function executePaperSignals(
       },
     ).catch(() => {});
 
+    // Relationship graph — auto-link chain on open (idempotent)
+    autoLinkTradeChain({ tradeId: inserted.id, setupId: setupId ?? null, snapshotId: snapshotId ?? null }).catch(() => {});
+    // Experience index — create record on open
+    upsertExperienceRecord(inserted.id).catch(() => {});
+
     logTradeOpened({
       tradeId: inserted.id,
       pair,
@@ -603,6 +610,11 @@ export async function monitorOpenTrades(): Promise<void> {
         exitSlippage: exitSlippagePips,
         openedAt:     trade.openedAt ?? new Date(),
       }).catch(() => {});
+
+      // Relationship graph — re-link after close (picks up any new screenshots/context)
+      autoLinkTradeChain({ tradeId: trade.id }).catch(() => {});
+      // Experience index — update record with outcome, final P&L, duration
+      upsertExperienceRecord(trade.id).catch(() => {});
 
       logTradeClosed({
         tradeId: trade.id,
