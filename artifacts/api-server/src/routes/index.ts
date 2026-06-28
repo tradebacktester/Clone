@@ -35,6 +35,7 @@ import patternPerformanceRouter from "./pattern-performance";
 import featureImportanceRouter from "./feature-importance";
 import { decisionIntelligenceRouter } from "./decision-intelligence";
 import learningHealthRouter from "./learning-health";
+import learningEnhancementRouter from "./learning-enhancement";
 
 const router: IRouter = Router();
 
@@ -74,5 +75,6 @@ router.use(patternPerformanceRouter);
 router.use(featureImportanceRouter);
 router.use(decisionIntelligenceRouter);
 router.use(learningHealthRouter);
+router.use(learningEnhancementRouter);
 
 export default router;

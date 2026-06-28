@@ -25,3 +25,4 @@ export * from "./pattern-performance";
 export * from "./feature-importance";
 export * from "./decision-intelligence";
 export * from "./learning-validation";
+export * from "./learning-enhancement";

@@ -74,6 +74,7 @@ const NAV_GROUPS = [
       { href: "/context-memory", label: "Context Memory", icon: Camera },
       { href: "/memory-health", label: "Mem. Health", icon: HeartPulse },
       { href: "/learning-health", label: "Learning Health", icon: Shield },
+      { href: "/learning-enhancement", label: "Learn. Enhance.", icon: Sparkles },
     ],
   },
   {

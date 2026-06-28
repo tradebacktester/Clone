@@ -316,6 +316,16 @@ export type { RecommendationRecord, AccuracyEvaluation, CalibrationBucket } from
 export { buildScheduledRun, computeScheduleWindow, getScheduleStatus, nextRunDue, isRunDue } from "./learning/learning-validation/scheduler.js";
 export type { ScheduleType, ScheduledRun, ScheduleWindow, ScheduleStatus } from "./learning/learning-validation/scheduler.js";
 
+// ─── Phase 4: Enhancement — Calibration, Regime, Versioning, Quality ─────────
+export { runCalibration, filterByWindow } from "./learning/learning-validation/confidence-calibrator.js";
+export type { ReliabilityBucket, CalibrationResult, CalibrationSnapshot } from "./learning/learning-validation/confidence-calibrator.js";
+export { analyzeRegimeState, detectRegimeTransition, buildRegimeHistory, featuresToCandles } from "./learning/learning-validation/regime-transition-detector.js";
+export type { RegimeLabel, TransitionType, RegimeTransitionEvent, RegimeState, RegimeTimeline, RegimeHistoryEntry, RegimeCandle } from "./learning/learning-validation/regime-transition-detector.js";
+export { buildLearningVersion, compareVersions, generateVersionChangelog, bumpVersion } from "./learning/learning-validation/version-controller.js";
+export type { LearningVersionInput, VersionFeatureRanking, VersionPatternRanking, VersionChange, LearningVersion, VersionComparison } from "./learning/learning-validation/version-controller.js";
+export { computeQualitySnapshot } from "./learning/learning-validation/quality-monitor.js";
+export type { QualityAlertType, AlertSeverity, QualityAlert, QualityDimension, QualitySnapshot, QualityInput } from "./learning/learning-validation/quality-monitor.js";
+
 import type { Pair, Timeframe, AnalysisResult } from "./types.js";
 import { fetchCandles } from "./data/fetcher.js";
 import { detectSwings, labelStructure, calcATR } from "./analysis/swings.js";
