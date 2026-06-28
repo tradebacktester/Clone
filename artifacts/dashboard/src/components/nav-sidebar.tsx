@@ -73,6 +73,7 @@ const NAV_GROUPS = [
       { href: "/trader-intelligence", label: "Trader Intel.", icon: Lightbulb },
       { href: "/context-memory", label: "Context Memory", icon: Camera },
       { href: "/memory-health", label: "Mem. Health", icon: HeartPulse },
+      { href: "/learning-health", label: "Learning Health", icon: Shield },
     ],
   },
   {

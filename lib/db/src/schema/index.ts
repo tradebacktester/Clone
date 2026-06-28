@@ -24,3 +24,4 @@ export * from "./learning-engine";
 export * from "./pattern-performance";
 export * from "./feature-importance";
 export * from "./decision-intelligence";
+export * from "./learning-validation";

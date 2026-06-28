@@ -304,6 +304,18 @@ export { computeRecommendationConfidence } from "./learning/decision-intelligenc
 export { diStore } from "./learning/decision-intelligence/di-store.js";
 export { generateMarkdownReport as generateDecisionReport } from "./learning/decision-intelligence/report-generator.js";
 
+// ─── Phase 3: Learning Validation, Drift, Health, Accuracy, Scheduler ────────
+export { runStatisticalValidation, measureReproducibility } from "./learning/learning-validation/statistical-validator.js";
+export type { StatisticalValidationResult, ValidationCheck } from "./learning/learning-validation/statistical-validator.js";
+export { runDriftDetection } from "./learning/learning-validation/drift-detector.js";
+export type { DriftEvent, DriftReport, DriftType, DriftSeverity } from "./learning/learning-validation/drift-detector.js";
+export { computeHealthSnapshot } from "./learning/learning-validation/health-monitor.js";
+export type { HealthSnapshot, HealthInput, HealthDimension } from "./learning/learning-validation/health-monitor.js";
+export { evaluateRecommendationAccuracy } from "./learning/learning-validation/recommendation-tracker.js";
+export type { RecommendationRecord, AccuracyEvaluation, CalibrationBucket } from "./learning/learning-validation/recommendation-tracker.js";
+export { buildScheduledRun, computeScheduleWindow, getScheduleStatus, nextRunDue, isRunDue } from "./learning/learning-validation/scheduler.js";
+export type { ScheduleType, ScheduledRun, ScheduleWindow, ScheduleStatus } from "./learning/learning-validation/scheduler.js";
+
 import type { Pair, Timeframe, AnalysisResult } from "./types.js";
 import { fetchCandles } from "./data/fetcher.js";
 import { detectSwings, labelStructure, calcATR } from "./analysis/swings.js";

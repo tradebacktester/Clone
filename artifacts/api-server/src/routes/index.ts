@@ -34,6 +34,7 @@ import learningEngineRouter from "./learning-engine";
 import patternPerformanceRouter from "./pattern-performance";
 import featureImportanceRouter from "./feature-importance";
 import { decisionIntelligenceRouter } from "./decision-intelligence";
+import learningHealthRouter from "./learning-health";
 
 const router: IRouter = Router();
 
@@ -72,5 +73,6 @@ router.use(learningEngineRouter);
 router.use(patternPerformanceRouter);
 router.use(featureImportanceRouter);
 router.use(decisionIntelligenceRouter);
+router.use(learningHealthRouter);
 
 export default router;
