@@ -22,6 +22,48 @@ export { runHistoricalValidation } from "./historical/index.js";
 export { generateHistoricalReport } from "./historical/index.js";
 export * from "./analysis/swings.js";
 export * from "./analysis/fibonacci.js";
+
+// ─── Pattern Performance (selective — avoids collision with learning-core types)
+export type {
+  PatternCategory,
+  TrendStatus,
+  PatternStats,
+  PatternEvidence,
+  PatternTrend,
+  PatternRecord,
+  PatternFilter,
+  PatternReport,
+} from "./learning/pattern-performance/types.js";
+export {
+  MIN_EVIDENCE_SAMPLE,
+  MIN_RELIABLE_SAMPLE,
+  MIN_HIGH_CONFIDENCE_SAMPLE,
+} from "./learning/pattern-performance/types.js";
+export {
+  wilsonScore,
+  compositeConfidence,
+  validateEvidence,
+  INSUFFICIENT_MESSAGE,
+} from "./learning/pattern-performance/evidence-validator.js";
+export {
+  analyzeTrend,
+} from "./learning/pattern-performance/trend-analyzer.js";
+export {
+  analyzePatterns,
+  computePatternStats,
+  qualityTier,
+  riskProfile,
+  filterPatterns,
+  rankPatterns,
+  PATTERN_ENGINE_VERSION,
+} from "./learning/pattern-performance/pattern-analyzer.js";
+export {
+  PatternStore,
+  patternStore,
+} from "./learning/pattern-performance/pattern-store.js";
+export {
+  generatePatternReport,
+} from "./learning/pattern-performance/report-generator.js";
 export * from "./analysis/zones.js";
 export * from "./analysis/liquidity.js";
 export * from "./analysis/amd.js";

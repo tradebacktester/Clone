@@ -67,6 +67,7 @@ const NAV_GROUPS = [
       { href: "/quality", label: "Quality", icon: ShieldCheck },
       { href: "/memory", label: "Memory", icon: Brain },
       { href: "/learning", label: "Learning", icon: BrainCircuit },
+      { href: "/learning/patterns", label: "Pattern Perf.", icon: Sparkles },
       { href: "/trader-intelligence", label: "Trader Intel.", icon: Lightbulb },
       { href: "/context-memory", label: "Context Memory", icon: Camera },
       { href: "/memory-health", label: "Mem. Health", icon: HeartPulse },
