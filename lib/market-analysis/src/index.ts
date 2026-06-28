@@ -215,6 +215,62 @@ export {
 } from "./robustness/pipeline.js";
 export { generateRobustnessReportMarkdown } from "./robustness/report-generator.js";
 
+// ─── Feature Importance Engine (selective — avoids ConfidenceTier collision) ──
+export type {
+  FeatureId,
+  FeatureCategory,
+  FeatureDataType,
+  FeatureDefinition,
+  BucketStats,
+  FeatureImportanceResult,
+  InteractionDefinition,
+  FeatureCondition,
+  InteractionResult,
+  FeatureConfidenceState,
+  ValidationFlags,
+  FiAnalysisCycle,
+  FeatureRanking,
+  FeatureImportanceReport,
+  OverfittingRisk,
+  ReliabilityRating,
+  ConfidenceTrendDirection,
+} from "./learning/feature-importance/types.js";
+export {
+  FEATURE_DEFINITIONS,
+  FI_ENGINE_VERSION,
+  MIN_SAMPLE_SIZE,
+  SUFFICIENT_SAMPLE_SIZE,
+  SYNERGY_THRESHOLD,
+  MIN_INTERACTION_SAMPLE,
+} from "./learning/feature-importance/types.js";
+export {
+  calculateFeatureImportance,
+  calculateSingleFeature,
+} from "./learning/feature-importance/feature-calculator.js";
+export {
+  analyzeInteractions,
+} from "./learning/feature-importance/interaction-analyzer.js";
+export {
+  computeConfidenceDelta,
+  applyConfidenceLearning,
+  computeOverallCycleConfidence,
+} from "./learning/feature-importance/confidence-learning.js";
+export {
+  rankFeatures,
+  topFeatures,
+  weakestFeatures,
+  topByConfidence,
+  topInteractions,
+  summarizeByCategory,
+} from "./learning/feature-importance/ranking-engine.js";
+export {
+  validateFeature,
+  validateFeatureSet,
+  validateInteractions,
+} from "./learning/feature-importance/validator.js";
+export { featureImportanceStore } from "./learning/feature-importance/history-store.js";
+export { generateFeatureImportanceReport } from "./learning/feature-importance/report-generator.js";
+
 import type { Pair, Timeframe, AnalysisResult } from "./types.js";
 import { fetchCandles } from "./data/fetcher.js";
 import { detectSwings, labelStructure, calcATR } from "./analysis/swings.js";

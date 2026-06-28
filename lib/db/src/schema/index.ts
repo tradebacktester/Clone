@@ -22,3 +22,4 @@ export * from "./signal-log";
 export * from "./memory-certification";
 export * from "./learning-engine";
 export * from "./pattern-performance";
+export * from "./feature-importance";
