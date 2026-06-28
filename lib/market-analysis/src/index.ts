@@ -34,6 +34,7 @@ export * from "./backtest/engine.js";
 export * from "./backtest/stats.js";
 export * from "./learning/scorer.js";
 export * from "./learning/weights.js";
+export * from "./learning/index.js";
 export * from "./market_regime/volatility_analyzer.js";
 export * from "./market_regime/trend_analyzer.js";
 export * from "./market_regime/adaptive_weights.js";

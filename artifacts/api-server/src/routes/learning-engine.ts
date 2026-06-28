@@ -3,7 +3,7 @@
 // No routes here modify trading behavior or execute trades.
 
 import { Router } from "express";
-import { db } from "../db.js";
+import { db } from "@workspace/db";
 import {
   learningCyclesTable,
   learningFeaturesTable,
@@ -19,12 +19,12 @@ import {
   compareCycles,
   buildFeatureSummary,
   LEARNING_ENGINE_VERSION,
-} from "../../../lib/market-analysis/src/learning/index.js";
+} from "@workspace/market-analysis";
 import type {
   RawTradeRecord,
   RawSkippedSetup,
   RawManualReview,
-} from "../../../lib/market-analysis/src/learning/learning-core/types.js";
+} from "@workspace/market-analysis";
 
 const router = Router();
 
