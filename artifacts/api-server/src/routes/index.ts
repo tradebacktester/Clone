@@ -33,6 +33,7 @@ import memoryHealthRouter from "./memory-health";
 import learningEngineRouter from "./learning-engine";
 import patternPerformanceRouter from "./pattern-performance";
 import featureImportanceRouter from "./feature-importance";
+import { decisionIntelligenceRouter } from "./decision-intelligence";
 
 const router: IRouter = Router();
 
@@ -70,5 +71,6 @@ router.use(memoryHealthRouter);
 router.use(learningEngineRouter);
 router.use(patternPerformanceRouter);
 router.use(featureImportanceRouter);
+router.use(decisionIntelligenceRouter);
 
 export default router;

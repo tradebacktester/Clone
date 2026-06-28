@@ -271,6 +271,39 @@ export {
 export { featureImportanceStore } from "./learning/feature-importance/history-store.js";
 export { generateFeatureImportanceReport } from "./learning/feature-importance/report-generator.js";
 
+// ─── Decision Intelligence Engine (selective — avoids type collisions) ─────────
+export type {
+  CurrentSetup,
+  TisComponent,
+  TisComponentKey,
+  RecommendationLevel,
+  EvidenceFactor,
+  SimilarExperience,
+  UncertaintyLevel,
+  DiReliabilityRating,
+  TradeIntelligenceReport,
+  ValidationFlag,
+} from "./learning/decision-intelligence/types.js";
+export {
+  TIS_WEIGHTS,
+  RECOMMENDATION_LEVELS,
+  DI_ENGINE_VERSION,
+  MIN_EVIDENCE_FOR_RECOMMENDATION,
+  MAX_SIMILAR_EXPERIENCES,
+  LOW_CONFIDENCE_THRESHOLD,
+  SIMILARITY_THRESHOLD,
+  tisToLevel,
+  computeUncertaintyLevel,
+  computeReliabilityRating,
+} from "./learning/decision-intelligence/types.js";
+export { evaluateSetup, describeExpectancy } from "./learning/decision-intelligence/recommendation-engine.js";
+export { findSimilarExperiences, cosineSimilarity, buildVectorFromSetup } from "./learning/decision-intelligence/historical-matcher.js";
+export { computeTis } from "./learning/decision-intelligence/setup-scorer.js";
+export { extractFactors } from "./learning/decision-intelligence/factor-analyzer.js";
+export { computeRecommendationConfidence } from "./learning/decision-intelligence/confidence-calculator.js";
+export { diStore } from "./learning/decision-intelligence/di-store.js";
+export { generateMarkdownReport as generateDecisionReport } from "./learning/decision-intelligence/report-generator.js";
+
 import type { Pair, Timeframe, AnalysisResult } from "./types.js";
 import { fetchCandles } from "./data/fetcher.js";
 import { detectSwings, labelStructure, calcATR } from "./analysis/swings.js";

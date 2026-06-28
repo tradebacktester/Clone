@@ -38,6 +38,7 @@ const ContextMemory = lazy(() => import("@/pages/context-memory"));
 const MemoryHealth = lazy(() => import("@/pages/memory-health"));
 const LearningPatterns = lazy(() => import("@/pages/learning-patterns"));
 const FeatureIntelligence = lazy(() => import("@/pages/feature-intelligence"));
+const DecisionIntelligence = lazy(() => import("@/pages/decision-intelligence"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -92,6 +93,7 @@ function Router() {
           <Route path="/memory-health" component={MemoryHealth} />
           <Route path="/learning/patterns" component={LearningPatterns} />
           <Route path="/feature-intelligence" component={FeatureIntelligence} />
+          <Route path="/decision-intelligence" component={DecisionIntelligence} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
