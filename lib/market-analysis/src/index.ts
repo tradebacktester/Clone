@@ -387,3 +387,48 @@ export async function runFullAnalysis(
     analyzedAt: new Date(),
   };
 }
+
+// ─── Market Context Intelligence Engine
+export { buildMarketContext } from "./context/index.js";
+export type { MarketContextInput, FullMarketContext } from "./context/index.js";
+export {
+  analyzePerformance,
+  analyzeByRegime,
+  analyzeBySession,
+  analyzeByTrendDirection,
+  analyzeByVolatility,
+  analyzeByLiquidity,
+  analyzeByNewsStatus,
+  analyzeByDayOfWeek,
+  analyzeByMonth,
+  analyzeBySpreadBand,
+  overallStats,
+  findStatForCondition,
+} from "./context/index.js";
+export { scoreMarketContext, scoreToLabel } from "./context/index.js";
+export type { CurrentConditions } from "./context/index.js";
+export { findHistoricalMatches, computeSimilarityScore, aggregateMatchOutcomes } from "./context/index.js";
+export type { CurrentFeatures } from "./context/index.js";
+export { analyzeStability } from "./context/index.js";
+export { classifyEnvironment, classificationLabel } from "./context/index.js";
+export type {
+  EnvironmentClass,
+  StabilityLabel,
+  OutcomeLabel,
+  ConditionStats,
+  MCSComponent,
+  MarketContextScore,
+  HistoricalMatch,
+  StabilityMeasure,
+  StabilityAnalysis,
+  ContextHistory,
+  MarketContextAnalysis,
+  TradeRecord as ContextTradeRecord,
+  SnapshotRecord,
+} from "./context/index.js";
+export {
+  ENVIRONMENT_THRESHOLDS,
+  MIN_SAMPLE_FOR_SCORE,
+  MIN_SAMPLE_FOR_CONFIDENCE,
+  STABILITY_WINDOW,
+} from "./context/index.js";

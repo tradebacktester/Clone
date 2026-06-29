@@ -27,3 +27,4 @@ export * from "./decision-intelligence";
 export * from "./learning-validation";
 export * from "./learning-enhancement";
 export * from "./market-perception";
+export * from "./market-context";

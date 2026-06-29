@@ -58,6 +58,8 @@ const NAV_GROUPS = [
       { href: "/monte-carlo", label: "Monte Carlo", icon: Dices },
       { href: "/insights", label: "V2 Insights", icon: Layers },
       { href: "/time-performance", label: "Time Perf.", icon: Clock },
+      { href: "/market-intelligence", label: "Perception", icon: Radar },
+      { href: "/market-context", label: "Mkt Context", icon: Brain },
     ],
   },
   {
