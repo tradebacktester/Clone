@@ -60,6 +60,7 @@ const NAV_GROUPS = [
       { href: "/time-performance", label: "Time Perf.", icon: Clock },
       { href: "/market-intelligence", label: "Perception", icon: Radar },
       { href: "/market-context", label: "Mkt Context", icon: Brain },
+      { href: "/market-world", label: "World Model", icon: Globe2 },
     ],
   },
   {

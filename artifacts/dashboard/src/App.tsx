@@ -43,6 +43,7 @@ const LearningHealth = lazy(() => import("@/pages/learning-health"));
 const LearningEnhancement = lazy(() => import("@/pages/learning-enhancement"));
 const MarketIntelligence = lazy(() => import("@/pages/market-intelligence"));
 const MarketContext = lazy(() => import("@/pages/market-context"));
+const MarketWorldModel = lazy(() => import("@/pages/market-world-model"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -102,6 +103,7 @@ function Router() {
           <Route path="/learning-enhancement" component={LearningEnhancement} />
           <Route path="/market-intelligence" component={MarketIntelligence} />
           <Route path="/market-context" component={MarketContext} />
+          <Route path="/market-world" component={MarketWorldModel} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

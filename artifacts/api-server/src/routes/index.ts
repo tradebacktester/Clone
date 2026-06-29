@@ -38,6 +38,7 @@ import learningHealthRouter from "./learning-health";
 import learningEnhancementRouter from "./learning-enhancement";
 import marketPerceptionRouter from "./market-perception";
 import marketContextRouter from "./market-context";
+import marketWorldModelRouter from "./market-world-model";
 
 const router: IRouter = Router();
 
@@ -80,5 +81,6 @@ router.use(learningHealthRouter);
 router.use(learningEnhancementRouter);
 router.use(marketPerceptionRouter);
 router.use(marketContextRouter);
+router.use(marketWorldModelRouter);
 
 export default router;
