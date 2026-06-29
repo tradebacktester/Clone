@@ -512,3 +512,47 @@ export type {
   UnifiedMarketState,
   MarketIntelligenceReport as UnifiedIntelligenceReport,
 } from "./unified-intelligence/index.js";
+
+// ─── Strategy Reasoning Engine ────────────────────────────────────────────────
+// Phase 5 — evaluates every valid setup with full explainability.
+// Advisory only — no trade execution, no strategy modification.
+export {
+  runStrategyReasoning,
+  evaluateRules,
+  findSimilarHistoricalTrades,
+  analyzeMarketSupport,
+  analyzePatternStrength,
+  analyzeContextStrength,
+  calculateStrategyStrength,
+  extractSupportingFactors,
+  computeStatisticalExpectancy,
+  assessRisks,
+  buildReasoningNarrative,
+  strengthToRecommendation,
+  scoreToTier,
+  evidenceToReliability,
+  getPairScore,
+  SR_ENGINE_VERSION,
+  STRENGTH_WEIGHTS,
+  STRATEGY_RULES,
+  SESSION_SCORES,
+  REGIME_SCORES,
+  VOLATILITY_SCORES,
+} from "./learning/strategy-reasoning/index.js";
+export type {
+  StrategySetup,
+  ReasoningRecommendation,
+  RuleResult,
+  RuleStatus,
+  RuleEvaluationResult,
+  SimilarTrade,
+  HistoricalEvidenceResult,
+  MarketSupportResult,
+  PatternStrengthResult,
+  ContextStrengthResult,
+  StrengthComponent,
+  StrengthTier,
+  StrategyStrengthResult,
+  SupportingFactor,
+  StrategyReasoningReport,
+} from "./learning/strategy-reasoning/index.js";

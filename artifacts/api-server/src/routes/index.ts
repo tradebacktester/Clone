@@ -40,6 +40,7 @@ import marketPerceptionRouter from "./market-perception";
 import marketContextRouter from "./market-context";
 import marketWorldModelRouter from "./market-world-model";
 import marketIntelligenceRouter from "./market-intelligence";
+import { strategyReasoningRouter } from "./strategy-reasoning";
 
 const router: IRouter = Router();
 
@@ -84,5 +85,6 @@ router.use(marketPerceptionRouter);
 router.use(marketContextRouter);
 router.use(marketWorldModelRouter);
 router.use(marketIntelligenceRouter);
+router.use(strategyReasoningRouter);
 
 export default router;
