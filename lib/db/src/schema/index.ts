@@ -29,3 +29,4 @@ export * from "./learning-enhancement";
 export * from "./market-perception";
 export * from "./market-context";
 export * from "./market-world-model";
+export * from "./market-intelligence";

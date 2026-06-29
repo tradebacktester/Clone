@@ -487,3 +487,28 @@ export {
   generateTransitionReport,
   generateScenarioReport,
 } from "./world-model/index.js";
+
+// ─── Unified Market Intelligence Engine ───────────────────────────────────────
+// Single source of truth for all future intelligence modules.
+export { generateIntelligenceReport, UNIFIED_INTELLIGENCE_VERSION } from "./unified-intelligence/index.js";
+export { computeHealthScore } from "./unified-intelligence/index.js";
+export { computeOpportunityScore } from "./unified-intelligence/index.js";
+export { assessRisk as assessMarketRisk } from "./unified-intelligence/index.js";
+export { compareHistorical } from "./unified-intelligence/index.js";
+export { generateOutlook } from "./unified-intelligence/index.js";
+export type {
+  MarketSummary,
+  HistoricalContext,
+  HistoricalMatch as UnifiedHistoricalMatch,
+  HealthScoreBreakdown,
+  HealthGrade,
+  RiskDimension,
+  RiskAssessment,
+  RiskLevel,
+  OpportunityScoreBreakdown,
+  OpportunityLabel,
+  OutlookScenario,
+  MarketOutlook as UnifiedMarketOutlook,
+  UnifiedMarketState,
+  MarketIntelligenceReport as UnifiedIntelligenceReport,
+} from "./unified-intelligence/index.js";

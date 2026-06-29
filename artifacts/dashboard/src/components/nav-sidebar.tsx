@@ -61,6 +61,7 @@ const NAV_GROUPS = [
       { href: "/market-intelligence", label: "Perception", icon: Radar },
       { href: "/market-context", label: "Mkt Context", icon: Brain },
       { href: "/market-world", label: "World Model", icon: Globe2 },
+      { href: "/market-intelligence-center", label: "Intel. Center", icon: Cpu },
     ],
   },
   {
