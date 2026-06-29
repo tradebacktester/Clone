@@ -152,6 +152,18 @@ router.get("/market/regime/perception", async (req, res): Promise<void> => {
   }
 });
 
+router.get("/market/volatility", async (req, res): Promise<void> => {
+  try {
+    const pair = (req.query["pair"] as string | undefined)?.toUpperCase() ?? "EURUSD";
+    const candles = getCandlesForPair(pair);
+    const volatility = perceiveVolatility(candles);
+    res.json({ ok: true, data: { pair, volatility, timestamp: new Date().toISOString() } });
+  } catch (err) {
+    logger.error({ err }, "market/volatility error");
+    res.status(500).json({ ok: false, error: "Failed to analyze volatility" });
+  }
+});
+
 router.get("/market/volatility/detail", async (req, res): Promise<void> => {
   try {
     const pair = (req.query["pair"] as string | undefined)?.toUpperCase() ?? "EURUSD";
