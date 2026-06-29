@@ -1,4 +1,18 @@
 export * from "./types.js";
+export { perceiveTrend } from "./perception/trend-perception.js";
+export type { TrendDirection, TrendPerception } from "./perception/trend-perception.js";
+export { perceiveRegime } from "./perception/regime-perception.js";
+export type { PerceptionRegime, RegimeScore, RegimePerception } from "./perception/regime-perception.js";
+export { perceiveVolatility } from "./perception/volatility-perception.js";
+export type { VolatilityClassification, VolatilityTrend, VolatilityPerception } from "./perception/volatility-perception.js";
+export { perceiveLiquidity } from "./perception/liquidity-perception.js";
+export type { LiquidityQuality, SessionLiquidity, LiquidityPerception } from "./perception/liquidity-perception.js";
+export { perceiveCorrelation } from "./perception/correlation-perception.js";
+export type { CorrelationStatus, PairCorrelation, CorrelationPerception } from "./perception/correlation-perception.js";
+export { perceiveNewsContext } from "./perception/news-context.js";
+export type { NewsEnvironment, RecoveryPhase, UpcomingNewsEvent, RecentNewsEvent, NewsContext, RawNewsEvent } from "./perception/news-context.js";
+export { buildMarketState, MARKET_STATE_VERSION } from "./perception/market-state.js";
+export type { TradingSession, OverallConfidence, MarketStateInput, MarketState } from "./perception/market-state.js";
 export * from "./memory/index.js";
 export * from "./data/fetcher.js";
 export { startPipeline, getPipelineStatus, getLatestResult, loadLatestResultFromDisk } from "./production-readiness/index.js";

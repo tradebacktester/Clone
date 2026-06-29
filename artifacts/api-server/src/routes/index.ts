@@ -36,6 +36,7 @@ import featureImportanceRouter from "./feature-importance";
 import { decisionIntelligenceRouter } from "./decision-intelligence";
 import learningHealthRouter from "./learning-health";
 import learningEnhancementRouter from "./learning-enhancement";
+import marketPerceptionRouter from "./market-perception";
 
 const router: IRouter = Router();
 
@@ -76,5 +77,6 @@ router.use(featureImportanceRouter);
 router.use(decisionIntelligenceRouter);
 router.use(learningHealthRouter);
 router.use(learningEnhancementRouter);
+router.use(marketPerceptionRouter);
 
 export default router;
