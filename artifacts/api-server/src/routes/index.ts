@@ -43,6 +43,7 @@ import marketIntelligenceRouter from "./market-intelligence";
 import { strategyReasoningRouter }    from "./strategy-reasoning";
 import { strategyQualityRouter }      from "./strategy-quality";
 import { traderIdentityEngineRouter } from "./trader-identity-engine";
+import { researchLabRouter }          from "./research-lab";
 
 const router: IRouter = Router();
 
@@ -90,5 +91,6 @@ router.use(marketIntelligenceRouter);
 router.use(strategyReasoningRouter);
 router.use(strategyQualityRouter);
 router.use(traderIdentityEngineRouter);
+router.use(researchLabRouter);
 
 export default router;

@@ -650,3 +650,53 @@ export type {
   IdentityProfile,
   TraderIdentityReport,
 } from "./learning/trader-identity/index.js";
+
+// ─── Autonomous Research & Self-Evolution Laboratory ──────────────────────────
+// Phase 5 P4 — sandboxed research engine, validation pipeline, approval workflow.
+// Advisory only. Research environment is completely isolated from production.
+export {
+  runResearchCycle,
+  buildLabReport,
+  detectWeaknesses,
+  generateHypotheses,
+  buildExperiment,
+  buildCodeChangeArtifact,
+  generateStrategyVersion,
+  runValidationPipeline,
+  compareStrategies,
+  extractMetrics,
+  generateRecommendation,
+  buildApprovalRequest,
+  processDecision,
+  detectDegradation,
+  RL_ENGINE_VERSION,
+  VALIDATION_STAGES,
+} from "./learning/research-lab/index.js";
+export type {
+  ValidationStage,
+  ProjectStatus,
+  Priority,
+  HypothesisType,
+  HypothesisStatus,
+  ExperimentStatus,
+  ApprovalStatus,
+  OverallVerdict,
+  RecommendationType,
+  ApprovalDecision,
+  ChangeType,
+  Weakness,
+  Hypothesis,
+  ValidationStageResult,
+  ValidationPipelineResult,
+  PerformanceMetrics,
+  ComparisonResult,
+  CodeChangeArtifact,
+  ResearchExperiment,
+  DeploymentRecommendation,
+  ResearchProject,
+  ResearchLabReport,
+  ResearchCycleResult,
+  FeatureSnapshot,
+  ApprovalRequest,
+  DegradationAlert,
+} from "./learning/research-lab/index.js";

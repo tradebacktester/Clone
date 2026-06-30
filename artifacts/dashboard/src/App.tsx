@@ -48,6 +48,7 @@ const MarketIntelligenceCenter = lazy(() => import("@/pages/market-intelligence-
 const StrategyIntelligence = lazy(() => import("@/pages/strategy-intelligence"));
 const StrategyQuality      = lazy(() => import("@/pages/strategy-quality"));
 const TraderIdentity       = lazy(() => import("@/pages/trader-identity"));
+const ResearchLaboratory   = lazy(() => import("@/pages/research-laboratory"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -112,6 +113,7 @@ function Router() {
           <Route path="/strategy-intelligence" component={StrategyIntelligence} />
           <Route path="/strategy-quality"     component={StrategyQuality} />
           <Route path="/trader-identity"      component={TraderIdentity} />
+          <Route path="/research-laboratory"  component={ResearchLaboratory} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
