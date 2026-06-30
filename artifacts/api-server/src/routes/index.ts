@@ -40,8 +40,9 @@ import marketPerceptionRouter from "./market-perception";
 import marketContextRouter from "./market-context";
 import marketWorldModelRouter from "./market-world-model";
 import marketIntelligenceRouter from "./market-intelligence";
-import { strategyReasoningRouter } from "./strategy-reasoning";
-import { strategyQualityRouter }   from "./strategy-quality";
+import { strategyReasoningRouter }    from "./strategy-reasoning";
+import { strategyQualityRouter }      from "./strategy-quality";
+import { traderIdentityEngineRouter } from "./trader-identity-engine";
 
 const router: IRouter = Router();
 
@@ -88,5 +89,6 @@ router.use(marketWorldModelRouter);
 router.use(marketIntelligenceRouter);
 router.use(strategyReasoningRouter);
 router.use(strategyQualityRouter);
+router.use(traderIdentityEngineRouter);
 
 export default router;

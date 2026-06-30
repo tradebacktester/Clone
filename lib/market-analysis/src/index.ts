@@ -601,3 +601,52 @@ export type {
   QualityClassificationResult,
   StrategyQualityReport,
 } from "./learning/strategy-quality/index.js";
+
+// ─── Trader Identity & Strategy Consistency Engine ────────────────────────────
+// Phase 5 P3 — dynamic identity model, preference discovery, consistency scoring.
+// Advisory only — no strategy modification, no trade execution.
+export {
+  runTraderIdentityEngine,
+  buildIdentityProfile,
+  runDriftAnalysis,
+  evaluateRuleIdentity,
+  analyzeAdaptiveIdentity,
+  computeRuleSimilarity,
+  computeHistoricalSimilarity,
+  computePreferenceAlignment,
+  computeIdentitySimilarity,
+  evaluateConsistency,
+  detectDrift,
+  buildIdentityNarrative,
+  stageLabel,
+  TI_ENGINE_VERSION,
+  MIN_SAMPLE_FOR_ADAPTIVE,
+  MIN_PREFERENCE_SAMPLE,
+  SIMILARITY_WEIGHTS,
+  CONSISTENCY_THRESHOLDS,
+  CONSISTENCY_LABELS,
+  consistencyFromScore,
+} from "./learning/trader-identity/index.js";
+export type {
+  IdentityStage,
+  ConsistencyLevel,
+  PreferenceType,
+  DriftType,
+  DriftSeverity,
+  IdentitySetup,
+  IdentityFeature,
+  RuleCheck,
+  RuleIdentityResult,
+  PreferenceGroup,
+  AdaptiveIdentityResult,
+  SimilarHistoricalTrade,
+  RuleSimilarityResult,
+  HistoricalSimilarityResult,
+  PreferenceAlignmentResult,
+  IdentitySimilarityScore,
+  ConsistencyResult,
+  DriftEvent,
+  DriftReport,
+  IdentityProfile,
+  TraderIdentityReport,
+} from "./learning/trader-identity/index.js";
