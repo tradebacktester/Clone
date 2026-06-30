@@ -79,8 +79,9 @@ const NAV_GROUPS = [
       { href: "/memory-health", label: "Mem. Health", icon: HeartPulse },
       { href: "/learning-health", label: "Learning Health", icon: Shield },
       { href: "/learning-enhancement", label: "Learn. Enhance.", icon: Sparkles },
-      { href: "/strategy-intelligence", label: "Strategy Intel.", icon: TrendingUp },
-      { href: "/strategy-quality",     label: "Strategy Quality", icon: Sparkles },
+      { href: "/strategy-intelligence",    label: "Strategy Intel.", icon: TrendingUp },
+      { href: "/strategy-quality",          label: "Strategy Quality", icon: Sparkles },
+      { href: "/strategy-command-center",   label: "Command Center",   icon: Brain },
     ],
   },
   {

@@ -34,3 +34,4 @@ export * from "./strategy-reasoning";
 export * from "./strategy-quality";
 export * from "./trader-identity";
 export * from "./research-lab";
+export * from "./executive-brain";

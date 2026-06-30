@@ -700,3 +700,35 @@ export type {
   ApprovalRequest,
   DegradationAlert,
 } from "./learning/research-lab/index.js";
+
+// ─── Executive Strategy Brain ─────────────────────────────────────────────────
+export {
+  runExecutiveBrain,
+  runCertification,
+  ESB_ENGINE_VERSION,
+  DEFAULT_SCORE_WEIGHTS,
+  buildRuleEngineSummary,
+  buildReasoningSummary,
+  buildQualitySummary,
+  buildIdentitySummary,
+  buildHistoricalIntelligence,
+  buildMarketSummary,
+  buildResearchSummary,
+} from "./executive-brain/index.js";
+
+export type {
+  UnifiedStrategyIntelligenceObject,
+  EsbSetupInput,
+  EsbScoreWeights,
+  EsbScoreBreakdown,
+  EsbRecommendation,
+  RuleEngineSummary,
+  StrategyReasoningSummary,
+  StrategyQualitySummary,
+  TraderIdentitySummary,
+  HistoricalIntelligence,
+  MarketIntelligenceSummary,
+  ResearchIntelligenceSummary,
+  ExplainabilityBundle,
+  CertificationReport,
+} from "./executive-brain/index.js";
