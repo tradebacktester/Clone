@@ -80,6 +80,7 @@ const NAV_GROUPS = [
       { href: "/learning-health", label: "Learning Health", icon: Shield },
       { href: "/learning-enhancement", label: "Learn. Enhance.", icon: Sparkles },
       { href: "/strategy-intelligence", label: "Strategy Intel.", icon: TrendingUp },
+      { href: "/strategy-quality",     label: "Strategy Quality", icon: Sparkles },
     ],
   },
   {

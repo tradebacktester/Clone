@@ -556,3 +556,48 @@ export type {
   SupportingFactor,
   StrategyReasoningReport,
 } from "./learning/strategy-reasoning/index.js";
+
+// ─── Strategy Quality Intelligence Engine ─────────────────────────────────────
+// Phase 5 — objective multi-factor setup quality scoring (0–100 SQS, 7-tier).
+// Advisory only — no strategy modification, no trade execution.
+export {
+  runQualityEngine,
+  evaluateRuleIntegrity,
+  analyzeStructuralQuality,
+  analyzeLiquidityIntelligence,
+  analyzeAmdIntelligence,
+  analyzeConfirmationIntelligence,
+  integrateMarketIntelligence,
+  analyzeHistoricalIntelligence,
+  calculateSqs,
+  classifyQuality,
+  sqsToClassification,
+  scoreToQualityTier,
+  getPairQuality,
+  SQI_ENGINE_VERSION,
+  SQS_WEIGHTS,
+  STRUCTURAL_WEIGHTS,
+  LIQUIDITY_INTEL_WEIGHTS,
+  AMD_INTEL_WEIGHTS,
+  CONFIRMATION_INTEL_WEIGHTS,
+  MARKET_INTEL_WEIGHTS,
+  QUALITY_CLASSIFICATION_THRESHOLDS,
+  QUALITY_CLASSIFICATION_LABELS,
+  SESSION_QUALITY,
+  REGIME_QUALITY,
+} from "./learning/strategy-quality/index.js";
+export type {
+  QualitySetup,
+  QualityClassification,
+  QualityTier,
+  RuleIntegrityResult,
+  StructuralQualityResult,
+  LiquidityIntelligenceResult,
+  AmdIntelligenceResult,
+  ConfirmationIntelligenceResult,
+  MarketIntelligenceResult,
+  HistoricalIntelligenceResult,
+  SqsComponent,
+  QualityClassificationResult,
+  StrategyQualityReport,
+} from "./learning/strategy-quality/index.js";
