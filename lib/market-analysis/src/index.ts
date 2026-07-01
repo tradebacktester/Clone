@@ -732,3 +732,45 @@ export type {
   ExplainabilityBundle,
   CertificationReport,
 } from "./executive-brain/index.js";
+
+// ─── Risk Intelligence Core Engine (Phase 6) ──────────────────────────────────
+export {
+  runRiskIntelligence,
+  gatherSystemMetrics,
+  defaultAccountState,
+  defaultPortfolioInput,
+  defaultMarketInput,
+  defaultBrokerMetrics,
+  defaultSystemMetrics,
+  evaluateAccountRisk,
+  evaluatePositionRisk,
+  evaluatePortfolioRisk,
+  evaluateMarketRisk,
+  evaluateBrokerRisk,
+  evaluateSystemRisk,
+  scoreToRiskClassification,
+  RI_ENGINE_VERSION,
+  RI_RISK_VERSION,
+  DEFAULT_RI_WEIGHTS,
+} from "./risk-intelligence/index.js";
+
+export type {
+  RunRiInput,
+  UnifiedRiskIntelligenceObject,
+  AccountState,
+  PositionInput,
+  PortfolioInput,
+  MarketRiskInput,
+  BrokerMetrics,
+  SystemMetrics,
+  RiScoreWeights,
+  RiskClassification,
+  AccountRiskResult,
+  PositionRiskResult,
+  PortfolioRiskResult,
+  MarketRiskResult,
+  BrokerRiskResult,
+  SystemRiskResult,
+  RiskAlert,
+  OpenPosition,
+} from "./risk-intelligence/index.js";

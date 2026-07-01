@@ -82,6 +82,7 @@ const NAV_GROUPS = [
       { href: "/strategy-intelligence",    label: "Strategy Intel.", icon: TrendingUp },
       { href: "/strategy-quality",          label: "Strategy Quality", icon: Sparkles },
       { href: "/strategy-command-center",   label: "Command Center",   icon: Brain },
+      { href: "/risk-command-center",       label: "Risk Center",       icon: ShieldAlert },
     ],
   },
   {

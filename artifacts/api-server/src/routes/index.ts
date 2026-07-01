@@ -45,6 +45,7 @@ import { strategyQualityRouter }      from "./strategy-quality";
 import { traderIdentityEngineRouter } from "./trader-identity-engine";
 import { researchLabRouter }          from "./research-lab";
 import { executiveBrainRouter }       from "./executive-brain";
+import { riskIntelligenceRouter }     from "./risk-intelligence";
 
 const router: IRouter = Router();
 
@@ -94,5 +95,6 @@ router.use(strategyQualityRouter);
 router.use(traderIdentityEngineRouter);
 router.use(researchLabRouter);
 router.use(executiveBrainRouter);
+router.use(riskIntelligenceRouter);
 
 export default router;
