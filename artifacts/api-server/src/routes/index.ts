@@ -48,6 +48,7 @@ import { executiveBrainRouter }       from "./executive-brain";
 import { riskIntelligenceRouter }     from "./risk-intelligence";
 import capitalProtectionRouter         from "./capital-protection";
 import adaptiveRiskRouter              from "./adaptive-risk";
+import crisisRouter                    from "./crisis";
 
 const router: IRouter = Router();
 
@@ -100,5 +101,6 @@ router.use(executiveBrainRouter);
 router.use(riskIntelligenceRouter);
 router.use(capitalProtectionRouter);
 router.use(adaptiveRiskRouter);
+router.use(crisisRouter);
 
 export default router;

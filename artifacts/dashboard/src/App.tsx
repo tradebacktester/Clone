@@ -53,6 +53,7 @@ const StrategyCommandCenter = lazy(() => import("@/pages/strategy-command-center
 const RiskCommandCenter     = lazy(() => import("@/pages/risk-command-center"));
 const CapitalProtection     = lazy(() => import("@/pages/capital-protection"));
 const AdaptiveRisk          = lazy(() => import("@/pages/adaptive-risk"));
+const CrisisCommandCenter   = lazy(() => import("@/pages/crisis-command-center"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -122,6 +123,7 @@ function Router() {
           <Route path="/risk-command-center"    component={RiskCommandCenter} />
           <Route path="/capital-protection"    component={CapitalProtection} />
           <Route path="/adaptive-risk"         component={AdaptiveRisk} />
+          <Route path="/crisis-command-center" component={CrisisCommandCenter} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
