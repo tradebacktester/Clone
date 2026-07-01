@@ -84,6 +84,7 @@ const NAV_GROUPS = [
       { href: "/strategy-command-center",   label: "Command Center",   icon: Brain },
       { href: "/risk-command-center",       label: "Risk Center",       icon: ShieldAlert },
       { href: "/capital-protection",        label: "Capital Protection", icon: ShieldAlert },
+      { href: "/adaptive-risk",             label: "Adaptive Risk",      icon: Brain },
     ],
   },
   {

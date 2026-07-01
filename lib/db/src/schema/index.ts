@@ -37,3 +37,4 @@ export * from "./research-lab";
 export * from "./executive-brain";
 export * from "./risk-intelligence";
 export * from "./capital-protection";
+export * from "./adaptive-risk";

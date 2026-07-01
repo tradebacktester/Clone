@@ -47,6 +47,7 @@ import { researchLabRouter }          from "./research-lab";
 import { executiveBrainRouter }       from "./executive-brain";
 import { riskIntelligenceRouter }     from "./risk-intelligence";
 import capitalProtectionRouter         from "./capital-protection";
+import adaptiveRiskRouter              from "./adaptive-risk";
 
 const router: IRouter = Router();
 
@@ -98,5 +99,6 @@ router.use(researchLabRouter);
 router.use(executiveBrainRouter);
 router.use(riskIntelligenceRouter);
 router.use(capitalProtectionRouter);
+router.use(adaptiveRiskRouter);
 
 export default router;

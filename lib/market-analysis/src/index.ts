@@ -815,3 +815,32 @@ export type {
   BrokerProtectionResult,
   SystemProtectionResult,
 } from "./capital-protection/index.js";
+
+// ─── Adaptive Risk Intelligence Engine ───────────────────────────────────────
+export {
+  ARI_ENGINE_VERSION,
+  runAdaptiveRiskEngine,
+  defaultMarketContext,
+  learnByRegime,
+  learnByVolatility,
+  learnBySession,
+  profileByPair,
+  learnByLiquidity,
+  learnByCondition,
+  computeConfidence,
+  selectProfile,
+  generateRecommendations as generateAriRecommendations,
+} from "./adaptive-risk/index.js";
+export type {
+  RunAriInput,
+  AdaptiveRiskReport,
+  ProfileRecommendation,
+  MarketAnalysisResult,
+  EnvironmentStats,
+  EvidenceItem,
+  RiskProfile,
+  MarketContext,
+  RiskParameters,
+  ConfidenceResult,
+  AdaptationEvent,
+} from "./adaptive-risk/index.js";
