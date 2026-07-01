@@ -871,6 +871,41 @@ export {
   MODE_RESTRICTIONS,
   SURVIVAL_MODE_ORDER,
 } from "./crisis/index.js";
+// ─── Executive Risk Brain ─────────────────────────────────────────────────────
+export {
+  runExecutiveRiskBrain,
+  runErbCertification,
+  ERB_ENGINE_VERSION,
+  ERB_RISK_VERSION,
+  scoreToRecommendation as erbScoreToRecommendation,
+  buildHistoricalComparison as erbBuildHistoricalComparison,
+  computeAllScores as erbComputeAllScores,
+  defaultAccount as erbDefaultAccount,
+  defaultPortfolio as erbDefaultPortfolio,
+  defaultMarket as erbDefaultMarket,
+  defaultBroker as erbDefaultBroker,
+  defaultInfra as erbDefaultInfra,
+  defaultAdaptive as erbDefaultAdaptive,
+  defaultCrisis as erbDefaultCrisis,
+  buildAccountIntelligence,
+  buildPortfolioIntelligence,
+  buildMarketIntelligence,
+  buildBrokerIntelligence,
+  buildInfraIntelligence,
+  buildAdaptiveIntelligence,
+  buildCrisisIntelligence,
+} from "./executive-risk-brain/index.js";
+export type {
+  ExecutiveRiskObject,
+  RunErbInput,
+  ErbRecommendation,
+  ErbCertificationReport,
+  ErbAuditContext,
+  ErbScoreBreakdown,
+  ErbExplainability,
+  ErbRecommendationDetail,
+} from "./executive-risk-brain/index.js";
+
 export type {
   RunCrisisEngineInput,
   CrisisEngineReport,
