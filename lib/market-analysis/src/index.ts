@@ -906,6 +906,46 @@ export type {
   ErbRecommendationDetail,
 } from "./executive-risk-brain/index.js";
 
+// ─── Executive AI Core (Phase 7) ─────────────────────────────────────────────
+export {
+  runExecutiveAI,
+  EAI_ENGINE_VERSION,
+  EAI_DECISION_VERSION,
+  DECISION_LABELS as eaiDecisionLabels,
+  DECISION_DESCRIPTIONS as eaiDecisionDescriptions,
+  DECISION_THRESHOLD as eaiDecisionThreshold,
+  DEFAULT_EAI_WEIGHTS,
+  buildWeights as eaiBuildWeights,
+  WEIGHTS_VERSION as eaiWeightsVersion,
+  computeDimensionScores as eaiComputeDimensionScores,
+  scoreToDecision as eaiScoreToDecision,
+  applyVetoes as eaiApplyVetoes,
+  buildScoreBreakdown as eaiBuildScoreBreakdown,
+  buildContributions as eaiBuildContributions,
+  buildStrategyIntelligence as eaiBuildStrategyIntelligence,
+  buildMarketIntelligence as eaiBuildMarketIntelligence,
+  buildRiskIntelligence as eaiBuildRiskIntelligence,
+  buildMemoryIntelligence as eaiBuildMemoryIntelligence,
+  buildLearningIntelligence as eaiBuildLearningIntelligence,
+  buildIdentityIntelligence as eaiBuildIdentityIntelligence,
+  buildResearchIntelligence as eaiBuildResearchIntelligence,
+  resolveAllConflicts as eaiResolveConflicts,
+  eaiComputeConfidence,
+  eaiBuildExplainability,
+} from "./executive-ai-core/index.js";
+export type {
+  ExecutiveDecision,
+  RunEaiInput,
+  EaiDecisionType,
+  EaiConfidence,
+  EaiConflict,
+  EaiContribution,
+  EaiExplainability,
+  EaiScoreBreakdown,
+  EaiWeights,
+  EaiVersionInfo,
+} from "./executive-ai-core/index.js";
+
 export type {
   RunCrisisEngineInput,
   CrisisEngineReport,

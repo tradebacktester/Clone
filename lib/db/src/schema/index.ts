@@ -40,3 +40,4 @@ export * from "./capital-protection";
 export * from "./adaptive-risk";
 export * from "./crisis";
 export * from "./executive-risk-brain";
+export * from "./executive-ai-core";
