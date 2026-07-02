@@ -965,3 +965,34 @@ export type {
   SurvivalMode,
   CrisisType,
 } from "./crisis/index.js";
+
+// ─── Executive Reasoning Engine (Phase 7.2) ───────────────────────────────────
+export {
+  runExecutiveReasoning,
+  collectEvidence,
+  runAllAdvisors,
+  buildConflictMatrix,
+  deliberate,
+  buildCandidates,
+  runSafetyGates,
+  buildReasoningTrace,
+  ER_ENGINE_VERSION,
+} from "./executive-reasoning/index.js";
+export type {
+  ExecutiveReasoningReport,
+  RunReasoningInput,
+  ReasoningTrace,
+  ReasoningStage,
+  AdvisorAssessment,
+  AdvisorId,
+  ConflictMatrix,
+  ConflictEntry,
+  ConflictSeverity,
+  CandidateAction,
+  RejectedAlternative,
+  DeliberationResult,
+  SafetyGateReport,
+  SafetyGateResult,
+  EvidenceCollection,
+  EvidenceItem,
+} from "./executive-reasoning/index.js";

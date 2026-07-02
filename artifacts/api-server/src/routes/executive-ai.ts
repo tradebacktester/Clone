@@ -12,12 +12,20 @@ import {
   esbReportsTable,
   riReportsTable,
   erbReportsTable,
+  erReportsTable,
+  erTracesTable,
+  erSafetyGatesTable,
 } from "@workspace/db";
 import { desc, eq, gte, sql } from "drizzle-orm";
 import {
   runExecutiveAI,
   EAI_ENGINE_VERSION,
   EAI_DECISION_VERSION,
+} from "@workspace/market-analysis";
+import {
+  runExecutiveReasoning,
+  runSafetyGates,
+  ER_ENGINE_VERSION,
 } from "@workspace/market-analysis";
 
 export const executiveAiRouter = Router();
@@ -388,5 +396,298 @@ executiveAiRouter.get("/executive-ai/report", async (_req, res) => {
     });
   } catch (err: any) {
     res.status(500).json({ error: "Failed to generate report", detail: err?.message });
+  }
+});
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Phase 7.2 — Autonomous Executive Reasoning Routes
+// ═══════════════════════════════════════════════════════════════════════════════
+
+// ─── GET /executive-ai/reasoning ──────────────────────────────────────────────
+// Run a full 5-stage reasoning cycle and persist the result
+
+executiveAiRouter.get("/executive-ai/reasoning", async (req, res) => {
+  try {
+    const pair      = String(req.query.pair      ?? "EURUSD");
+    const timeframe = String(req.query.timeframe ?? "15m");
+
+    // Fetch latest subsystem data
+    const [latestEsb, latestErb, latestRi] = await Promise.all([
+      db.select().from(esbReportsTable).orderBy(desc(esbReportsTable.evaluatedAt)).limit(1),
+      db.select().from(erbReportsTable).orderBy(desc(erbReportsTable.evaluatedAt)).limit(1),
+      db.select().from(riReportsTable).orderBy(desc(riReportsTable.evaluatedAt)).limit(1),
+    ]);
+
+    const strategyResult = latestEsb[0] ? (latestEsb[0].fullPayload as Record<string, unknown> | null) : null;
+    const erbResult      = latestErb[0] ? (latestErb[0].fullPayload as Record<string, unknown> | null) : null;
+    const riResult       = latestRi[0]  ? (latestRi[0].fullPayload  as Record<string, unknown> | null) : null;
+
+    const report = await runExecutiveReasoning({ pair, timeframe, strategyResult, erbResult, riResult });
+
+    // Persist to DB
+    await db.insert(erReportsTable).values({
+      reportId:              report.reportId,
+      traceId:               report.traceId,
+      evaluatedAt:           new Date(report.evaluatedAt),
+      pair:                  report.pair,
+      timeframe:             report.timeframe,
+      evidenceQuality:       report.evidenceCollection.overallQuality,
+      advisorCount:          report.advisorAssessments.length,
+      advisorAgreementScore: report.conflictMatrix.agreementScore,
+      conflictCount:         report.conflictMatrix.entries.length,
+      conflictLevel:         report.conflictMatrix.overallConflictLevel,
+      selectedAction:        report.selectedAction,
+      selectedActionLabel:   report.selectedActionLabel,
+      executiveScore:        report.executiveScore,
+      executiveConfidence:   report.executiveConfidence,
+      utilityScore:          report.deliberationResult.selectedCandidate.utilityScore,
+      allSafetyGatesPassed:  report.safetyGateReport.allPassed,
+      tradingPermitted:      report.safetyGateReport.tradingPermitted,
+      failedGateCount:       report.safetyGateReport.failedCount,
+      marketRegime:          "unknown",
+      riskState:             "unknown",
+      durationMs:            report.durationMs,
+      engineVersion:         report.engineVersion,
+      fullPayload:           report as unknown as Record<string, unknown>,
+      isAdvisoryOnly:        true,
+      isReplayable:          true,
+    }).onConflictDoNothing();
+
+    // Persist trace
+    await db.insert(erTracesTable).values({
+      traceId:         report.traceId,
+      reportId:        report.reportId,
+      recordedAt:      new Date(report.evaluatedAt),
+      pair:            report.pair,
+      selectedAction:  report.selectedAction,
+      executiveScore:  report.executiveScore,
+      confidence:      report.executiveConfidence,
+      stagesCompleted: report.reasoningTrace.stages.length,
+      conflictCount:   report.conflictMatrix.entries.length,
+      safetyPassed:    report.safetyGateReport.allPassed,
+      durationMs:      report.durationMs,
+      engineVersion:   report.engineVersion,
+    }).onConflictDoNothing();
+
+    // Persist safety gates
+    for (const gate of report.safetyGateReport.gates) {
+      await db.insert(erSafetyGatesTable).values({
+        reportId:   report.reportId,
+        recordedAt: new Date(report.evaluatedAt),
+        gate:       gate.gate,
+        passed:     gate.passed,
+        value:      gate.value,
+        threshold:  gate.threshold,
+        message:    gate.message,
+        severity:   gate.severity,
+      }).onConflictDoNothing();
+    }
+
+    res.json({ success: true, data: report });
+  } catch (err: any) {
+    res.status(500).json({ error: "Reasoning cycle failed", detail: err?.message });
+  }
+});
+
+// ─── GET /executive-ai/reasoning/:id ──────────────────────────────────────────
+
+executiveAiRouter.get("/executive-ai/reasoning/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    const rows = await db
+      .select()
+      .from(erReportsTable)
+      .where(eq(erReportsTable.reportId, id))
+      .limit(1);
+
+    if (!rows[0]) {
+      return res.status(404).json({ error: "Reasoning report not found", reportId: id });
+    }
+    res.json({ success: true, data: rows[0].fullPayload ?? rows[0] });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to fetch reasoning report", detail: err?.message });
+  }
+});
+
+// ─── GET /executive-ai/conflict-matrix ────────────────────────────────────────
+
+executiveAiRouter.get("/executive-ai/conflict-matrix", async (req, res) => {
+  try {
+    const rows = await db
+      .select()
+      .from(erReportsTable)
+      .orderBy(desc(erReportsTable.evaluatedAt))
+      .limit(1);
+
+    if (!rows[0]?.fullPayload) {
+      return res.json({ success: true, data: null, message: "No reasoning data yet — run /reasoning first" });
+    }
+
+    const payload = rows[0].fullPayload as Record<string, unknown>;
+    const matrix  = (payload as any).conflictMatrix ?? null;
+
+    // Also fetch historical conflict counts
+    const hist = await db
+      .select({
+        date:          sql<string>`date_trunc('hour', ${erReportsTable.evaluatedAt})`,
+        conflictCount: sql<number>`avg(${erReportsTable.conflictCount})`,
+        level:         erReportsTable.conflictLevel,
+      })
+      .from(erReportsTable)
+      .orderBy(desc(erReportsTable.evaluatedAt))
+      .limit(48);
+
+    res.json({ success: true, data: { matrix, history: hist, latestReportId: rows[0].reportId } });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to fetch conflict matrix", detail: err?.message });
+  }
+});
+
+// ─── GET /executive-ai/alternatives ───────────────────────────────────────────
+
+executiveAiRouter.get("/executive-ai/alternatives", async (req, res) => {
+  try {
+    const rows = await db
+      .select()
+      .from(erReportsTable)
+      .orderBy(desc(erReportsTable.evaluatedAt))
+      .limit(1);
+
+    if (!rows[0]?.fullPayload) {
+      return res.json({ success: true, data: null, message: "No reasoning data yet — run /reasoning first" });
+    }
+
+    const payload      = rows[0].fullPayload as Record<string, unknown>;
+    const deliberation = (payload as any).deliberationResult ?? null;
+    const candidates   = deliberation?.candidates ?? [];
+    const rejected     = (payload as any).rejectedAlternatives ?? [];
+
+    res.json({
+      success: true,
+      data: {
+        selectedAction:      rows[0].selectedAction,
+        selectedActionLabel: rows[0].selectedActionLabel,
+        utilityScore:        rows[0].utilityScore,
+        candidates,
+        rejectedAlternatives: rejected,
+        deliberationReason:  deliberation?.deliberationReason ?? "",
+        reportId:            rows[0].reportId,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to fetch alternatives", detail: err?.message });
+  }
+});
+
+// ─── GET /executive-ai/safety-gates ───────────────────────────────────────────
+
+executiveAiRouter.get("/executive-ai/safety-gates", async (req, res) => {
+  try {
+    // Run live safety gate check
+    const [latestErb, latestEsb] = await Promise.all([
+      db.select().from(erbReportsTable).orderBy(desc(erbReportsTable.evaluatedAt)).limit(1),
+      db.select().from(esbReportsTable).orderBy(desc(esbReportsTable.evaluatedAt)).limit(1),
+    ]);
+
+    const erbP = (latestErb[0]?.fullPayload ?? {}) as Record<string, unknown>;
+    const esbP = (latestEsb[0]?.fullPayload ?? {}) as Record<string, unknown>;
+
+    const liveGates = runSafetyGates({
+      rulePassRate:        n(esbP.rulePassRate, 70),
+      erbRiskScore:        n(erbP.overallRiskScore, 30),
+      capitalHealthScore:  n(erbP.capitalHealthScore, 75),
+      crisisStatus:        String(erbP.crisisStatus ?? "none"),
+      survivalModeActive:  Boolean(erbP.survivalModeActive),
+      evidenceQuality:     75,  // default — refreshed on full reasoning run
+      brokerReliability:   n(erbP.brokerReliabilityScore, 80),
+      executiveConfidence: 65,  // default — refreshed on full reasoning run
+    });
+
+    // Fetch historical gate records
+    const gateHistory = await db
+      .select()
+      .from(erSafetyGatesTable)
+      .orderBy(desc(erSafetyGatesTable.recordedAt))
+      .limit(70);  // ~10 full reports
+
+    res.json({
+      success: true,
+      data: {
+        live:        liveGates,
+        history:     gateHistory,
+        engineVersion: ER_ENGINE_VERSION,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to fetch safety gates", detail: err?.message });
+  }
+});
+
+// ─── GET /executive-ai/replay ─────────────────────────────────────────────────
+
+executiveAiRouter.get("/executive-ai/replay", async (req, res) => {
+  try {
+    const reportId = req.query.reportId ? String(req.query.reportId) : null;
+    const limit    = Math.min(50, Math.max(1, Number(req.query.limit ?? 10)));
+
+    if (reportId) {
+      // Replay specific report
+      const rows = await db
+        .select()
+        .from(erReportsTable)
+        .where(eq(erReportsTable.reportId, reportId))
+        .limit(1);
+
+      if (!rows[0]) {
+        return res.status(404).json({ error: "Report not found for replay", reportId });
+      }
+
+      const trace = (rows[0].fullPayload as any)?.reasoningTrace ?? null;
+      return res.json({
+        success: true,
+        data: {
+          reportId:      rows[0].reportId,
+          traceId:       rows[0].traceId,
+          evaluatedAt:   rows[0].evaluatedAt,
+          selectedAction: rows[0].selectedAction,
+          isReplayable:  rows[0].isReplayable,
+          trace,
+          summary: {
+            durationMs:      rows[0].durationMs,
+            stagesCompleted: (trace?.stages ?? []).length,
+            conflictCount:   rows[0].conflictCount,
+            safetyPassed:    rows[0].allSafetyGatesPassed,
+          },
+        },
+      });
+    }
+
+    // List recent replayable traces
+    const traces = await db
+      .select()
+      .from(erTracesTable)
+      .orderBy(desc(erTracesTable.recordedAt))
+      .limit(limit);
+
+    res.json({
+      success: true,
+      data: {
+        traces: traces.map(t => ({
+          traceId:        t.traceId,
+          reportId:       t.reportId,
+          recordedAt:     t.recordedAt,
+          pair:           t.pair,
+          selectedAction: t.selectedAction,
+          executiveScore: t.executiveScore,
+          confidence:     t.confidence,
+          conflictCount:  t.conflictCount,
+          safetyPassed:   t.safetyPassed,
+          durationMs:     t.durationMs,
+        })),
+        total: traces.length,
+      },
+    });
+  } catch (err: any) {
+    res.status(500).json({ error: "Failed to replay", detail: err?.message });
   }
 });

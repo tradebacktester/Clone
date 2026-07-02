@@ -4,7 +4,8 @@ import {
   Brain, Zap, Shield, BarChart3, Activity, Clock, Eye,
   CheckCircle, XCircle, AlertTriangle, RefreshCw, TrendingUp,
   TrendingDown, Target, Layers, Scale, Info, ChevronRight,
-  Database, Star, GitBranch,
+  Database, Star, GitBranch, FlaskConical, Users, Gavel,
+  Lock, Play, RotateCcw, Filter,
 } from "lucide-react";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -130,13 +131,18 @@ function MiniBar({ value, color }: { value: number; color: string }) {
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 
 const TABS = [
-  { id: "decision",    label: "Decision",    icon: Brain },
-  { id: "systems",     label: "Systems",     icon: Layers },
-  { id: "conflicts",   label: "Conflicts",   icon: Scale },
-  { id: "evidence",    label: "Evidence",    icon: Eye },
-  { id: "timeline",    label: "Timeline",    icon: Clock },
-  { id: "report",      label: "Report",      icon: BarChart3 },
-  { id: "status",      label: "Status",      icon: Activity },
+  { id: "decision",     label: "Decision",     icon: Brain },
+  { id: "reasoning",    label: "Reasoning",    icon: FlaskConical },
+  { id: "advisors",     label: "Advisors",     icon: Users },
+  { id: "deliberation", label: "Deliberation", icon: Gavel },
+  { id: "safety-gates", label: "Safety Gates", icon: Lock },
+  { id: "replay",       label: "Replay",       icon: RotateCcw },
+  { id: "systems",      label: "Systems",      icon: Layers },
+  { id: "conflicts",    label: "Conflicts",    icon: Scale },
+  { id: "evidence",     label: "Evidence",     icon: Eye },
+  { id: "timeline",     label: "Timeline",     icon: Clock },
+  { id: "report",       label: "Report",       icon: BarChart3 },
+  { id: "status",       label: "Status",       icon: Activity },
 ];
 
 // ─── Main Page ────────────────────────────────────────────────────────────────
@@ -178,6 +184,45 @@ export default function ExecutiveCommandCenter() {
     queryKey: ["eai-report", refreshKey],
     queryFn: () => fetch(`${API}/executive-ai/report`).then(r => r.json()),
   });
+
+  const { data: reasoning, isFetching: reasoningFetching, refetch: refetchReasoning } = useQuery({
+    queryKey: ["er-reasoning", refreshKey],
+    queryFn: () => fetch(`${API}/executive-ai/reasoning`).then(r => r.json()),
+    enabled: tab === "reasoning" || tab === "advisors" || tab === "deliberation",
+    staleTime: 30_000,
+  });
+
+  const { data: safetyGatesData, refetch: refetchSafety } = useQuery({
+    queryKey: ["er-safety-gates", refreshKey],
+    queryFn: () => fetch(`${API}/executive-ai/safety-gates`).then(r => r.json()),
+    enabled: tab === "safety-gates",
+    refetchInterval: 30_000,
+  });
+
+  const { data: alternativesData } = useQuery({
+    queryKey: ["er-alternatives", refreshKey],
+    queryFn: () => fetch(`${API}/executive-ai/alternatives`).then(r => r.json()),
+    enabled: tab === "deliberation",
+  });
+
+  const { data: replayData, refetch: refetchReplay } = useQuery({
+    queryKey: ["er-replay", refreshKey],
+    queryFn: () => fetch(`${API}/executive-ai/replay?limit=15`).then(r => r.json()),
+    enabled: tab === "replay",
+  });
+
+  const [replayDetail, setReplayDetail] = useState<any>(null);
+  const [replayLoading, setReplayLoading] = useState(false);
+
+  async function loadReplay(reportId: string) {
+    setReplayLoading(true);
+    try {
+      const r = await fetch(`${API}/executive-ai/replay?reportId=${reportId}`).then(x => x.json());
+      setReplayDetail(r.data ?? null);
+    } finally {
+      setReplayLoading(false);
+    }
+  }
 
   const dec  = (decision?.data ?? {}) as any;
   const breakdown = dec.scoreBreakdown ?? {};
