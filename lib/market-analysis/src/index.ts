@@ -994,5 +994,5 @@ export type {
   SafetyGateReport,
   SafetyGateResult,
   EvidenceCollection,
-  EvidenceItem,
+  EvidenceItem as ErEvidenceItem,
 } from "./executive-reasoning/index.js";

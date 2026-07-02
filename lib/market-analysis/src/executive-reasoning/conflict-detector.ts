@@ -89,18 +89,24 @@ function detectMissingEvidence(advisors: AdvisorAssessment[]): ConflictEntry[] {
   const missing = advisors.filter(a => a.dataQuality === "missing");
   if (missing.length === 0) return [];
 
-  return missing.map(a => ({
-    conflictId:      `c_${randomUUID().slice(0, 6)}`,
-    advisorA:        a.advisorName,
-    advisorB:        "Evidence System",
-    recommendationA: a.recommendation,
-    recommendationB: "observe" as EaiDecisionType,
-    confidenceA:     a.confidence,
-    confidenceB:     0,
-    conflictType:    "missing_evidence" as const,
-    severity:        "moderate" as ConflictSeverity,
-    description:     `${a.advisorName} has missing data quality — recommendation is unreliable`,
-  }));
+  // Only flag as a conflict when the missing-data advisor recommends something
+  // ≥2 rank levels more aggressive than "observe" (i.e. trade or wait).
+  // A single-rank divergence (wait vs observe) is handled as an uncertainty flag,
+  // not a structural conflict, so aligned-advisor scenarios don't produce spurious entries.
+  return missing
+    .filter(a => rankDiff(a.recommendation, "observe") >= 2)
+    .map(a => ({
+      conflictId:      `c_${randomUUID().slice(0, 6)}`,
+      advisorA:        a.advisorName,
+      advisorB:        "Evidence System",
+      recommendationA: a.recommendation,
+      recommendationB: "observe" as EaiDecisionType,
+      confidenceA:     a.confidence,
+      confidenceB:     0,
+      conflictType:    "missing_evidence" as const,
+      severity:        "moderate" as ConflictSeverity,
+      description:     `${a.advisorName} has missing data quality yet recommends '${a.recommendation}' — recommendation may be unreliable`,
+    }));
 }
 
 // ─── Detect risk-policy violations ───────────────────────────────────────────

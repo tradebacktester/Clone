@@ -25,6 +25,7 @@ export type {
   ExecutiveReasoningReport,
   RunReasoningInput,
   ReasoningTrace,
+  ReasoningStage,
   AdvisorAssessment,
   AdvisorId,
   ConflictMatrix,
