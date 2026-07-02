@@ -1,0 +1,180 @@
+KRYTOS V2 – Phase 7 (Prompt 3/5)
+Project: Executive Judgment & Decision Simulation Engine
+The following systems are complete:
+Rule Engine
+Memory System
+Learning System
+Market Intelligence
+Strategy Intelligence
+Risk Intelligence
+Executive Strategy Brain
+Executive Risk Brain
+Research Laboratory
+Trader Identity Engine
+Unified Intelligence Engine
+Executive AI Core
+Executive Reasoning Engine
+Now build the Executive Judgment & Decision Simulation Engine.
+The objective is to allow KRYTOS to evaluate multiple possible decisions before taking action and select the most evidence-supported course while remaining completely explainable.
+This module does not predict the future.
+Instead, it compares realistic alternatives using available intelligence and historical evidence.
+Objective
+Before every trade, Executive AI must simulate multiple possible decisions.
+It should ask:
+Should I trade now?
+Should I wait?
+Should I reduce risk?
+Should I ignore this setup?
+Should I observe the market longer?
+Which decision has historically produced the best outcome under similar conditions?
+The chosen action must maximize long-term robustness rather than short-term profit.
+Decision Simulation Engine
+Generate candidate decisions such as:
+Execute Trade
+Wait One Candle
+Wait Until Confirmation
+Reduce Position Size
+Observation Mode
+Skip Trade
+Emergency Pause (if required)
+Each candidate must be evaluated independently.
+Multi-Scenario Evaluation
+For every candidate calculate:
+Expected Probability of Success
+Expected Risk
+Historical Win Rate
+Historical Drawdown
+Expected RR
+Confidence
+Supporting Sample Size
+Similar Historical Cases
+Store all evaluations.
+Opportunity Cost Analysis
+Evaluate:
+If KRYTOS skips this trade:
+What opportunities may be missed?
+What risks are avoided?
+If KRYTOS takes this trade:
+What is the expected benefit?
+What is the downside?
+Generate an Opportunity Cost Score.
+Decision Ranking
+Rank all candidate decisions.
+Include:
+Overall Score
+Expected Value
+Confidence
+Risk
+Historical Evidence
+Statistical Reliability
+Choose the highest-ranked decision.
+Judgment Engine
+Every final decision must include:
+Best Decision
+Second Best Decision
+Third Best Decision
+Explain:
+Why the winning decision ranked highest.
+Why alternatives were rejected.
+Which evidence had the greatest influence.
+Counterfactual Analysis
+After every completed trade perform:
+"What would have happened if another decision had been selected?"
+Compare:
+Actual Result
+Simulated Alternatives
+Difference in Outcome
+Store this for future learning.
+Executive Judgment Object
+Generate:
+Judgment ID
+Decision Candidates
+Rankings
+Opportunity Cost
+Final Decision
+Confidence
+Evidence
+Historical References
+Counterfactual Results (when available)
+Store permanently.
+Explainability
+Every judgment must explain:
+Every alternative considered.
+Why it ranked where it did.
+Which subsystem influenced the ranking.
+Confidence interval.
+Statistical reliability.
+Historical support.
+No hidden reasoning.
+APIs
+Create:
+GET /executive/judgment
+GET /executive/simulations
+GET /executive/rankings
+GET /executive/opportunity-cost
+GET /executive/counterfactual
+GET /executive/report
+Dashboard
+Create:
+/executive-judgment
+Include:
+Final Decision
+Alternative Decisions
+Decision Rankings
+Opportunity Cost
+Historical Similar Cases
+Confidence
+Counterfactual Analysis
+Evidence Explorer
+Timeline
+Reports
+Generate:
+EXECUTIVE_JUDGMENT_ENGINE.md
+DECISION_SIMULATION_REPORT.md
+OPPORTUNITY_COST_REPORT.md
+COUNTERFACTUAL_ANALYSIS_REPORT.md
+Include:
+Architecture
+Simulation methodology
+Ranking methodology
+Explainability
+Validation
+Statistical evidence
+Scalability
+Validation
+Validate:
+Ranking consistency
+Historical reproducibility
+Confidence calibration
+Decision stability
+Counterfactual accuracy
+Explainability
+Reject unsupported conclusions.
+Testing
+Create comprehensive tests covering:
+Decision simulation
+Ranking engine
+Opportunity cost analysis
+Counterfactual generation
+APIs
+Dashboard
+Reports
+Performance under high-frequency decision making
+Target institutional-grade reliability.
+Rules
+The Executive Judgment Engine MAY:
+Simulate multiple decision paths.
+Rank alternatives.
+Recommend the strongest option.
+Learn from counterfactual analysis.
+Improve future decision quality.
+It must NEVER:
+Predict future prices as certainty.
+Rewrite the deterministic strategy.
+Ignore Executive Risk decisions.
+Deploy experimental research.
+Bypass safety or approval workflows.
+The Executive Judgment Engine exists to ensure that every trade is selected only after objectively comparing all reasonable alternatives using evidence, historical performance, and transparent reasoning.
+Final Deliverable
+Generate:
+PHASE_7_EXECUTIVE_JUDGMENT_CERTIFICATION.md

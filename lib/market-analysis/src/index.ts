@@ -996,3 +996,29 @@ export type {
   EvidenceCollection,
   EvidenceItem as ErEvidenceItem,
 } from "./executive-reasoning/index.js";
+
+// ─── Executive Judgment & Decision Simulation Engine (Phase 7.3) ──────────────
+export {
+  EJ_ENGINE_VERSION,
+  runExecutiveJudgment,
+  simulateAllDecisions,
+  ALL_DECISION_TYPES,
+  analyzeOpportunityCost,
+  rankDecisions,
+  buildJudgmentExplainability,
+  buildCounterfactualAnalysis,
+  DECISION_TYPE_LABELS,
+  DECISION_TYPE_DESCRIPTIONS,
+} from "./executive-judgment/index.js";
+export type {
+  ExecutiveJudgment,
+  RunJudgmentInput,
+  DecisionSimulation,
+  DecisionType,
+  DecisionRanking,
+  OpportunityCostAnalysis,
+  OpportunityCostScenario,
+  CounterfactualAnalysis,
+  CounterfactualResult,
+  JudgmentExplainability,
+} from "./executive-judgment/index.js";
