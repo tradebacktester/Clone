@@ -56,6 +56,7 @@ const AdaptiveRisk          = lazy(() => import("@/pages/adaptive-risk"));
 const CrisisCommandCenter   = lazy(() => import("@/pages/crisis-command-center"));
 const ExecutiveCommandCenter = lazy(() => import("@/pages/executive-command-center"));
 const ExecutiveJudgment      = lazy(() => import("@/pages/executive-judgment"));
+const MissionControl         = lazy(() => import("@/pages/mission-control"));
 const NotFound = lazy(() => import("@/pages/not-found"));
 
 const queryClient = new QueryClient({
@@ -128,6 +129,7 @@ function Router() {
           <Route path="/crisis-command-center" component={CrisisCommandCenter} />
           <Route path="/executive-command-center" component={ExecutiveCommandCenter} />
           <Route path="/executive-judgment"       component={ExecutiveJudgment} />
+          <Route path="/mission-control"          component={MissionControl} />
           <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>

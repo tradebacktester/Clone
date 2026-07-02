@@ -52,6 +52,7 @@ import crisisRouter                    from "./crisis";
 import { executiveRiskRouter }          from "./executive-risk";
 import { executiveAiRouter }            from "./executive-ai";
 import { executiveJudgmentRouter }      from "./executive-judgment";
+import { executivePlanningRouter }     from "./executive-planning";
 
 const router: IRouter = Router();
 
@@ -108,5 +109,6 @@ router.use(crisisRouter);
 router.use(executiveRiskRouter);
 router.use(executiveAiRouter);
 router.use(executiveJudgmentRouter);
+router.use(executivePlanningRouter);
 
 export default router;

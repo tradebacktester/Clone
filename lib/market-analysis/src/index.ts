@@ -1022,3 +1022,34 @@ export type {
   CounterfactualResult,
   JudgmentExplainability,
 } from "./executive-judgment/index.js";
+
+// ─── Executive Planning, Goal Management & Mission Control Engine (Phase 7.4) ──
+export {
+  EP_ENGINE_VERSION,
+  runExecutiveMission,
+  generateAllGoals,
+  prioritizeGoals,
+  detectAndResolveConflicts,
+  generateAllPlans,
+  trackGoalProgress,
+  computeMissionHealth,
+  GOAL_LEVEL_LABELS,
+  GOAL_LEVEL_NAMES,
+} from "./executive-planning/index.js";
+export type {
+  ExecutiveMission,
+  RunMissionInput,
+  Goal,
+  GoalLevel,
+  GoalLevelName,
+  GoalStatus,
+  GoalCategory,
+  GoalConflict,
+  ConflictType,
+  ExecutivePlan,
+  PlanHorizon,
+  PlanAction,
+  GoalProgress,
+  MissionHealth,
+  MissionHealthStatus,
+} from "./executive-planning/index.js";
